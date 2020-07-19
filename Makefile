@@ -1,8 +1,8 @@
-all : backward learn adam
+all : 01-backward 02-learn 03-adam
 
-backward : backward.cc libtorch
-learn : learn.cc libtorch
-adam : adam.cc libtorch
+backward : 01-backward.cc libtorch
+learn : 02-learn.cc libtorch
+adam : 03-adam.cc libtorch
 
 % : %.cc libtorch
 	clang++ -std=c++14 \
