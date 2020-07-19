@@ -6,6 +6,8 @@ It shows how to write deep learning programs in C++ by calling the PyTorch C++ A
 
 ## Build
 
+Please install Xcode and make.  You don't need Python or other weird stuff.
+
 ```bash
 make
 ```
