@@ -1,4 +1,9 @@
-demo : demo.cc libtorch/lib/libc10.dylib libtorch/lib/libtorch.dylib libtorch/lib/libtorch_cpu.dylib
+all : backward learn
+
+backward : backward.cc libtorch
+learn : learn.cc libtorch
+
+% : %.cc libtorch
 	clang++ -std=c++14 \
 	-I libtorch/include \
 	-L libtorch/lib \
@@ -15,7 +20,3 @@ libtorch-macos-1.5.1.zip :
 
 libtorch : libtorch-macos-1.5.1.zip
 	unzip -qq -o $<
-
-libtorch/lib/libc10.dylib : libtorch
-libtorch/lib/libtorch.dylib : libtorch
-libtorch/lib/libtorch_cpu.dylib : libtorch
