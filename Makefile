@@ -1,11 +1,13 @@
-all : backward learn
+all : backward learn adam
 
 backward : backward.cc libtorch
 learn : learn.cc libtorch
+adam : adam.cc libtorch
 
 % : %.cc libtorch
 	clang++ -std=c++14 \
 	-I libtorch/include \
+	-I libtorch/include/torch/csrc/api/include \
 	-L libtorch/lib \
 	$< \
 	-o $@ \
