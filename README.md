@@ -15,5 +15,5 @@ make
 ## Run
 
 ```bash
-./demo
+./learn
 ```
