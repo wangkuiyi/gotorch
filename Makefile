@@ -14,7 +14,7 @@ libtorch-macos-1.5.1.zip :
 	wget https://download.pytorch.org/libtorch/cpu/libtorch-macos-1.5.1.zip
 
 libtorch : libtorch-macos-1.5.1.zip
-	unzip -qq $<
+	unzip -qq -o $<
 
 libtorch/lib/libc10.dylib : libtorch
 libtorch/lib/libtorch.dylib : libtorch
