@@ -1,4 +1,4 @@
-all : libcgotorch.so		#01-backward 02-learn 03-adam
+all : libcgotorch.so
 
 libtorch-macos-1.5.1.zip :
 	wget https://download.pytorch.org/libtorch/cpu/libtorch-macos-1.5.1.zip
@@ -6,7 +6,7 @@ libtorch-macos-1.5.1.zip :
 libtorch : libtorch-macos-1.5.1.zip
 	unzip -qq -o $<
 
-libcgotorch.so : ctorch.cc ctorch.h libtorch
+libcgotorch.so : cgotorch.cc cgotorch.h libtorch
 	clang++ -std=c++14 \
 	-I libtorch/include \
 	-I libtorch/include/torch/csrc/api/include \

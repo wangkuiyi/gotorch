@@ -1,4 +1,4 @@
-#include "ctorch.h"
+#include "cgotorch.h"
 
 #include "torch/script.h"
 
