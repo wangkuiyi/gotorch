@@ -1,6 +1,7 @@
 #include "cgotorch.h"
 
 #include <iostream>
+#include <sstream>
 
 #include "torch/script.h"
 
@@ -21,19 +22,29 @@ Tensor Sum(Tensor a) {
   return new at::Tensor(std::move(r));
 }
 
-void Backward(Tensor a) {
+void Tensor_Backward(Tensor a) {
   static_cast<at::Tensor*>(a)->backward();
 }
 
-Tensor Grad(Tensor a) {
+Tensor Tensor_Grad(Tensor a) {
   at::Tensor r = static_cast<at::Tensor*>(a)->grad();
   return new at::Tensor(std::move(r));
 }
 
-void PrintTensor(Tensor a) {
+void Tensor_Print(Tensor a) {
   std::cout << *static_cast<at::Tensor*>(a) << std::endl;
 }
 
+// The caller must free the returned string by calling FreeString.
 const char* Tensor_String(Tensor a) {
-  return static_cast<at::Tensor*>(a)->toString().c_str()
+  std::stringstream ss;
+  ss << *static_cast<at::Tensor*>(a);
+  std::string s = ss.str();
+  char* r = new char[s.size()];
+  strcpy(r, s.c_str());
+  return r;
+}
+
+void FreeString(const char* s) {
+  delete[] s;
 }

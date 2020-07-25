@@ -5,50 +5,62 @@ package main
 // #cgo LDFLAGS: -L ./cgotorch -lcgotorch -L ./cgotorch/libtorch/lib -lc10 -ltorch -ltorch_cpu
 // #include "cgotorch.h"
 import "C"
+import "fmt"
 
-func RandN(rows, cols int, require_grad bool) C.Tensor {
+type Tensor struct {
+	T C.Tensor
+}
+
+func RandN(rows, cols int, require_grad bool) Tensor {
 	rg := 0
 	if require_grad {
 		rg = 1
 	}
-	return C.RandN(C.int(rows), C.int(cols), C.int(rg))
+	return Tensor{C.RandN(C.int(rows), C.int(cols), C.int(rg))}
 }
 
-func MM(a, b C.Tensor) C.Tensor {
-	return C.MM(a, b)
+func MM(a, b Tensor) Tensor {
+	return Tensor{C.MM(a.T, b.T)}
 }
 
-func Sum(a C.Tensor) C.Tensor {
-	return C.Sum(a)
+func Sum(a Tensor) Tensor {
+	return Tensor{C.Sum(a.T)}
 }
 
-func PrintTensor(a C.Tensor) {
-	C.PrintTensor(a)
+func (a Tensor) String() string {
+	s := C.Tensor_String(a.T)
+	r := C.GoString(s)
+	C.FreeString(s)
+	return r
 }
 
-func Backward(a C.Tensor) {
-	C.Backward(a)
+func (a Tensor) Print() {
+	C.Tensor_Print(a.T)
 }
 
-func Grad(a C.Tensor) C.Tensor {
-	return C.Grad(a)
+func (a Tensor) Backward() {
+	C.Tensor_Backward(a.T)
+}
+
+func (a Tensor) Grad() Tensor {
+	return Tensor{C.Tensor_Grad(a.T)}
 }
 
 func main() {
 	a := RandN(3, 4, true)
-	PrintTensor(a)
+	fmt.Println(a)
 
 	b := RandN(4, 1, true)
-	PrintTensor(b)
+	fmt.Println(b)
 
 	c := MM(a, b)
-	PrintTensor(c)
+	fmt.Println(c)
 
 	d := Sum(c)
-	PrintTensor(d)
+	fmt.Println(d)
 
-	Backward(d)
+	d.Backward()
 
-	PrintTensor(Grad(a))
-	PrintTensor(Grad(b))
+	fmt.Println(a.Grad())
+	fmt.Println(b.Grad())
 }
