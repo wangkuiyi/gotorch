@@ -7,14 +7,8 @@ cd cgotorch
 make
 ```
 
-To build the example, run the following command
+To run the example, run the following command
 
 ```bash
-go install
-```
-
-To run the example, type the following command
-
-```bash
-$GOPATH/bin/gotorch
+go run 01-backward.go
 ```

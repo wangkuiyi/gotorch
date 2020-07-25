@@ -14,9 +14,12 @@ libcgotorch.so : cgotorch.cc cgotorch.h libtorch
 	-fPIC \
 	-shared \
 	$< \
-	-o $@ \
+	-o $@ -install_name @rpath/$@ \
 	-Wl,-rpath,libtorch/lib \
 	-Wl,-all_load libtorch/lib/libc10.dylib \
 	libtorch/lib/libc10.dylib \
 	libtorch/lib/libtorch.dylib \
 	libtorch/lib/libtorch_cpu.dylib
+
+clean:
+	rm -rf *.so

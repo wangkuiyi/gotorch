@@ -1,10 +1,8 @@
 package main
 
-// #cgo CFLAGS: -I ./libtorch/include
-// #cgo CFLAGS: -I ./libtorch/include/torch/csrc/api/include
 // #cgo CFLAGS: -I ./cgotorch
-// #cgo LDFLAGS: -L ./cgotorch -L ./cgotorch/libtorch/lib
-// #cgo LDFLAGS: -lcgotorch -lc10 -ltorch -ltorch_cpu
+// #cgo LDFLAGS: -Wl,-rpath ./cgotorch
+// #cgo LDFLAGS: -L ./cgotorch -lcgotorch -L ./cgotorch/libtorch/lib -lc10 -ltorch -ltorch_cpu
 // #include "cgotorch.h"
 import "C"
 
@@ -28,6 +26,14 @@ func PrintTensor(a C.Tensor) {
 	C.PrintTensor(a)
 }
 
+func Backward(a C.Tensor) {
+	C.Backward(a)
+}
+
+func Grad(a C.Tensor) C.Tensor {
+	return C.Grad(a)
+}
+
 func main() {
 	a := RandN(3, 4, true)
 	PrintTensor(a)
@@ -41,8 +47,8 @@ func main() {
 	d := Sum(c)
 	PrintTensor(d)
 
-	// d.Backward()
+	Backward(d)
 
-	// fmt.Println("a.grad = ", a.Grad())
-	// fmt.Println("b.grad = ", b.Grad())
+	PrintTensor(Grad(a))
+	PrintTensor(Grad(b))
 }
