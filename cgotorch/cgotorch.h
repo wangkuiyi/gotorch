@@ -13,6 +13,7 @@ extern "C" {
   void Backward(Tensor a);
   Tensor Grad(Tensor a);
   void PrintTensor(Tensor a);
+  const char* Tensor_String(Tensor a);
 
 #ifdef __cplusplus
 }

@@ -33,3 +33,7 @@ Tensor Grad(Tensor a) {
 void PrintTensor(Tensor a) {
   std::cout << *static_cast<at::Tensor*>(a) << std::endl;
 }
+
+const char* Tensor_String(Tensor a) {
+  return static_cast<at::Tensor*>(a)->toString().c_str()
+}
