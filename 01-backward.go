@@ -5,12 +5,8 @@ package main
 // #cgo CFLAGS: -I ./cgotorch
 // #cgo LDFLAGS: -L ./cgotorch -L ./cgotorch/libtorch/lib
 // #cgo LDFLAGS: -lcgotorch -lc10 -ltorch -ltorch_cpu
-// #include "ctorch.h"
+// #include "cgotorch.h"
 import "C"
-
-import (
-	"fmt"
-)
 
 func RandN(rows, cols int, require_grad bool) C.Tensor {
 	rg := 0
@@ -28,18 +24,22 @@ func Sum(a C.Tensor) C.Tensor {
 	return C.Sum(a)
 }
 
+func PrintTensor(a C.Tensor) {
+	C.PrintTensor(a)
+}
+
 func main() {
 	a := RandN(3, 4, true)
-	fmt.Println("a = ", a)
+	PrintTensor(a)
 
 	b := RandN(4, 1, true)
-	fmt.Println("b = ", b)
+	PrintTensor(b)
 
 	c := MM(a, b)
-	fmt.Println("c = ", c)
+	PrintTensor(c)
 
 	d := Sum(c)
-	fmt.Println("d = ", d)
+	PrintTensor(d)
 
 	// d.Backward()
 

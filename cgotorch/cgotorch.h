@@ -9,6 +9,7 @@ extern "C" {
   Tensor RandN(int rows, int cols, int require_grad);
   Tensor MM(Tensor a, Tensor b);
   Tensor Sum(Tensor a);
+  void PrintTensor(Tensor a);
 
 #ifdef __cplusplus
 }
