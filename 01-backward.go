@@ -1,27 +1,48 @@
 package main
 
+// #cgo CFLAGS: -I ./libtorch/include
+// #cgo CFLAGS: -I ./libtorch/include/torch/csrc/api/include
+// #cgo CFLAGS: -I ./cgotorch
+// #cgo LDFLAGS: -L ./cgotorch -L ./cgotorch/libtorch/lib
+// #cgo LDFLAGS: -lcgotorch -lc10 -ltorch -ltorch_cpu
+// #include "ctorch.h"
+import "C"
+
 import (
 	"fmt"
-
-	"github.com/gotorch/gotorch/at"
-	"github.com/gotorch/gotorch/torch"
 )
 
+func RandN(rows, cols int, require_grad bool) C.Tensor {
+	rg := 0
+	if require_grad {
+		rg = 1
+	}
+	return C.RandN(C.int(rows), C.int(cols), C.int(rg))
+}
+
+func MM(a, b C.Tensor) C.Tensor {
+	return C.MM(a, b)
+}
+
+func Sum(a C.Tensor) C.Tensor {
+	return C.Sum(a)
+}
+
 func main() {
-	a := torch::randn([]int{3, 4}, at::TensorOptions().requires_grad(true))
+	a := RandN(3, 4, true)
 	fmt.Println("a = ", a)
 
-	b := torch::randn([]int{4, 1}, at::TensorOptions().requires_grad(true))
+	b := RandN(4, 1, true)
 	fmt.Println("b = ", b)
 
-	c := at::mm(a, b)
+	c := MM(a, b)
 	fmt.Println("c = ", c)
 
-	d := c.sum()
+	d := Sum(c)
 	fmt.Println("d = ", d)
 
-	d.backward();
+	// d.Backward()
 
-	fmt.Println("a.grad = ", a.grad())
-	fmt.Println("b.grad = ", b.grad())
+	// fmt.Println("a.grad = ", a.Grad())
+	// fmt.Println("b.grad = ", b.Grad())
 }
