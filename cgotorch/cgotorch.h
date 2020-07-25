@@ -10,9 +10,9 @@ extern "C" {
   Tensor MM(Tensor a, Tensor b);
   Tensor Sum(Tensor a);
 
-  void Backward(Tensor a);
-  Tensor Grad(Tensor a);
-  void PrintTensor(Tensor a);
+  void Tensor_Backward(Tensor a);
+  Tensor Tensor_Grad(Tensor a);
+  void Tensor_Print(Tensor a);
 
 #ifdef __cplusplus
 }
