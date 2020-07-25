@@ -1,19 +1,20 @@
-# cxxtorch
+# gotorch
 
-This is an simplified version of https://github.com/ljk53/pytorch-cpp -- the Makefile works only with macOS.
-
-It shows how to write deep learning programs in C++ by calling the PyTorch C++ API.
-
-## Build
-
-Please install Xcode and make.  You don't need Python or other weird stuff.
+To build cgotorch, the wrapper of libtorch in Cgo, run the following command
 
 ```bash
+cd cgotorch
 make
 ```
 
-## Run
+To build the example, run the following command
 
 ```bash
-./learn
+go install
+```
+
+To run the example, type the following command
+
+```bash
+$GOPATH/bin/gotorch
 ```
