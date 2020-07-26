@@ -1,0 +1,14 @@
+language: go
+dist: bionic
+
+cache:
+  directories:
+    - cgotorch/libtorch
+
+before_install:
+  - apt-get -qq update > /dev/null
+  - apt-get -qq install -y make clang++
+
+script:
+  - (cd cgotorch; make)
+  - go run 01-backward.go
