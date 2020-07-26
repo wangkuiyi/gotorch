@@ -6,8 +6,8 @@ cache:
     - cgotorch/libtorch
 
 before_install:
-  - apt-get -qq update > /dev/null
-  - apt-get -qq install -y make clang++
+  - sudo apt-get -qq update > /dev/null
+  - sudo apt-get -qq install -y make clang++
 
 script:
   - (cd cgotorch; make)
