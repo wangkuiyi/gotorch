@@ -1,4 +1,4 @@
-language: go
+language: generic
 dist: bionic
 
 cache:
