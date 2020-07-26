@@ -6,49 +6,53 @@ package main
 // #include "cgotorch.h"
 import "C"
 
-func RandN(rows, cols int, require_grad bool) C.Tensor {
+type Tensor struct {
+	T C.Tensor
+}
+
+func RandN(rows, cols int, require_grad bool) Tensor {
 	rg := 0
 	if require_grad {
 		rg = 1
 	}
-	return C.RandN(C.int(rows), C.int(cols), C.int(rg))
+	return Tensor{C.RandN(C.int(rows), C.int(cols), C.int(rg))}
 }
 
-func MM(a, b C.Tensor) C.Tensor {
-	return C.MM(a, b)
+func MM(a, b Tensor) Tensor {
+	return Tensor{C.MM(a.T, b.T)}
 }
 
-func Sum(a C.Tensor) C.Tensor {
-	return C.Sum(a)
+func Sum(a Tensor) Tensor {
+	return Tensor{C.Sum(a.T)}
 }
 
-func PrintTensor(a C.Tensor) {
-	C.PrintTensor(a)
+func (a Tensor) Print() {
+	C.Tensor_Print(a.T)
 }
 
-func Backward(a C.Tensor) {
-	C.Backward(a)
+func (a Tensor) Backward() {
+	C.Tensor_Backward(a.T)
 }
 
-func Grad(a C.Tensor) C.Tensor {
-	return C.Grad(a)
+func (a Tensor) Grad() Tensor {
+	return Tensor{C.Tensor_Grad(a.T)}
 }
 
 func main() {
 	a := RandN(3, 4, true)
-	PrintTensor(a)
+	a.Print()
 
 	b := RandN(4, 1, true)
-	PrintTensor(b)
+	b.Print()
 
 	c := MM(a, b)
-	PrintTensor(c)
+	c.Print()
 
 	d := Sum(c)
-	PrintTensor(d)
+	d.Print()
 
-	Backward(d)
+	d.Backward()
 
-	PrintTensor(Grad(a))
-	PrintTensor(Grad(b))
+	a.Grad().Print()
+	b.Grad().Print()
 }
