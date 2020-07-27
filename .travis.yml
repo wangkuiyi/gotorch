@@ -5,6 +5,10 @@ language: generic
 os: osx
 compiler: clang
 
+cache:
+  directories:
+    # https://pre-commit.com/#travis-ci-example 
+    - $HOME/.cache/pre-commit
 branches:
   only: 
     - master
@@ -15,4 +19,5 @@ before_install:
 
 script:
   - (cd cgotorch; make)
+  - pre-commit -a
   - go run 01-backward.go
