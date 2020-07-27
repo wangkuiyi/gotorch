@@ -27,5 +27,5 @@ before_install:
 
 script:
   - (cd cgotorch; make)
-  - pre-commit -a
+  - pre-commit run -a
   - go run 01-backward.go
