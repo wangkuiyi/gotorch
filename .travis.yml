@@ -5,6 +5,14 @@ language: generic
 os: osx
 compiler: clang
 
+addons:
+  apt:
+    packages:
+      - python3-pip
+
+install:
+  - pip install pre-commit
+
 cache:
   directories:
     # https://pre-commit.com/#travis-ci-example 
@@ -18,6 +26,7 @@ before_install:
   - brew install wget
 
 script:
+  - set -e
   - (cd cgotorch; make)
   - pre-commit -a
   - go run 01-backward.go
