@@ -2,15 +2,15 @@
 # https://docs.travis-ci.com/user/languages/minimal-and-generic/#generic, the
 # generic language includes Go.
 language: generic
-dist: bionic
+os: osx
 
 cache:
   directories:
     - cgotorch/libtorch
 
 before_install:
-  - sudo apt-get update
-  - sudo apt-get install -y make wget clang
+  - brew update
+  - brew install -y make wget clang
 
 script:
   - (cd cgotorch; make)
