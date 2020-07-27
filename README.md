@@ -1,14 +1,13 @@
 # gotorch
 
-To build cgotorch, the wrapper of libtorch in Cgo, run the following command
+We use docker as the development environment. To build the image, run the following command
 
 ```bash
-cd cgotorch
-make
+docker build -t gotorch:dev .
 ```
 
 To run the example, run the following command
 
 ```bash
-go run 01-backward.go
+docker run --rm -it -v $PWD:/work -w /work gotorch:dev ./build_and_test.sh
 ```

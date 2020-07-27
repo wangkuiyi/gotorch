@@ -1,8 +1,8 @@
 package main
 
 // #cgo CFLAGS: -I ./cgotorch
-// #cgo LDFLAGS: -Wl,-rpath ./cgotorch
-// #cgo LDFLAGS: -L ./cgotorch -lcgotorch -L ./cgotorch/libtorch/lib -lc10 -ltorch -ltorch_cpu
+// #cgo LDFLAGS: -L ./cgotorch -Wl,-rpath ./cgotorch -lcgotorch
+// #cgo LDFLAGS: -lc10 -ltorch -ltorch_cpu
 // #include "cgotorch.h"
 import "C"
 
