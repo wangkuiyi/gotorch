@@ -1,0 +1,18 @@
+# According to
+# https://docs.travis-ci.com/user/languages/minimal-and-generic/#generic, the
+# generic language includes Go.
+language: generic
+os: osx
+compiler: clang
+
+branches:
+  only: 
+    - master
+
+before_install:
+  - brew update
+  - brew install wget
+
+script:
+  - (cd cgotorch; make)
+  - go run 01-backward.go
