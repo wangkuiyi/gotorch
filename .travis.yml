@@ -26,7 +26,6 @@ before_install:
   - brew install wget
 
 script:
-  - set -e
   - (cd cgotorch; make)
   - pre-commit -a
   - go run 01-backward.go
