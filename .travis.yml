@@ -9,10 +9,6 @@ branches:
   only: 
     - master
 
-cache:
-  directories:
-    - cgotorch/libtorch
-
 before_install:
   - brew update
   - brew install wget
