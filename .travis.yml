@@ -3,6 +3,7 @@
 # generic language includes Go.
 language: generic
 os: osx
+compiler: clang
 
 cache:
   directories:
@@ -10,7 +11,7 @@ cache:
 
 before_install:
   - brew update
-  - brew install wget clang
+  - brew install wget
 
 script:
   - (cd cgotorch; make)
