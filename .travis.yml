@@ -31,7 +31,7 @@ branches:
     - master
 
 before_install:
-  - bash ./scripts/ci-install.sh
+  - bash .scripts/install-ci-tools.sh
 
 script:
 
