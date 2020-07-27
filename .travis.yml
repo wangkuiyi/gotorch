@@ -2,7 +2,7 @@
 # https://docs.travis-ci.com/user/languages/minimal-and-generic/#generic, the
 # generic language includes Go.
 language: generic
-dist: bionic
+dist: osx
 
 cache:
   directories:
