@@ -1,14 +1,8 @@
 #!/bin/bash
 
-set -ex
+set -e
 
 go env -w GO111MODULE=on
-go get \
-   golang.org/x/lint/golint
-
-echo "$GOPATH"
-echo "$GOROOT"
-
-ls -lt "$GOPATH"/bin
+go get golang.org/x/lint/golint
 
 cp "$GOPATH"/bin/* /usr/local/bin/
