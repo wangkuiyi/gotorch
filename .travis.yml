@@ -31,8 +31,6 @@ branches:
     - master
 
 before_install:
-  - brew update
-  - brew install wget
   - bash ./scripts/ci-install.sh
 
 script:
