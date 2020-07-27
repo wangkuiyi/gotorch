@@ -5,6 +5,10 @@ language: generic
 os: osx
 compiler: clang
 
+cache:
+  directories:
+    - cgotorch/libtorch
+
 before_install:
   - brew update
   - brew install wget
