@@ -10,9 +10,12 @@ extern "C" {
   Tensor MM(Tensor a, Tensor b);
   Tensor Sum(Tensor a);
 
+  const char* Tensor_String(Tensor a);
   void Tensor_Backward(Tensor a);
   Tensor Tensor_Grad(Tensor a);
   void Tensor_Print(Tensor a);
+
+  void FreeString(const char * s);
 
 #ifdef __cplusplus
 }

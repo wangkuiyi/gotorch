@@ -1,6 +1,7 @@
 #include "cgotorch.h"
 
 #include <iostream>
+#include <sstream>
 
 #include "torch/script.h"
 
@@ -32,4 +33,17 @@ Tensor Tensor_Grad(Tensor a) {
 
 void Tensor_Print(Tensor a) {
   std::cout << *static_cast<at::Tensor*>(a) << std::endl;
+}
+
+// The caller must free the returned string by calling FreeString.
+const char* Tensor_String(Tensor a) {
+  std::stringstream ss;
+  ss << *static_cast<at::Tensor*>(a);
+  std::string s = ss.str();
+  char* r = new char[s.size() + 1];
+  return strcpy(r, s.c_str());
+}
+
+void FreeString(const char* s) {
+  delete[] s;
 }
