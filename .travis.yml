@@ -4,7 +4,7 @@
 language: generic
 os:
   - osx
-  # - bionic
+  - bionic
 compiler: clang
 
 addons:
@@ -25,6 +25,7 @@ cache:
   directories:
     # https://pre-commit.com/#travis-ci-example
     - $HOME/.cache/pre-commit
+    - /usr/local/go
 
 branches:
   only:
@@ -34,7 +35,6 @@ before_install:
   - bash .scripts/install-ci-tools.sh
 
 script:
-
   - (cd cgotorch; make)
   - pre-commit run -a
   - go run 01-backward.go
