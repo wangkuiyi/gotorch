@@ -4,7 +4,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-
+  
   typedef void* Tensor;
   Tensor RandN(int rows, int cols, int require_grad);
   Tensor MM(Tensor a, Tensor b);
