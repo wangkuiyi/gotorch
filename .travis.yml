@@ -10,7 +10,7 @@ cache:
 
 before_install:
   - brew update
-  - brew install -y make wget clang
+  - brew install wget clang
 
 script:
   - (cd cgotorch; make)
