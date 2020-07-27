@@ -5,6 +5,7 @@ package main
 // #cgo LDFLAGS: -L ./cgotorch -lcgotorch -L ./cgotorch/libtorch/lib -lc10 -ltorch -ltorch_cpu
 // #include "cgotorch.h"
 import "C"
+import "fmt"
 
 type Tensor struct {
 	T C.Tensor
@@ -26,6 +27,13 @@ func Sum(a Tensor) Tensor {
 	return Tensor{C.Sum(a.T)}
 }
 
+func (a Tensor) String() string {
+	s := C.Tensor_String(a.T)
+	r := C.GoString(s)
+	C.FreeString(s)
+	return r
+}
+
 func (a Tensor) Print() {
 	C.Tensor_Print(a.T)
 }
@@ -40,19 +48,19 @@ func (a Tensor) Grad() Tensor {
 
 func main() {
 	a := RandN(3, 4, true)
-	a.Print()
+	fmt.Println(a)
 
 	b := RandN(4, 1, true)
-	b.Print()
+	fmt.Println(b)
 
 	c := MM(a, b)
-	c.Print()
+	fmt.Println(c)
 
 	d := Sum(c)
-	d.Print()
+	fmt.Println(d)
 
 	d.Backward()
 
-	a.Grad().Print()
-	b.Grad().Print()
+	fmt.Println(a.Grad())
+	fmt.Println(b.Grad())
 }
