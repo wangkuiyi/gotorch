@@ -4,7 +4,7 @@
 language: generic
 os:
   - osx
-  - bionic
+  # - bionic
 compiler: clang
 
 addons:
