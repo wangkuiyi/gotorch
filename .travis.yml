@@ -5,6 +5,10 @@ language: generic
 os: osx
 compiler: clang
 
+branches:
+  only: 
+    - master
+
 cache:
   directories:
     - cgotorch/libtorch
