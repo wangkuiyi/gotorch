@@ -41,8 +41,7 @@ const char* Tensor_String(Tensor a) {
   ss << *static_cast<at::Tensor*>(a);
   std::string s = ss.str();
   char* r = new char[s.size() + 1];
-  strcpy(r, s.c_str());
-  return r;
+  return strcpy(r, s.c_str());
 }
 
 void FreeString(const char* s) {
