@@ -1,7 +1,7 @@
 # According to
 # https://docs.travis-ci.com/user/languages/minimal-and-generic/#generic, the
 # generic language includes Go.
-language: generic
+language: go
 os:
   - osx
   - bionic
