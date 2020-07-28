@@ -14,4 +14,4 @@ fi
 go version
 go get golang.org/x/lint/golint
 
-cp "$GOPATH"/bin/* /usr/local/bin/
+sudo cp "$GOPATH"/bin/* /usr/local/bin/
