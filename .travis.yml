@@ -29,7 +29,8 @@ branches:
 
 script:
   - set -e
-  - bash ./scripts/ci-install.sh
+  - go get golang.org/x/lint/golint
+  - sudo cp "$GOPATH"/bin/* /usr/local/bin/
   - (cd cgotorch; make)
   - pre-commit run -a
   - go install ./...
