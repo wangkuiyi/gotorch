@@ -12,6 +12,8 @@ addons:
 
 install:
   - pip install pre-commit
+  - go get golang.org/x/lint/golint
+  - sudo cp "$GOPATH"/bin/* /usr/local/bin/
 
 env:
   global:
@@ -29,8 +31,6 @@ branches:
 
 script:
   - set -e
-  - go get golang.org/x/lint/golint
-  - sudo cp "$GOPATH"/bin/* /usr/local/bin/
   - (cd cgotorch; make)
   - pre-commit run -a
   - go install ./...
