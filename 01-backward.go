@@ -3,14 +3,15 @@ package main
 import (
 	"fmt"
 
-	"github.com/wangkuiyi/gotorch/at"
+	"github.com/wangkuiyi/gotorch/torch"
+	at "github.com/wangkuiyi/gotorch/aten"
 )
 
 func main() {
-	a := at.RandN(3, 4, true)
+	a := torch.RandN(3, 4, true)
 	fmt.Println(a)
 
-	b := at.RandN(4, 1, true)
+	b := torch.RandN(4, 1, true)
 	fmt.Println(b)
 
 	c := at.MM(a, b)
