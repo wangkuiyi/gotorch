@@ -16,6 +16,7 @@ type Tensor struct {
 func NewTensor(t unsafe.Pointer) Tensor {
 	return Tensor{(C.Tensor)(t)}
 }
+
 // String returns the Tensor as a string
 func (a Tensor) String() string {
 	s := C.Tensor_String(a.T)
