@@ -19,12 +19,14 @@ func main() {
 	c := at.MM(a, b)
 	d := at.Sum(c)
 
+	// clear gradients before backward
 	opt.ZeroGrad()
 	d.Backward()
 
 	fmt.Println("Gradient value:")
 	fmt.Println(b.Grad())
 
+	// update parameters
 	opt.Step()
 
 	fmt.Println("Parameter value after updating:")
