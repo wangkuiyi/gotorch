@@ -28,6 +28,7 @@ branches:
     - master
 
 script:
+  - set -e
   - bash ./scripts/ci-install.sh
   - (cd cgotorch; make)
   - pre-commit run -a
