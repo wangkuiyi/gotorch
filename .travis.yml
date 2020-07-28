@@ -1,7 +1,7 @@
 # According to
 # https://docs.travis-ci.com/user/languages/minimal-and-generic/#generic, the
 # generic language includes Go.
-language: generic
+language: go
 os: osx
 compiler: clang
 
@@ -20,11 +20,11 @@ env:
 
 cache:
   directories:
-    # https://pre-commit.com/#travis-ci-example 
+    # https://pre-commit.com/#travis-ci-example
     - $HOME/.cache/pre-commit
 
 branches:
-  only: 
+  only:
     - master
 
 before_install:
