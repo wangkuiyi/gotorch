@@ -3,21 +3,20 @@ package main
 import (
 	"fmt"
 
-	at "github.com/wangkuiyi/gotorch/aten"
-	"github.com/wangkuiyi/gotorch/torch"
+	torch "github.com/wangkuiyi/gotorch"
 )
 
 func main() {
 	b := torch.RandN(4, 1, true)
 	opt := torch.NewSGDOpt(0.1, 0, 0, 0, false)
-	opt.AddParameters([]at.Tensor{b})
+	opt.AddParameters([]torch.Tensor{b})
 
 	fmt.Println("Parameter value:")
 	fmt.Println(b)
 
 	a := torch.RandN(3, 4, false)
-	c := at.MM(a, b)
-	d := at.Sum(c)
+	c := torch.MM(a, b)
+	d := torch.Sum(c)
 
 	// clear gradients before backward
 	opt.ZeroGrad()
