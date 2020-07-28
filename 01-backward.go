@@ -8,20 +8,25 @@ import (
 )
 
 func main() {
-	a := torch.RandN(3, 4, true)
-	fmt.Println(a)
-
 	b := torch.RandN(4, 1, true)
+	opt := torch.NewSGDOpt(1, 0, 0, 0, false)
+	opt.AddParameters([]at.Tensor{b})
+
+	fmt.Println("Parameter value:")
 	fmt.Println(b)
 
+	a := torch.RandN(3, 4, false)
 	c := at.MM(a, b)
-	fmt.Println(c)
-
 	d := at.Sum(c)
-	fmt.Println(d)
 
+	opt.ZeroGrad()
 	d.Backward()
 
-	fmt.Println(a.Grad())
+	fmt.Println("Gradient value:")
 	fmt.Println(b.Grad())
+
+	opt.Step()
+
+	fmt.Println("Parameter value after updating:")
+	fmt.Println(b)
 }
