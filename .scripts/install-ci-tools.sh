@@ -8,7 +8,7 @@ if [[ "$V" < "EV" ]]; then
     O=$(uname | tr [:upper:] [:lower:])
     curl -Lso go.tar.gz https://golang.org/dl/go"$EV"."$O"-amd64.tar.gz
     sudo tar -C /usr/local -xzf go.tar.gz
-    export PATH=/usr/local/go/bin:$PATH
+    sudo mv /usr/local/go/bin/* /usr/local/bin/
 fi
 
 go version
