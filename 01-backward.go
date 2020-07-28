@@ -3,8 +3,8 @@ package main
 import (
 	"fmt"
 
-	"github.com/wangkuiyi/gotorch/torch"
 	at "github.com/wangkuiyi/gotorch/aten"
+	"github.com/wangkuiyi/gotorch/torch"
 )
 
 func main() {

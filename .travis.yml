@@ -5,6 +5,24 @@ language: generic
 os: osx
 compiler: clang
 
+addons:
+  apt:
+    packages:
+      - python3-pip
+
+install:
+  - pip install pre-commit
+
+env:
+  global:
+  - GOPATH=$HOME/go
+  - PATH=$GOPATH/bin:$PATH
+
+cache:
+  directories:
+    # https://pre-commit.com/#travis-ci-example 
+    - $HOME/.cache/pre-commit
+
 branches:
   only: 
     - master
@@ -14,5 +32,7 @@ before_install:
   - brew install wget
 
 script:
+  - bash ./scripts/ci-install.sh
   - (cd cgotorch; make)
+  - pre-commit run -a
   - go run 01-backward.go
