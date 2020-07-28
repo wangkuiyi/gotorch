@@ -1,7 +1,7 @@
 all : libcgotorch.so
 
 libtorch :
-	wget https://download.pytorch.org/libtorch/cpu/libtorch-macos-1.5.1.zip
+	curl -LsO https://download.pytorch.org/libtorch/cpu/libtorch-macos-1.5.1.zip
 	unzip -qq -o libtorch-macos-1.5.1.zip
 
 libcgotorch.so : cgotorch.cc cgotorch.h libtorch

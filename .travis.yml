@@ -27,10 +27,6 @@ branches:
   only:
     - master
 
-before_install:
-  - brew update
-  - brew install wget
-
 script:
   - bash ./scripts/ci-install.sh
   - (cd cgotorch; make)
