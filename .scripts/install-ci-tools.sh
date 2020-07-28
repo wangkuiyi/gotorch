@@ -2,9 +2,11 @@
 
 set -e
 
+EV="1.14.6"
 V=$(go version | cut -f 3 -d ' ' | sed 's/go//')
-if [[ "$V" < "1.13" ]]; then
-    curl -Lso go.tar.gz https://golang.org/dl/go1.14.6.linux-amd64.tar.gz
+if [[ "$V" < "EV" ]]; then
+    O=$(uname | tr [:upper:] [:lower:])
+    curl -Lso go.tar.gz https://golang.org/dl/go"$EV"."$O"-amd64.tar.gz
     sudo tar -C /usr/local -xzf go.tar.gz
     export PATH=/usr/local/go/bin:$PATH
 fi
