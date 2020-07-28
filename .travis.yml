@@ -31,4 +31,4 @@ script:
   - bash ./scripts/ci-install.sh
   - (cd cgotorch; make)
   - pre-commit run -a
-  - go run 01-backward.go
+  - go install ./...
