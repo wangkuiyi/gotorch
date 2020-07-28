@@ -3,3 +3,4 @@ build
 gotorch
 libcgotorch.so
 *~
+.vscode
