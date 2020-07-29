@@ -27,7 +27,7 @@ cache:
 
 branches:
   only:
-    - master
+    - develop
 
 script:
   - pre-commit run -a && (cd cgotorch; make) && go install ./...
