@@ -30,7 +30,4 @@ branches:
     - master
 
 script:
-  - set -e
-  - (cd cgotorch; make)
-  - pre-commit run -a
-  - go install ./...
+  - pre-commit run -a && (cd cgotorch; make) && go install ./...
