@@ -19,6 +19,7 @@ env:
   global:
   - GOPATH=$HOME/go
   - PATH=$GOPATH/bin:$PATH
+  - GO111MODULE=on
 
 cache:
   directories:
@@ -31,3 +32,4 @@ branches:
 
 script:
   - pre-commit run -a && (cd cgotorch; make) && go install ./...
+  - $GOPATH/bin/backward
