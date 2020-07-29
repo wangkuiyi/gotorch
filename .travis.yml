@@ -12,6 +12,8 @@ addons:
 
 install:
   - pip install pre-commit
+  - go get golang.org/x/lint/golint
+  - sudo cp "$GOPATH"/bin/* /usr/local/bin/
 
 env:
   global:
@@ -25,10 +27,7 @@ cache:
 
 branches:
   only:
-    - master
+    - develop
 
 script:
-  - bash ./scripts/ci-install.sh
-  - (cd cgotorch; make)
-  - pre-commit run -a
-  - go run 01-backward.go
+  - pre-commit run -a && (cd cgotorch; make) && go install ./...
