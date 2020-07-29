@@ -27,7 +27,7 @@ cache:
 
 branches:
   only:
-    - master
+    - develop
 
 script:
   - set -e
