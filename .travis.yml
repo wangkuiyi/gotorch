@@ -25,7 +25,7 @@ cache:
 
 branches:
   only:
-    - master
+    - develop
 
 script:
   - bash ./scripts/ci-install.sh
