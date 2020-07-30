@@ -59,3 +59,64 @@ func (opt Optimizer) Step() {
 func (opt Optimizer) Close() {
 	C.Optimizer_Close(opt.Opt)
 }
+
+// Model struct
+type Model struct {
+	Parameters []Tensor
+	Variables  []Tensor
+}
+
+// NewModel creates a model instance
+func NewModel() *Model {
+	return &Model{
+		Parameters: make([]Tensor, 0),
+		Variables:  make([]Tensor, 0),
+	}
+}
+
+// CloseVariables release memory of variables
+func (m *Model) CloseVariables() {
+	for _, v := range m.Variables {
+		v.Close()
+	}
+	m.Variables = make([]Tensor, 0)
+}
+
+// CloseParameters release memory of parameters
+func (m *Model) CloseParameters() {
+	for _, p := range m.Parameters {
+		p.Close()
+	}
+}
+
+// Linear struct
+type Linear struct {
+	M           *Model
+	InFeatures  int
+	OutFeatures int
+	Weight      Tensor
+	Bias        Tensor
+}
+
+// NewLinear creates a linear layer
+func NewLinear(m *Model, in int, out int, bias bool) *Linear {
+	l := &Linear{
+		M:           m,
+		InFeatures:  in,
+		OutFeatures: out,
+	}
+	l.Weight = RandN(in, out, true)
+	l.M.Parameters = append(l.M.Parameters, l.Weight)
+	if bias {
+		l.Bias = RandN(out, 1, true)
+		l.M.Parameters = append(l.M.Parameters, l.Bias)
+	}
+	return l
+}
+
+// Forward executes the calculation
+func (l *Linear) Forward(x Tensor) Tensor {
+	t := MM(x, l.Weight)
+	l.M.Variables = append(l.M.Variables, t)
+	return t
+}
