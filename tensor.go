@@ -40,6 +40,11 @@ func (a Tensor) Grad() Tensor {
 	return Tensor{C.Tensor_Grad(a.T)}
 }
 
+// Close the tensor
+func (a Tensor) Close() {
+	C.Tensor_Close(a.T)
+}
+
 // MM multiplies each element of the input two tensors
 func MM(a, b Tensor) Tensor {
 	return Tensor{C.MM(a.T, b.T)}
