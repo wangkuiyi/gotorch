@@ -71,3 +71,24 @@ void AddParameters(Optimizer opt, Tensor *tensors, int length) {
 void Optimizer_Close(Optimizer opt) {
   delete static_cast<torch::optim::SGD *>(opt);
 }
+
+CDataset CMnist(const char *data_root) {
+  return new torch::data::datasets::MNIST(std::string(data_root));
+}
+
+CTransform CNormalize(double mean, double stddev) {
+  return new torch::data::transforms::Normalize<>(mean, stddev);
+}
+
+CTransform CStack() {
+  return new torch::data::transforms::Stack<>();
+}
+
+void AddNormalize(CDataset dataset, CTransform transform) {
+  static_cast<torch::data::datasets::MNIST *>(dataset)->map(
+    *(static_cast<torch::data::transforms::Normalize<> *>(transform)));
+}
+void AddStack(CDataset dataset, CTransform transform){
+  static_cast<torch::data::datasets::MNIST *>(dataset)->map(
+    *(static_cast<torch::data::transforms::Stack<> *>(transform)));
+}

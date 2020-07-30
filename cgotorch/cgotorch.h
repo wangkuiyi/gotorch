@@ -1,6 +1,7 @@
 #ifndef __C_TORCH_H_
 #define __C_TORCH_H_
 
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -27,6 +28,17 @@ void Step(Optimizer opt);
 void AddParameters(Optimizer opt, Tensor *tensors, int length);
 void Optimizer_Close(Optimizer opt);
 
+// transform APIs
+typedef void *CTransform;
+CTransform CNormalize(double mean, double stddev);
+CTransform CStack();
+
+// dataset APIs
+typedef void *CDataset;
+CDataset CMnist(const char *data_root);
+void DatasetMap(CDataset dataset, CTransform transform);
+void AddNormalize(CDataset dataset, CTransform transform);
+void AddStack(CDataset dataset, CTransform transform);
 #ifdef __cplusplus
 }
 #endif
