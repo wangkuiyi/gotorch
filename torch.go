@@ -54,3 +54,8 @@ func (opt Optimizer) ZeroGrad() {
 func (opt Optimizer) Step() {
 	C.Step(opt.Opt)
 }
+
+// Close the optimizer
+func (opt Optimizer) Close() {
+	C.Optimizer_Close(opt.Opt)
+}

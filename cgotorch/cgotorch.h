@@ -15,6 +15,7 @@ const char *Tensor_String(Tensor a);
 void Tensor_Backward(Tensor a);
 Tensor Tensor_Grad(Tensor a);
 void Tensor_Print(Tensor a);
+void Tensor_Close(Tensor a);
 
 void FreeString(const char *s);
 
@@ -24,6 +25,7 @@ Optimizer SGD(double learning_rate, double momentum, double dampening,
 void ZeroGrad(Optimizer opt);
 void Step(Optimizer opt);
 void AddParameters(Optimizer opt, Tensor *tensors, int length);
+void Optimizer_Close(Optimizer opt);
 
 #ifdef __cplusplus
 }
