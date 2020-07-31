@@ -7,6 +7,7 @@ package gotorch
 import "C"
 import (
 	"reflect"
+	"runtime"
 	"unsafe"
 )
 
@@ -21,7 +22,11 @@ func RandN(rows, cols int, requireGrad bool) Tensor {
 	if requireGrad {
 		rg = 1
 	}
-	return Tensor{C.RandN(C.int(rows), C.int(cols), C.int(rg))}
+	t := Tensor{C.RandN(C.int(rows), C.int(cols), C.int(rg))}
+	runtime.SetFinalizer(&t, func(f *Tensor) {
+		f.Close()
+	})
+	return t
 }
 
 // NewSGDOpt creates a SGD Optimizer
