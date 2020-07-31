@@ -72,23 +72,51 @@ void Optimizer_Close(Optimizer opt) {
   delete static_cast<torch::optim::SGD *>(opt);
 }
 
-CDataset CMnist(const char *data_root) {
+Dataset MNIST(const char *data_root) {
   return new torch::data::datasets::MNIST(std::string(data_root));
 }
 
-CTransform CNormalize(double mean, double stddev) {
+Transform Normalize(double mean, double stddev) {
   return new torch::data::transforms::Normalize<>(mean, stddev);
 }
 
-CTransform CStack() {
+Transform Stack() {
   return new torch::data::transforms::Stack<>();
 }
 
-void AddNormalize(CDataset dataset, CTransform transform) {
+void AddNormalize(Dataset dataset, Transform transform) {
   static_cast<torch::data::datasets::MNIST *>(dataset)->map(
     *(static_cast<torch::data::transforms::Normalize<> *>(transform)));
 }
-void AddStack(CDataset dataset, CTransform transform){
+
+void AddStack(Dataset dataset, Transform transform){
   static_cast<torch::data::datasets::MNIST *>(dataset)->map(
     *(static_cast<torch::data::transforms::Stack<> *>(transform)));
+}
+using TypeDataLoader = torch::data::StatelessDataLoader<torch::data::datasets::MNIST, torch::data::samplers::SequentialSampler>;
+using TypeIterator = torch::data::Iterator<TypeDataLoader::BatchType>;
+DataLoader DataLoaderWithSequenceSampler(Dataset dataset, int batchsize) {
+  auto loader = torch::data::make_data_loader<torch::data::samplers::SequentialSampler>(
+          std::move(*(static_cast<torch::data::datasets::MNIST *>(dataset))), batchsize);
+  return loader.release();
+}
+
+Iterator Begin(DataLoader loader) {
+  auto begin = static_cast<TypeDataLoader *>(loader)->begin();
+  return std::move(static_cast<torch::data::Iterator<TypeDataLoader::BatchType> *>(&begin));
+}
+
+bool IsEOF(DataLoader loader, Iterator iter) {
+  auto end = static_cast<TypeDataLoader *>(loader)->end();
+  return end == *static_cast<torch::data::Iterator<TypeDataLoader::BatchType> *>(iter);
+}
+
+void Next(Iterator iter) {
+  ++(*static_cast<TypeIterator *>(iter));
+}
+
+at::Tensor *Batch(Iterator iter) {
+  auto p = (*static_cast<TypeIterator *>(iter));
+  at::Tensor* array[2] = {std::move(&p->data()->data), std::move(&p->data()->target)};
+  return *array;
 }
