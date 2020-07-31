@@ -17,4 +17,5 @@ func f() {
 
 func main() {
 	f()
+	runtime.GC()
 }
