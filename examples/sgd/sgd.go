@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"runtime"
 
 	torch "github.com/wangkuiyi/gotorch"
@@ -13,7 +12,6 @@ func main() {
 	opt.AddParameters([]torch.Tensor{a})
 
 	for i := 0; i < 10; i++ {
-		fmt.Println(i)
 		b := torch.RandN(10, 100, false)
 		pre := torch.MM(b, a)
 		loss := torch.Sum(pre)
@@ -22,7 +20,6 @@ func main() {
 		loss.Backward()
 		opt.Step()
 
-		runtime.GC()
 		runtime.GC()
 	}
 	runtime.GC()

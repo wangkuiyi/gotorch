@@ -6,7 +6,6 @@ package gotorch
 // #include "cgotorch.h"
 import "C"
 import (
-	"fmt"
 	"reflect"
 	"runtime"
 	"unsafe"
@@ -26,7 +25,6 @@ func RandN(rows, cols int, requireGrad bool) Tensor {
 	ct := C.RandN(C.int(rows), C.int(cols), C.int(rg))
 	runtime.SetFinalizer(&ct, func(cf *C.Tensor) {
 		C.Tensor_Close(*cf)
-		fmt.Printf("Closed Tensor, %d, %d\n", rows, cols)
 	})
 	return Tensor{&ct}
 }
@@ -39,7 +37,6 @@ func NewSGDOpt(lr, momentum, dampening, weightDecay float64, nesterov bool) Opti
 	}
 	co := C.SGD(C.double(lr), C.double(momentum), C.double(dampening),
 		C.double(weightDecay), C.int(nt))
-
 	runtime.SetFinalizer(&co, func(cf *C.Optimizer) {
 		C.Optimizer_Close(*cf)
 	})
