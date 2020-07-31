@@ -5,16 +5,10 @@ package gotorch
 // #cgo LDFLAGS: -L ${SRCDIR}/cgotorch/libtorch/lib -Wl,-rpath ${SRCDIR}/cgotorch/libtorch/lib -lc10 -ltorch -ltorch_cpu
 // #include "cgotorch.h"
 import "C"
-import "unsafe"
 
 // Tensor wrappers a pointer to C.Tensor
 type Tensor struct {
 	T C.Tensor
-}
-
-// NewTensor returns a Tensor
-func NewTensor(t unsafe.Pointer) Tensor {
-	return Tensor{(C.Tensor)(t)}
 }
 
 // String returns the Tensor as a string
