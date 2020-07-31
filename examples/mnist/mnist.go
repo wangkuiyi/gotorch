@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+
 	torch "github.com/wangkuiyi/gotorch"
 )
 
@@ -14,6 +16,7 @@ func main() {
 	for trainLoader.Scan() {
 		data := trainLoader.Batch().Data
 		target := trainLoader.Batch().Target
-		...
+		fmt.Println(data)
+		fmt.Println(target)
 	}
 }
