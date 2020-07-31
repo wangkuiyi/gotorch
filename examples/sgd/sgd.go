@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"runtime"
 
 	torch "github.com/wangkuiyi/gotorch"
@@ -9,9 +10,10 @@ import (
 func main() {
 	a := torch.RandN(100, 10, true)
 	opt := torch.NewSGDOpt(0.1, 0, 0, 0, false)
-	opt.AddParameters([]*torch.Tensor{a})
+	opt.AddParameters([]torch.Tensor{a})
 
 	for i := 0; i < 10; i++ {
+		fmt.Println(i)
 		b := torch.RandN(10, 100, false)
 		pre := torch.MM(b, a)
 		loss := torch.Sum(pre)
