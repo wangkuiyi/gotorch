@@ -6,6 +6,7 @@ package gotorch
 // #include "cgotorch.h"
 import "C"
 import (
+	"fmt"
 	"reflect"
 	"runtime"
 	"unsafe"
@@ -25,6 +26,7 @@ func RandN(rows, cols int, requireGrad bool) Tensor {
 	t := Tensor{C.RandN(C.int(rows), C.int(cols), C.int(rg))}
 	runtime.SetFinalizer(&t, func(f *Tensor) {
 		f.Close()
+		fmt.Println("Closed tensor")
 	})
 	return t
 }
