@@ -67,3 +67,48 @@ func (opt Optimizer) Step() {
 func (opt Optimizer) Close() {
 	C.Optimizer_Close(*opt.Opt)
 }
+
+// Model struct
+type Model struct {
+	Parameters []Tensor
+}
+
+// NewModel creates a model instance
+func NewModel() *Model {
+	return &Model{
+		Parameters: make([]Tensor, 0),
+	}
+}
+
+// Module interface
+type Module interface {
+	Forward(x Tensor) Tensor
+}
+
+// linear struct
+type linear struct {
+	InFeatures  int
+	OutFeatures int
+	Weight      Tensor
+	Bias        Tensor
+}
+
+// Linear creates a linear instance
+func Linear(model *Model, in int, out int, bias bool) Module {
+	l := &linear{
+		InFeatures:  in,
+		OutFeatures: out,
+	}
+	l.Weight = RandN(in, out, true)
+	model.Parameters = append(model.Parameters, l.Weight)
+	if bias {
+		l.Bias = RandN(out, 1, true)
+		model.Parameters = append(model.Parameters, l.Bias)
+	}
+	return l
+}
+
+// Forward executes the calculation
+func (l *linear) Forward(x Tensor) Tensor {
+	return MM(x, l.Weight)
+}
