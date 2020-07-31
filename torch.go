@@ -6,7 +6,9 @@ package gotorch
 // #include "cgotorch.h"
 import "C"
 import (
+	"fmt"
 	"reflect"
+	"runtime"
 	"unsafe"
 )
 
@@ -16,27 +18,37 @@ type Optimizer struct {
 }
 
 // RandN returns a tensor filled with random number
-func RandN(rows, cols int, requireGrad bool) Tensor {
+func RandN(rows, cols int, requireGrad bool) *Tensor {
 	rg := 0
 	if requireGrad {
 		rg = 1
 	}
-	return Tensor{C.RandN(C.int(rows), C.int(cols), C.int(rg))}
+	t := &Tensor{C.RandN(C.int(rows), C.int(cols), C.int(rg))}
+	runtime.SetFinalizer(t, func(f *Tensor) {
+		f.Close()
+		fmt.Printf("Close Tensor, %d, %d\n", rows, cols)
+	})
+	return t
 }
 
 // NewSGDOpt creates a SGD Optimizer
-func NewSGDOpt(lr, momentum, dampening, weightDecay float64, nesterov bool) Optimizer {
+func NewSGDOpt(lr, momentum, dampening, weightDecay float64, nesterov bool) *Optimizer {
 	nt := 0
 	if nesterov {
 		nt = 1
 	}
-	return Optimizer{
+	o := &Optimizer{
 		C.SGD(C.double(lr), C.double(momentum), C.double(dampening),
 			C.double(weightDecay), C.int(nt))}
+
+	runtime.SetFinalizer(o, func(f *Optimizer) {
+		f.Close()
+	})
+	return o
 }
 
 // AddParameters adds parameters
-func (opt Optimizer) AddParameters(tensors []Tensor) {
+func (opt *Optimizer) AddParameters(tensors []*Tensor) {
 	CT := []unsafe.Pointer{}
 	for _, t := range tensors {
 		CT = append(CT, unsafe.Pointer(t.T))
@@ -46,16 +58,16 @@ func (opt Optimizer) AddParameters(tensors []Tensor) {
 }
 
 // ZeroGrad reset gradients to zero
-func (opt Optimizer) ZeroGrad() {
+func (opt *Optimizer) ZeroGrad() {
 	C.ZeroGrad(opt.Opt)
 }
 
 // Step updates parameters
-func (opt Optimizer) Step() {
+func (opt *Optimizer) Step() {
 	C.Step(opt.Opt)
 }
 
 // Close the optimizer
-func (opt Optimizer) Close() {
+func (opt *Optimizer) Close() {
 	C.Optimizer_Close(opt.Opt)
 }

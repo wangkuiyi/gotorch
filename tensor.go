@@ -5,6 +5,7 @@ package gotorch
 // #cgo LDFLAGS: -L ${SRCDIR}/cgotorch/libtorch/lib -Wl,-rpath ${SRCDIR}/cgotorch/libtorch/lib -lc10 -ltorch -ltorch_cpu
 // #include "cgotorch.h"
 import "C"
+import "runtime"
 
 // Tensor wrappers a pointer to C.Tensor
 type Tensor struct {
@@ -12,7 +13,7 @@ type Tensor struct {
 }
 
 // String returns the Tensor as a string
-func (a Tensor) String() string {
+func (a *Tensor) String() string {
 	s := C.Tensor_String(a.T)
 	r := C.GoString(s)
 	C.FreeString(s)
@@ -20,31 +21,39 @@ func (a Tensor) String() string {
 }
 
 // Print the tensor
-func (a Tensor) Print() {
+func (a *Tensor) Print() {
 	C.Tensor_Print(a.T)
 }
 
 // Backward compute the gradient of current tensor
-func (a Tensor) Backward() {
+func (a *Tensor) Backward() {
 	C.Tensor_Backward(a.T)
 }
 
 // Grad returns a reference of the gradient
-func (a Tensor) Grad() Tensor {
-	return Tensor{C.Tensor_Grad(a.T)}
+func (a *Tensor) Grad() *Tensor {
+	return &Tensor{C.Tensor_Grad(a.T)}
 }
 
 // Close the tensor
-func (a Tensor) Close() {
+func (a *Tensor) Close() {
 	C.Tensor_Close(a.T)
 }
 
 // MM multiplies each element of the input two tensors
-func MM(a, b Tensor) Tensor {
-	return Tensor{C.MM(a.T, b.T)}
+func MM(a, b *Tensor) *Tensor {
+	t := &Tensor{C.MM(a.T, b.T)}
+	runtime.SetFinalizer(t, func(f *Tensor) {
+		f.Close()
+	})
+	return t
 }
 
 // Sum returns the sum of all elements in the input tensor
-func Sum(a Tensor) Tensor {
-	return Tensor{C.Sum(a.T)}
+func Sum(a *Tensor) *Tensor {
+	t := &Tensor{C.Sum(a.T)}
+	runtime.SetFinalizer(t, func(f *Tensor) {
+		f.Close()
+	})
+	return t
 }

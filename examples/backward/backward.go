@@ -9,7 +9,7 @@ import (
 func main() {
 	b := torch.RandN(4, 1, true)
 	opt := torch.NewSGDOpt(0.1, 0, 0, 0, false)
-	opt.AddParameters([]torch.Tensor{b})
+	opt.AddParameters([]*torch.Tensor{b})
 
 	fmt.Println("Parameter value:")
 	fmt.Println(b)
