@@ -21,7 +21,7 @@ func RandN(rows, cols int, requireGrad bool) Tensor {
 	if requireGrad {
 		rg = 1
 	}
-	return NewTensor(unsafe.Pointer(C.RandN(C.int(rows), C.int(cols), C.int(rg))))
+	return Tensor{C.RandN(C.int(rows), C.int(cols), C.int(rg))}
 }
 
 // NewSGDOpt creates a SGD Optimizer
