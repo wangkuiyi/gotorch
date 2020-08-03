@@ -30,8 +30,8 @@ var (
 	cuda       = flag.Bool("cuda", false, "enables cuda")
 	dryRun     = flag.Bool("dry-run", false, "check a single training cycle works")
 	ngpu       = flag.Int("ngpu", 1, "number of GPUs to use")
-	pathG       = flag.String("pathG", "", "path to netG (to continue training)")
-	pathD       = flag.String("pathD", "", "path to netD (to continue training)")
+	netGPath   = flag.String("pathG", "", "path to netG (to continue training)")
+	netDPath   = flag.String("pathD", "", "path to netD (to continue training)")
 	outf       = flag.String("outf", ".", "folder to output images and model checkpoints")
 	manualSeed = flag.Int("manualSeed", 0, "manual seed")
 	classes    = flag.String("classes", "bedroom", "comma separated list of classes for the lsun data set")
@@ -40,7 +40,7 @@ var (
 
 type Generator struct {
 	ngpu int
-	main *torch.Module
+	main torch.Module
 }
 
 func NewGenerator(gpu int, nz int, ngf int, nc int) *Generator {
@@ -82,7 +82,7 @@ func (self Generator) Forward(x torch.Tensor) output torch.Tensor {
 
 type Discriminator struct {
 	ngpu int
-	main *torch.Module
+	main torch.Module
 }
 
 func NewDiscriminator(gpu int, ndf int, nc int) *Discriminator {
@@ -124,9 +124,9 @@ func (self Discriminator) Forward(x torch.Tensor) output torch.Tensor {
 
 func weightInit(m torch.Module) {
 	className := m.ClassName
-	if className.Find("Conv") != -1 {
+	if strings.Contains(className, "Conv") {
 		torch.Normal_(m.Weight, 0.0, 0.02)
-	} else if className.Find("BatchNorm") != -1 {
+	} else if strings.Contains(className, "BatchNorm") {
 		torch.Normal_(m.Weight, 1.0, 0.02)
 		torch.Zeros_(m.Bias)
 	}
@@ -183,18 +183,18 @@ func main() {
 		device = torch.Device("cuda:0")
 	}
 
-	netG := NewGenerator(*npgu, *nz, *ngf, nc)
+	netG := NewGenerator(*npgu, *nz, *ngf, *nc)
 	netG.To(device)
 	netG.Apply(weightInit)
 	if *pathG != "" {
-		netG.LoadStateDict(torch.Load(*pathG))
+		netG.LoadStateDict(torch.Load(*netGPath))
 	}
 
 	netD := NewDiscriminator(*ngpu, *ndf, *nc)
 	netD.To(device)
 	netD.Apply(weightInit)
 	if *pathD != "" {
-		netD.LoadStateDict(torch.Load(*pathD))
+		netD.LoadStateDict(torch.Load(*netDPath))
 	}
 
 	criterion := torch.BCELoss()
@@ -220,7 +220,7 @@ func main() {
 			outputDReal := netD.Forward(realCpu)
 			errDReal := criterion.Forward(outputDReal, label)
 			errDReal.Backward()
-			DX = outputDReal.Mean().Item()
+			DX := outputDReal.Mean().Item()
 
 			// train with fake
 			noise := torch.RandN(batchSize, nz, 1, 1, device)
