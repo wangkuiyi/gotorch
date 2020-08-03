@@ -42,15 +42,20 @@ void AddNormalize(Dataset dataset, Transform transform);
 void AddStack(Dataset dataset, Transform transform);
 
 // dataloader APIs
-typedef void *DataLoader;
-typedef void *Iterator;
-DataLoader DataLoaderWithSequenceSampler(Dataset dataset, int batchsize);
-void CloseDataLoader(DataLoader);
 
-Iterator Begin(DataLoader loader);
-void Next(Iterator iter);
-Tensor *Batch(Iterator iter);
-bool IsEOF(DataLoader loader, Iterator iter);
+//typedef void *DataLoader;
+typedef void *Iterator;
+typedef void *DataLoader;
+
+typedef struct Data{
+  Tensor Data;
+  Tensor Target;
+} Data;
+
+Iterator Loader_Begin(DataLoader loader);
+Data Loader_Data(Iterator iter);
+bool Loader_Next(DataLoader loader, Iterator iter);
+DataLoader DataLoaderWithSequenceSampler(Dataset dataset, int batchsize);
 
 #ifdef __cplusplus
 }

@@ -93,30 +93,35 @@ void AddStack(Dataset dataset, Transform transform){
   static_cast<torch::data::datasets::MNIST *>(dataset)->map(
     *(static_cast<torch::data::transforms::Stack<> *>(transform)));
 }
+
 using TypeDataLoader = torch::data::StatelessDataLoader<torch::data::datasets::MNIST, torch::data::samplers::SequentialSampler>;
 using TypeIterator = torch::data::Iterator<TypeDataLoader::BatchType>;
+
 DataLoader DataLoaderWithSequenceSampler(Dataset dataset, int batchsize) {
-  auto loader = torch::data::make_data_loader<torch::data::samplers::SequentialSampler>(
+  auto p = torch::data::make_data_loader<torch::data::samplers::SequentialSampler>(
           std::move(*(static_cast<torch::data::datasets::MNIST *>(dataset))), batchsize);
-  return loader.release();
+  return std::move(p.release());
 }
 
-Iterator Begin(DataLoader loader) {
-  auto begin = static_cast<TypeDataLoader *>(loader)->begin();
-  return std::move(static_cast<torch::data::Iterator<TypeDataLoader::BatchType> *>(&begin));
+typedef struct LoaderIterator {
+  TypeIterator iter;
+} LoaderIterator;
+
+Iterator Loader_Begin(DataLoader loader) {
+  return new TypeIterator(static_cast<TypeDataLoader *>(loader)->begin());
 }
 
-bool IsEOF(DataLoader loader, Iterator iter) {
-  auto end = static_cast<TypeDataLoader *>(loader)->end();
-  return end == *static_cast<torch::data::Iterator<TypeDataLoader::BatchType> *>(iter);
+Data Loader_Data(Iterator iter) {
+  Data data;
+  data.Data = new at::Tensor(std::move(*static_cast<TypeIterator *>(iter))->data()->data);
+  data.Target = new at::Tensor(std::move(*static_cast<TypeIterator *>(iter))->data()->target);
+  return data;
 }
 
-void Next(Iterator iter) {
+bool Loader_Next(DataLoader loader, Iterator iter) {
   ++(*static_cast<TypeIterator *>(iter));
-}
-
-at::Tensor *Batch(Iterator iter) {
-  auto p = (*static_cast<TypeIterator *>(iter));
-  at::Tensor* array[2] = {std::move(&p->data()->data), std::move(&p->data()->target)};
-  return *array;
+  if (static_cast<TypeDataLoader *>(loader)->end() == *static_cast<TypeIterator *>(iter))  {
+    return false;
+  }
+  return true;
 }

@@ -11,7 +11,7 @@ import (
 	"unsafe"
 )
 
-// Dataset interface
+// Dataset struct
 type Dataset struct {
 	T C.Dataset
 }
@@ -62,49 +62,50 @@ func (d *Dataset) AddTransforms(transforms []Transform) {
 
 // DataLoader struct
 type DataLoader struct {
-	T     C.DataLoader
-	iter  C.Iterator
-	batch *Batch
+	T    C.DataLoader
+	data *Data
+	iter C.Iterator
 }
 
-// Batch struct
-type Batch struct {
+// Data struct which contains Data and Target sample
+type Data struct {
 	Data   Tensor
 	Target Tensor
 }
 
 // NewDataLoader returns DataLoader pointer
-func NewDataLoader(dataset Dataset, batchSize int) *DataLoader {
+func NewDataLoader(dataset *Dataset, batchSize int) *DataLoader {
 	loader := C.DataLoaderWithSequenceSampler(C.Dataset(dataset.T), C.int(batchSize))
 	return &DataLoader{
-		T:     loader,
-		iter:  nil,
-		batch: &Batch{},
+		T:    loader,
+		data: nil,
+		iter: nil,
 	}
 }
 
-// NewBatch returns Batch pointer
-func NewBatch(batch *C.Tensor) *Batch {
-	// TODO
-	return &Batch{}
+// NewData returns Data in DataLoader
+func NewData(data C.Data) *Data {
+	return &Data{
+		Data:   Tensor{C.Tensor(data.Data)},
+		Target: Tensor{C.Tensor(data.Target)},
+	}
 }
 
 // Scan scans the batch from DataLoader
 func (loader *DataLoader) Scan() bool {
 	if loader.iter == nil {
-		loader.iter = C.Begin(loader.T)
-		loader.batch = NewBatch(C.Batch(loader.iter))
-		return true
+		loader.iter = C.Loader_Begin(loader.T)
+		loader.data = NewData(C.Loader_Data(loader.iter))
 	}
-	if C.IsEOF(loader.T, loader.iter) {
+	// returns false if no next iteration
+	if C.Loader_Next(loader.T, loader.iter) == false {
 		return false
 	}
-	C.Next(loader.iter)
-	loader.batch = NewBatch(C.Batch(loader.iter))
+	C.Loader_Data(loader.iter)
 	return true
 }
 
-// Batch returns the batch on current interator
-func (loader *DataLoader) Batch() *Batch {
-	return loader.batch
+// Data returns the data in DataLoader
+func (loader *DataLoader) Data() *Data {
+	return loader.data
 }
