@@ -9,6 +9,7 @@ func main() {
 	opt := torch.NewSGDOpt(0.1, 0, 0, 0, false)
 	opt.AddParameters([]torch.Tensor{a})
 
+	torch.PrepareGC()
 	for i := 0; i < 100; i++ {
 		torch.GC()
 		b := torch.RandN(10, 100, false)
@@ -19,4 +20,5 @@ func main() {
 		loss.Backward()
 		opt.Step()
 	}
+	torch.FinishGC()
 }

@@ -11,10 +11,15 @@ import (
 	"sync"
 )
 
-var cTensorFinalizersWG = &sync.WaitGroup{}
+var (
+	cTensorFinalizersWG = &sync.WaitGroup{}
+	gcPrepared          = false
+)
 
 func setTensorFinalizer(t *C.Tensor) {
-	cTensorFinalizersWG.Add(1)
+	if gcPrepared {
+		cTensorFinalizersWG.Add(1)
+	}
 	runtime.SetFinalizer(t, func(t *C.Tensor) {
 		go func() {
 			C.Tensor_Close(*t)
@@ -23,9 +28,23 @@ func setTensorFinalizer(t *C.Tensor) {
 	})
 }
 
+// PrepareGC should be called right before a train/predict loop
+func PrepareGC() {
+	gcPrepared = true
+}
+
+// FinishGC should be called right after a train/predict loop
+func FinishGC() {
+	GC()
+	gcPrepared = false
+}
+
+// GC should be called at the beginning inside a train/predict loop
 func GC() {
 	runtime.GC()
-	cTensorFinalizersWG.Wait()
+	if gcPrepared {
+		cTensorFinalizersWG.Wait()
+	}
 }
 
 // Tensor wrappers a pointer to C.Tensor
