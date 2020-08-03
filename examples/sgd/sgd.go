@@ -10,6 +10,7 @@ func main() {
 	opt.AddParameters([]torch.Tensor{a})
 
 	for i := 0; i < 100; i++ {
+		torch.GC()
 		b := torch.RandN(10, 100, false)
 		pre := torch.MM(b, a)
 		loss := torch.Sum(pre)
@@ -17,12 +18,5 @@ func main() {
 		opt.ZeroGrad()
 		loss.Backward()
 		opt.Step()
-
-		loss.Close()
-		pre.Close()
-		b.Close()
 	}
-
-	opt.Close()
-	a.Close()
 }

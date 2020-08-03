@@ -7,6 +7,7 @@ package gotorch
 import "C"
 import (
 	"reflect"
+	"runtime"
 	"unsafe"
 )
 
@@ -21,7 +22,9 @@ func RandN(rows, cols int, requireGrad bool) Tensor {
 	if requireGrad {
 		rg = 1
 	}
-	return Tensor{C.RandN(C.int(rows), C.int(cols), C.int(rg))}
+	t := C.RandN(C.int(rows), C.int(cols), C.int(rg))
+	setTensorFinalizer(&t)
+	return Tensor{&t}
 }
 
 // NewSGDOpt creates a SGD Optimizer
@@ -30,9 +33,10 @@ func NewSGDOpt(lr, momentum, dampening, weightDecay float64, nesterov bool) Opti
 	if nesterov {
 		nt = 1
 	}
-	return Optimizer{
-		C.SGD(C.double(lr), C.double(momentum), C.double(dampening),
-			C.double(weightDecay), C.int(nt))}
+	sgd := C.SGD(C.double(lr), C.double(momentum), C.double(dampening),
+		C.double(weightDecay), C.int(nt))
+	runtime.SetFinalizer(&sgd, func(p *C.Optimizer) { C.Optimizer_Close(*p) })
+	return Optimizer{&sgd}
 }
 
 // AddParameters adds parameters
