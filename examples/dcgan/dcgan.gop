@@ -194,7 +194,7 @@ func main() {
 	netD.To(device)
 	netD.Apply(weightInit)
 	if *pathD != "" {
-		netG.LoadStateDict(torch.Load(*pathD))
+		netD.LoadStateDict(torch.Load(*pathD))
 	}
 
 	criterion := torch.BCELoss()
@@ -224,7 +224,7 @@ func main() {
 
 			// train with fake
 			noise := torch.RandN(batchSize, nz, 1, 1, device)
-			fake := netG(noise)
+			fake := netG.Forward(noise)
 			label.Fill_(fakeLabel)
 			outputDFake := netD.Forward(fake.Detach())
 			errDFake := criterion.Forward(outputDFake, label)
@@ -247,7 +247,7 @@ func main() {
 						errG.Item(), DX, DGZ1, DGZ2)
 			if i % 100 == 0 {
 				vutils.SaveImage(realCpu, fmt.Sprintf("%s/real_samples.png", *outf), true)
-				fakeG := netG(fixedNoise)
+				fakeG := netG.Forward(fixedNoise)
 				vutils.SaveImage(fakeG.Detach(), fmt.Sprintf("%s/fake_samples_epoch_%d.png", *outf, epoch), true)
 			}
 			if *dryRun {
