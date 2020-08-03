@@ -5,21 +5,55 @@ package gotorch
 // #cgo LDFLAGS: -L ${SRCDIR}/cgotorch/libtorch/lib -Wl,-rpath ${SRCDIR}/cgotorch/libtorch/lib -lc10 -ltorch -ltorch_cpu
 // #include "cgotorch.h"
 import "C"
-import "unsafe"
+
+import (
+	"runtime"
+	"sync"
+)
+
+var (
+	tensorFinalizersWG = &sync.WaitGroup{}
+	gcPrepared         = false
+)
+
+func setTensorFinalizer(t *C.Tensor) {
+	if gcPrepared {
+		tensorFinalizersWG.Add(1)
+	}
+	runtime.SetFinalizer(t, func(t *C.Tensor) {
+		go func() {
+			C.Tensor_Close(*t)
+			if gcPrepared {
+				tensorFinalizersWG.Done()
+			}
+		}()
+	})
+}
+
+// FinishGC should be called right after a train/predict loop
+func FinishGC() {
+	GC()
+	gcPrepared = false
+}
+
+// GC should be called at the beginning inside a train/predict loop
+func GC() {
+	runtime.GC()
+	if !gcPrepared {
+		gcPrepared = true
+		return
+	}
+	tensorFinalizersWG.Wait()
+}
 
 // Tensor wrappers a pointer to C.Tensor
 type Tensor struct {
-	T C.Tensor
-}
-
-// NewTensor returns a Tensor
-func NewTensor(t unsafe.Pointer) Tensor {
-	return Tensor{(C.Tensor)(t)}
+	T *C.Tensor
 }
 
 // String returns the Tensor as a string
 func (a Tensor) String() string {
-	s := C.Tensor_String(a.T)
+	s := C.Tensor_String(*a.T)
 	r := C.GoString(s)
 	C.FreeString(s)
 	return r
@@ -27,30 +61,31 @@ func (a Tensor) String() string {
 
 // Print the tensor
 func (a Tensor) Print() {
-	C.Tensor_Print(a.T)
+	C.Tensor_Print(*a.T)
 }
 
 // Backward compute the gradient of current tensor
 func (a Tensor) Backward() {
-	C.Tensor_Backward(a.T)
+	C.Tensor_Backward(*a.T)
 }
 
 // Grad returns a reference of the gradient
 func (a Tensor) Grad() Tensor {
-	return Tensor{C.Tensor_Grad(a.T)}
-}
-
-// Close the tensor
-func (a Tensor) Close() {
-	C.Tensor_Close(a.T)
+	t := C.Tensor_Grad(*a.T)
+	setTensorFinalizer(&t)
+	return Tensor{&t}
 }
 
 // MM multiplies each element of the input two tensors
 func MM(a, b Tensor) Tensor {
-	return Tensor{C.MM(a.T, b.T)}
+	t := C.MM(*a.T, *b.T)
+	setTensorFinalizer(&t)
+	return Tensor{&t}
 }
 
 // Sum returns the sum of all elements in the input tensor
 func Sum(a Tensor) Tensor {
-	return Tensor{C.Sum(a.T)}
+	t := C.Sum(*a.T)
+	setTensorFinalizer(&t)
+	return Tensor{&t}
 }
