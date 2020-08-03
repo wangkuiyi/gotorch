@@ -13,7 +13,7 @@ import (
 
 // Optimizer struct
 type Optimizer struct {
-	Opt C.Optimizer
+	Opt *C.Optimizer
 }
 
 // RandN returns a tensor filled with random number
@@ -46,20 +46,20 @@ func (opt Optimizer) AddParameters(tensors []Tensor) {
 		CT = append(CT, unsafe.Pointer(t.T))
 	}
 	p := (*reflect.SliceHeader)(unsafe.Pointer(&CT)).Data
-	C.AddParameters(opt.Opt, (*C.Tensor)(unsafe.Pointer(p)), C.int(len(CT)))
+	C.AddParameters(*opt.Opt, (*C.Tensor)(unsafe.Pointer(p)), C.int(len(CT)))
 }
 
 // ZeroGrad reset gradients to zero
 func (opt Optimizer) ZeroGrad() {
-	C.ZeroGrad(opt.Opt)
+	C.ZeroGrad(*opt.Opt)
 }
 
 // Step updates parameters
 func (opt Optimizer) Step() {
-	C.Step(opt.Opt)
+	C.Step(*opt.Opt)
 }
 
 // Close the optimizer
 func (opt Optimizer) Close() {
-	C.Optimizer_Close(opt.Opt)
+	C.Optimizer_Close(*opt.Opt)
 }

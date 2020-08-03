@@ -79,14 +79,14 @@ func (a Tensor) Grad() Tensor {
 
 // MM multiplies each element of the input two tensors
 func MM(a, b Tensor) Tensor {
-	t := C.MM(a.T, b.T)
+	t := C.MM(*a.T, *b.T)
 	setTensorFinalizer(&t)
 	return Tensor{&t}
 }
 
 // Sum returns the sum of all elements in the input tensor
 func Sum(a Tensor) Tensor {
-	t := C.Sum(a.T)
+	t := C.Sum(*a.T)
 	setTensorFinalizer(&t)
 	return Tensor{&t}
 }
