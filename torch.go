@@ -43,7 +43,7 @@ func NewSGDOpt(lr, momentum, dampening, weightDecay float64, nesterov bool) Opti
 func (opt Optimizer) AddParameters(tensors []Tensor) {
 	CT := []unsafe.Pointer{}
 	for _, t := range tensors {
-		CT = append(CT, unsafe.Pointer(t.T))
+		CT = append(CT, unsafe.Pointer(*t.T))
 	}
 	p := (*reflect.SliceHeader)(unsafe.Pointer(&CT)).Data
 	C.AddParameters(*opt.Opt, (*C.Tensor)(unsafe.Pointer(p)), C.int(len(CT)))
