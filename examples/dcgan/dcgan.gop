@@ -10,7 +10,9 @@ import (
 	"github.com/gotorch/backends/cudnn"
 	dset "github.com/gotorch/torchvision/datasets"
 	transforms "github.com/gotorch/torchvision/transforms"
+	vtuils "gitub.com/gotorch/torchvision/utils"
 	"github.com/gotorch/utils/data"
+	torch "github.com/wangkuiyi/gotorch"
 )
 
 var (
@@ -28,12 +30,107 @@ var (
 	cuda       = flag.Bool("cuda", false, "enables cuda")
 	dryRun     = flag.Bool("dry-run", false, "check a single training cycle works")
 	ngpu       = flag.Int("ngpu", 1, "number of GPUs to use")
-	netG       = flag.String("netG", "", "path to netG (to continue training)")
-	netD       = flag.String("netD", "", "path to netD (to continue training)")
+	pathG       = flag.String("pathG", "", "path to netG (to continue training)")
+	pathD       = flag.String("pathD", "", "path to netD (to continue training)")
 	outf       = flag.String("outf", ".", "folder to output images and model checkpoints")
 	manualSeed = flag.Int("manualSeed", 0, "manual seed")
 	classes    = flag.String("classes", "bedroom", "comma separated list of classes for the lsun data set")
 )
+
+
+type Generator struct {
+	ngpu int
+	main *torch.Module
+}
+
+func NewGenerator(gpu int, nz int, ngf int, nc int) *Generator {
+	return &Generator {
+		ngpu: gpu,
+		main: torch.nn.Sequential(
+			[
+				// input is Z, going into a convolution
+				torch.ConvTranspose2d(nz, ngf * 8, 4, 1, 0, false),
+				torch.BatchNorm2d(ngf * 8)
+				torch.ReLU(true),
+				// state size. (ngf*8) x 4 x 4
+				torch.ConvTranspose2d(ngf * 8, ngf * 4, 4, 2, 1, false),
+				torch.BatchNorm2d(ngf * 4),
+				torch.ReLU(true),
+				// state size. (ngf*4) x 8 x 8
+				torch.ConvTranspose2d(ngf * 4, ngf * 2, 4, 2, 1, false),
+				torch.BatchNorm2d(ngf * 2),
+				torch.ReLU(true),
+				// state size. (ngf*2) x 16 x 16
+				torch.ConvTranspose2d(ngf * 2, ngf, 4, 2, 1, false)
+				torch.BatchNorm2d(ngf),
+				torch.ReLU(true),
+				// state size. (ngf) x 32 x 32
+				torch.ConvTranspose2d(ngf, nc, 4, 2, 1, false),
+				torch.Tanh()
+			]
+		),
+	}
+}
+
+func (self Generator) Forward(x torch.Tensor) output torch.Tensor {
+	if x.IsCuda && self.ngpu > 1 {
+		output = torch.nn.DataParallel(self.main, x, range(self.ngpu))
+	} else {
+		output = self.main.Forward(x)
+	}
+}
+
+type Discriminator struct {
+	ngpu int
+	main *torch.Module
+}
+
+func NewDiscriminator(gpu int, ndf int, nc int) *Discriminator {
+	return &Discriminator{
+		ngpu: gpu,
+		main: torch.Sequential(
+			[
+				// input is (nc) x 64 x 6
+				torch.Conv2d(nc, ndf, 4, 2, 1, false),
+				torch.LeakyReLU(0.2, true),
+				// state size. (ndf) x 32 x 32
+				torch.Conv2d(ndf, ndf * 2, 4, 2, 1, false),
+				torch.BatchNorm2d(ndf * 2),
+				torch.LeakyReLU(0.2, true),
+				// state size. (ndf*2) x 16 x 16
+				torch.Conv2d(ndf * 2, ndf * 4, 4, 2, 1, false),
+				torch.BatchNorm2d(ndf * 4),
+				torch.LeakyReLU(0.2, true),
+				// state size. (ndf*4) x 8 x 8
+				torch.nn.NewConv2d(ndf * 4),
+				torch.nn.NewBatchNorm2d(ndf * 8),
+				torch.nn.NewLeakyReLU(0.2, true),
+				// state size. (ndf*8) x 4 x 4
+				torch.nn.NewConv2d(ndf * 8, 1, 4, 1, 0, true),
+				torch.nn.NewSigmoid()
+			]
+		),
+	}
+}
+
+func (self Discriminator) Forward(x torch.Tensor) output torch.Tensor {
+	if x.IsCuda && self.ngpu > 1 {
+		output = torch.nn.DataParallel(self.main, x, range(self.ngpu))
+	} else {
+		output = self.main.Forward(x)
+	}
+	output = output.View(-1. 1).Squeeze(1)
+}
+
+func weightInit(m nn.Module) {
+	className := m.ClassName
+	if className.Find("Conv") != -1 {
+		torch.Normal_(m.Weight, 0.0, 0.02)
+	} else if className.Find("BatchNorm") != -1 {
+		torch.Normal_(m.Weight, 1.0, 0.02)
+		torch.Zeros_(m.Bias)
+	}
+}
 
 func main() {
 	flag.Parse()
@@ -80,4 +177,82 @@ func main() {
 	}
 
 	dataloader := data.NewLoader(dataset, *batchSize, true /*shuffle*/, *workers)
+	deviceStr := "cpu"
+	if *cuda {
+		deviceStr = "cuda:0"
+	}
+	device := torch.Device(deviceStr)
+
+	netG := NewGenerator(*npgu, *nz, *ngf, nc)
+	netG.Apply(weightInit)
+	if *pathG != "" {
+		netG.LoadStateDict(torch.Load(*pathG))
+	}
+
+	netD := NewDiscriminator(*ngpu, *ndf, *nc)
+	netD.Apply(weightInit)
+	if *pathD != "" {
+		netG.LoadStateDict(torch.Load(*pathD))
+	}
+
+	criterion := torch.NN.NewBCELoss()
+	fixedNoise := torch.RandN(*batchSize, *nz, 1, 1, device)
+	realLabel := 1
+	fakeLabel := 0
+
+	optimizerD := torch.Adam(netD.Parameters(), *lr, []float64{*beta1, 0.999})
+	optimizerG := torch.Adam(netG.Parameters(), *lr, []float64{*beta1, 0.999})
+
+	if *dryRun {
+		*niter = 1
+	}
+
+	for epoch := 0; epoch < *niter; epoch++ {
+		for i, data := range dataloader {
+			// (1) Update D network: maximize log(D(x)) + log(1 - D(G(z)))
+			// train with real
+			netD.ZeroGrad()
+			realCpu := data[0].To(device)
+			batchSize := realCpu.Size(0)
+			label := torch.Full([]int{batch_size}, realLabel, realCpu.Dtype, device)
+			outputDReal := netD.Forward(realCpu)
+			errDReal := criterion.Forward(outputDReal, label)
+			errDReal.Backward()
+			DX = outputDReal.Mean().Item()
+
+			// train with fake
+			noise := torch.RandN(batchSize, nz, 1, 1, device)
+			fake := netG(noise)
+			label.Fill_(fakeLabel)
+			outputDFake := netD.Forward(fake.Detach())
+			errDFake := criterion.Forward(outputDFake, label)
+			errDFake.Backward()
+			DGZ1 := output.Mean().Item()
+			errD := errDReal + errDFake
+			optimizerD.Step()
+
+			// (2) Update G network: maximize log(D(G(z)))
+			netG.ZeroGrad()
+			label.Fill_(realLabel)
+			output := netD.Forward(fake)
+			errG := criterion.Forward(output, label)
+			errG.Backward()
+			DGZ2 := output.Mean().Item()
+			optimizerG.step()
+
+			fmt.Printf("[%d/%d][%d/%d] Loss_D: %f Loss_G: %f D(x): %f D(G(z)): %f / %f\n",
+						epoch, *niter, i, dataloader.Length(), errD.Item(),
+						errG.Item(), DX, DGZ1, DGZ2)
+			if i % 100 == 0 {
+				vutils.SaveImage(realCpu, fmt.Sprintf("%s/real_samples.png", *outf), true)
+				fakeG := netG(fixedNoise)
+				vutils.SaveImage(fakeG.Detach(), fmt.Sprintf("%s/fake_samples_epoch_%d.png", *outf, epoch), true)
+			}
+			if *dryRun {
+				break
+			}
+		}
+		torch.Save(netG.StateDict(), fmt.Sprintf("%s/netG_epoch_%d.pth", *outf, epoch))
+		torch.Save(netD.StateDict(), fmt.Sprintf("%s/netD_epoch_%d.pth", *outf, epoch))
+	}
 }
