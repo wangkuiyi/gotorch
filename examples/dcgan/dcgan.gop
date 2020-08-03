@@ -210,7 +210,8 @@ func main() {
 	}
 
 	for epoch := 0; epoch < *niter; epoch++ {
-		for i, data := range dataloader {
+		for i, data := 0, dataloader.ReadBatch(); data != dataloader.EOF;
+			i, data = i + 1, dataloader.ReadBatch() {
 			// (1) Update D network: maximize log(D(x)) + log(1 - D(G(z)))
 			// train with real
 			netD.ZeroGrad()
