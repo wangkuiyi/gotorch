@@ -97,15 +97,11 @@ void AddStack(Dataset dataset, Transform transform){
 using TypeDataLoader = torch::data::StatelessDataLoader<torch::data::datasets::MNIST, torch::data::samplers::SequentialSampler>;
 using TypeIterator = torch::data::Iterator<TypeDataLoader::BatchType>;
 
-DataLoader DataLoaderWithSequenceSampler(Dataset dataset, int batchsize) {
+DataLoader MakeDataLoader(Dataset dataset, int batchsize) {
   auto p = torch::data::make_data_loader<torch::data::samplers::SequentialSampler>(
           std::move(*(static_cast<torch::data::datasets::MNIST *>(dataset))), batchsize);
   return std::move(p.release());
 }
-
-typedef struct LoaderIterator {
-  TypeIterator iter;
-} LoaderIterator;
 
 Iterator Loader_Begin(DataLoader loader) {
   return new TypeIterator(static_cast<TypeDataLoader *>(loader)->begin());

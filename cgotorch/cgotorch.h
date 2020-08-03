@@ -41,9 +41,6 @@ Dataset MNIST(const char *data_root);
 void AddNormalize(Dataset dataset, Transform transform);
 void AddStack(Dataset dataset, Transform transform);
 
-// dataloader APIs
-
-//typedef void *DataLoader;
 typedef void *Iterator;
 typedef void *DataLoader;
 
@@ -55,7 +52,7 @@ typedef struct Data{
 Iterator Loader_Begin(DataLoader loader);
 Data Loader_Data(Iterator iter);
 bool Loader_Next(DataLoader loader, Iterator iter);
-DataLoader DataLoaderWithSequenceSampler(Dataset dataset, int batchsize);
+DataLoader MakeDataLoader(Dataset dataset, int batchsize);
 
 #ifdef __cplusplus
 }

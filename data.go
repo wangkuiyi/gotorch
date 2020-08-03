@@ -75,7 +75,7 @@ type Data struct {
 
 // NewDataLoader returns DataLoader pointer
 func NewDataLoader(dataset *Dataset, batchSize int) *DataLoader {
-	loader := C.DataLoaderWithSequenceSampler(C.Dataset(dataset.T), C.int(batchSize))
+	loader := C.MakeDataLoader(C.Dataset(dataset.T), C.int(batchSize))
 	return &DataLoader{
 		T:    loader,
 		data: nil,
@@ -86,8 +86,8 @@ func NewDataLoader(dataset *Dataset, batchSize int) *DataLoader {
 // NewData returns Data in DataLoader
 func NewData(data C.Data) *Data {
 	return &Data{
-		Data:   Tensor{C.Tensor(data.Data)},
-		Target: Tensor{C.Tensor(data.Target)},
+		Data:   Tensor{&data.Data},
+		Target: Tensor{&data.Target},
 	}
 }
 
