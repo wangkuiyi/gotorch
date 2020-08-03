@@ -177,19 +177,21 @@ func main() {
 	}
 
 	dataloader := data.NewLoader(dataset, *batchSize, true /*shuffle*/, *workers)
-	deviceStr := "cpu"
+
+	device := torch.Device("cpu")
 	if *cuda {
-		deviceStr = "cuda:0"
+		device = torch.Device("cuda:0")
 	}
-	device := torch.Device(deviceStr)
 
 	netG := NewGenerator(*npgu, *nz, *ngf, nc)
+	netG.To(device)
 	netG.Apply(weightInit)
 	if *pathG != "" {
 		netG.LoadStateDict(torch.Load(*pathG))
 	}
 
 	netD := NewDiscriminator(*ngpu, *ndf, *nc)
+	netD.To(device)
 	netD.Apply(weightInit)
 	if *pathD != "" {
 		netG.LoadStateDict(torch.Load(*pathD))
