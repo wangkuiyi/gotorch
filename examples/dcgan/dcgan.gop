@@ -46,7 +46,7 @@ type Generator struct {
 func NewGenerator(gpu int, nz int, ngf int, nc int) *Generator {
 	return &Generator {
 		ngpu: gpu,
-		main: torch.nn.Sequential(
+		main: torch.Sequential(
 			[
 				// input is Z, going into a convolution
 				torch.ConvTranspose2d(nz, ngf * 8, 4, 1, 0, false),
@@ -74,7 +74,7 @@ func NewGenerator(gpu int, nz int, ngf int, nc int) *Generator {
 
 func (self Generator) Forward(x torch.Tensor) output torch.Tensor {
 	if x.IsCuda && self.ngpu > 1 {
-		output = torch.nn.DataParallel(self.main, x, range(self.ngpu))
+		output = torch.DataParallel(self.main, x, range(self.ngpu))
 	} else {
 		output = self.main.Forward(x)
 	}
@@ -102,12 +102,12 @@ func NewDiscriminator(gpu int, ndf int, nc int) *Discriminator {
 				torch.BatchNorm2d(ndf * 4),
 				torch.LeakyReLU(0.2, true),
 				// state size. (ndf*4) x 8 x 8
-				torch.nn.NewConv2d(ndf * 4),
-				torch.nn.NewBatchNorm2d(ndf * 8),
-				torch.nn.NewLeakyReLU(0.2, true),
+				torch.Conv2d(ndf * 4),
+				torch.BatchNorm2d(ndf * 8),
+				torch.LeakyReLU(0.2, true),
 				// state size. (ndf*8) x 4 x 4
-				torch.nn.NewConv2d(ndf * 8, 1, 4, 1, 0, true),
-				torch.nn.NewSigmoid()
+				torch.Conv2d(ndf * 8, 1, 4, 1, 0, true),
+				torch.Sigmoid()
 			]
 		),
 	}
@@ -115,14 +115,14 @@ func NewDiscriminator(gpu int, ndf int, nc int) *Discriminator {
 
 func (self Discriminator) Forward(x torch.Tensor) output torch.Tensor {
 	if x.IsCuda && self.ngpu > 1 {
-		output = torch.nn.DataParallel(self.main, x, range(self.ngpu))
+		output = torch.DataParallel(self.main, x, range(self.ngpu))
 	} else {
 		output = self.main.Forward(x)
 	}
 	output = output.View(-1. 1).Squeeze(1)
 }
 
-func weightInit(m nn.Module) {
+func weightInit(m torch.Module) {
 	className := m.ClassName
 	if className.Find("Conv") != -1 {
 		torch.Normal_(m.Weight, 0.0, 0.02)
@@ -195,7 +195,7 @@ func main() {
 		netG.LoadStateDict(torch.Load(*pathD))
 	}
 
-	criterion := torch.NN.NewBCELoss()
+	criterion := torch.BCELoss()
 	fixedNoise := torch.RandN(*batchSize, *nz, 1, 1, device)
 	realLabel := 1
 	fakeLabel := 0
