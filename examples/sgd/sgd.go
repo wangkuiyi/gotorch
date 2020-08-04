@@ -20,4 +20,6 @@ func main() {
 		opt.Step()
 	}
 	torch.FinishGC()
+	opt.Close()
+	a.Close()
 }
