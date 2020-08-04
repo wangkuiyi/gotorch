@@ -1,5 +1,7 @@
 #include "torch/script.h"
 #include "torch/torch.h"
+
+// FIXME(shendiaomo): including cgotorch.h before torch/torch.h will fail
 #include "cgotorch.h"
 
 #include <iostream>
@@ -98,9 +100,9 @@ using TypeDataLoader = torch::data::StatelessDataLoader<torch::data::datasets::M
 using TypeIterator = torch::data::Iterator<TypeDataLoader::BatchType>;
 
 DataLoader MakeDataLoader(Dataset dataset, int batchsize) {
-  auto p = torch::data::make_data_loader<torch::data::samplers::SequentialSampler>(
-          std::move(*(static_cast<torch::data::datasets::MNIST *>(dataset))), batchsize);
-  return std::move(p.release());
+  auto p = torch::data::make_data_loader(
+          *(static_cast<torch::data::datasets::MNIST *>(dataset)), batchsize);
+  return p.release();
 }
 
 Iterator Loader_Begin(DataLoader loader) {
@@ -109,8 +111,8 @@ Iterator Loader_Begin(DataLoader loader) {
 
 Data Loader_Data(Iterator iter) {
   Data data;
-  data.Data = new at::Tensor(std::move(*static_cast<TypeIterator *>(iter))->data()->data);
-  data.Target = new at::Tensor(std::move(*static_cast<TypeIterator *>(iter))->data()->target);
+  data.Data = new at::Tensor((*static_cast<TypeIterator *>(iter))->data()->data);
+  data.Target = new at::Tensor((*static_cast<TypeIterator *>(iter))->data()->target);
   return data;
 }
 
