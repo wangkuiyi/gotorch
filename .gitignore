@@ -5,3 +5,4 @@ libcgotorch.so
 *~
 .vscode
 data
+*.test
