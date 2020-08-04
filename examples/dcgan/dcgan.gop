@@ -37,7 +37,7 @@ var (
 	classes    = flag.String("classes", "bedroom", "comma separated list of classes for the lsun data set")
 )
 
-func range(n int) []int {
+func rangeInt(n int) []int {
 	res := []int{}
 	if n <= 0 {
 		return res
@@ -85,7 +85,7 @@ func NewGenerator(gpu int, nz int, ngf int, nc int) *Generator {
 
 func (g* Generator) Forward(x torch.Tensor) output torch.Tensor {
 	if x.IsCuda && g.ngpu > 1 {
-		output = torch.DataParallel(g.main, x, range(g.ngpu))
+		output = torch.DataParallel(g.main, x, rangeInt(g.ngpu))
 	} else {
 		output = g.main.Forward(x)
 	}
@@ -126,7 +126,7 @@ func NewDiscriminator(gpu int, ndf int, nc int) *Discriminator {
 
 func (d *Discriminator) Forward(x torch.Tensor) output torch.Tensor {
 	if x.IsCuda && d.ngpu > 1 {
-		output = torch.DataParallel(d.main, x, range(d.ngpu))
+		output = torch.DataParallel(d.main, x, rangeInt(d.ngpu))
 	} else {
 		output = d.main.Forward(x)
 	}
