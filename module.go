@@ -130,7 +130,8 @@ func NamedParameters(m Module) map[string]Tensor {
 // GetParameters returns parameters
 func GetParameters(m Module) []Tensor {
 	result := make([]Tensor, 0)
-	n := GetNamedParameters(m)
+	// n := GetNamedParameters(m)
+	n := NamedParameters(m)
 	for _, v := range n {
 		result = append(result, v)
 	}
