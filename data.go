@@ -51,9 +51,9 @@ func (d *Dataset) AddTransforms(transforms []Transform) {
 	for _, trans := range transforms {
 		switch v := trans.(type) {
 		case *Normalize:
-			C.AddNormalize(d.T, (C.Transform)(trans.(*Normalize).T))
+			C.Dataset_Normalize(d.T, (C.Transform)(trans.(*Normalize).T))
 		case *Stack:
-			C.AddStack(d.T, (C.Transform)(trans.(*Stack).T))
+			C.Dataset_Stack(d.T, (C.Transform)(trans.(*Stack).T))
 		default:
 			panic(fmt.Sprintf("unsupposed transform type: %T", v))
 		}

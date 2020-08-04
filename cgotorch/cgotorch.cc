@@ -86,12 +86,12 @@ Transform Stack() {
   return new torch::data::transforms::Stack<>();
 }
 
-void AddNormalize(Dataset dataset, Transform transform) {
+void Dataset_Normalize(Dataset dataset, Transform transform) {
   static_cast<torch::data::datasets::MNIST *>(dataset)->map(
     *(static_cast<torch::data::transforms::Normalize<> *>(transform)));
 }
 
-void AddStack(Dataset dataset, Transform transform){
+void Dataset_Stack(Dataset dataset, Transform transform){
   static_cast<torch::data::datasets::MNIST *>(dataset)->map(
     *(static_cast<torch::data::transforms::Stack<> *>(transform)));
 }
