@@ -64,6 +64,11 @@ func (a Tensor) Print() {
 	C.Tensor_Print(*a.T)
 }
 
+// Close the tensor
+func (a Tensor) Close() {
+	C.Tensor_Close(*a.T)
+}
+
 // Backward compute the gradient of current tensor
 func (a Tensor) Backward() {
 	C.Tensor_Backward(*a.T)
