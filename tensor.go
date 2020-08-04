@@ -17,13 +17,14 @@ var (
 )
 
 func setTensorFinalizer(t *C.Tensor) {
-	if gcPrepared {
+	p := gcPrepared
+	if p {
 		tensorFinalizersWG.Add(1)
 	}
 	runtime.SetFinalizer(t, func(t *C.Tensor) {
 		go func() {
 			C.Tensor_Close(*t)
-			if gcPrepared {
+			if p {
 				tensorFinalizersWG.Done()
 			}
 		}()
