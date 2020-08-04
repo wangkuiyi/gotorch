@@ -4,7 +4,6 @@ import (
 	torch "github.com/wangkuiyi/gotorch"
 )
 
-// MyNet struct
 type myNet struct {
 	torch.Model
 	l1, l2 torch.Module
