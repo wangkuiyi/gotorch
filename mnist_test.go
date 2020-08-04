@@ -6,7 +6,7 @@ import (
 	torch "github.com/wangkuiyi/gotorch"
 )
 
-func NotComplete_ExampleMNIST() {
+func NotCompleteExampleMNIST() {
 	dataset := torch.NewMNIST("./data")
 	dataset.AddTransforms([]torch.Transform{
 		torch.NewNormalize(0.1307, 0.3081),
