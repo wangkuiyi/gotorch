@@ -37,6 +37,17 @@ var (
 	classes    = flag.String("classes", "bedroom", "comma separated list of classes for the lsun data set")
 )
 
+func range(n int) []int {
+	res := []int{}
+	if n <= 0 {
+		return res
+	}
+	for i := 0; i < n; i++ {
+		res = append(res, i)
+	}
+	return res
+}
+
 
 type Generator struct {
 	ngpu int
@@ -72,11 +83,11 @@ func NewGenerator(gpu int, nz int, ngf int, nc int) *Generator {
 	}
 }
 
-func (self Generator) Forward(x torch.Tensor) output torch.Tensor {
-	if x.IsCuda && self.ngpu > 1 {
-		output = torch.DataParallel(self.main, x, range(self.ngpu))
+func (g* Generator) Forward(x torch.Tensor) output torch.Tensor {
+	if x.IsCuda && g.ngpu > 1 {
+		output = torch.DataParallel(g.main, x, range(g.ngpu))
 	} else {
-		output = self.main.Forward(x)
+		output = g.main.Forward(x)
 	}
 }
 
@@ -113,11 +124,11 @@ func NewDiscriminator(gpu int, ndf int, nc int) *Discriminator {
 	}
 }
 
-func (self Discriminator) Forward(x torch.Tensor) output torch.Tensor {
-	if x.IsCuda && self.ngpu > 1 {
-		output = torch.DataParallel(self.main, x, range(self.ngpu))
+func (d *Discriminator) Forward(x torch.Tensor) output torch.Tensor {
+	if x.IsCuda && d.ngpu > 1 {
+		output = torch.DataParallel(d.main, x, range(d.ngpu))
 	} else {
-		output = self.main.Forward(x)
+		output = d.main.Forward(x)
 	}
 	output = output.View(-1. 1).Squeeze(1)
 }
@@ -210,8 +221,9 @@ func main() {
 	}
 
 	for epoch := 0; epoch < *niter; epoch++ {
-		for i, data := 0, dataloader.ReadBatch(); data != dataloader.EOF;
-			i, data = i + 1, dataloader.ReadBatch() {
+		i := 0
+		for dataloader.Scan() {
+			data := dataloader.Data()
 			// (1) Update D network: maximize log(D(x)) + log(1 - D(G(z)))
 			// train with real
 			netD.ZeroGrad()
@@ -254,6 +266,7 @@ func main() {
 			if *dryRun {
 				break
 			}
+			i++
 		}
 		torch.Save(netG.StateDict(), fmt.Sprintf("%s/netG_epoch_%d.pth", *outf, epoch))
 		torch.Save(netD.StateDict(), fmt.Sprintf("%s/netD_epoch_%d.pth", *outf, epoch))
