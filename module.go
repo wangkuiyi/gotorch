@@ -102,6 +102,31 @@ func GetNamedParameters(m Module) map[string]Tensor {
 	return result
 }
 
+func NamedParameters(m Module) map[string]Tensor {
+	r := make(map[string]Tensor)
+
+	moduleType := reflect.TypeOf((*Module)(nil)).Elem()
+	tensorType := reflect.TypeOf((*Tensor)(nil)).Elem()
+
+	v := reflect.ValueOf(m).Elem() // Elem gets what the pointer points to.
+	for i := 0; i < v.NumField(); i++ {
+		fn := v.Type().Field(i).Name
+		ft := v.Type().Field(i).Type
+		fg := v.Type().Field(i).Tag
+		fv := v.Field(i).Interface()
+
+		if ft.Implements(moduleType) {
+			rr := NamedParameters(fv.(Module))
+			for k, v := range rr {
+				r[fn+"."+k] = v
+			}
+		} else if ft == tensorType && fg.Get("gotorch") != "buffer" {
+			r[fn] = fv.(Tensor)
+		}
+	}
+	return r
+}
+
 // GetParameters returns parameters
 func GetParameters(m Module) []Tensor {
 	result := make([]Tensor, 0)
