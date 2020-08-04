@@ -16,8 +16,8 @@ type Optimizer struct {
 	Opt *C.Optimizer
 }
 
-// NewSGDOpt creates a SGD Optimizer
-func NewSGDOpt(lr, momentum, dampening, weightDecay float64, nesterov bool) Optimizer {
+// SGD creates a SGD Optimizer
+func SGD(lr, momentum, dampening, weightDecay float64, nesterov bool) Optimizer {
 	nt := 0
 	if nesterov {
 		nt = 1
