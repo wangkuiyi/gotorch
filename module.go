@@ -6,6 +6,7 @@ package gotorch
 // #include "cgotorch.h"
 import "C"
 import (
+	"log"
 	"reflect"
 )
 
@@ -84,15 +85,22 @@ func GetNamedParameters(m Module) map[string]Tensor {
 		fn := v.Type().Field(i).Name
 		ft := v.Type().Field(i).Type
 		fg := v.Type().Field(i).Tag
-		fv := v.Field(i).Interface()
 
 		if ft.Implements(moduleType) {
-			rr := GetNamedParameters(fv.(Module))
+			if !v.Field(i).CanInterface() {
+				log.Fatalf("GoTorch requires exporting Module-typed field %s of struct %s", fn, v.Type().Name())
+			}
+			rr := GetNamedParameters(v.Field(i).Interface().(Module))
 			for k, v := range rr {
 				r[fn+"."+k] = v
 			}
 		} else if ft == tensorType && fg.Get("gotorch") != "buffer" {
+			if !v.Field(i).CanInterface() {
+				log.Fatalf("GoTorch requires exporting Tensor-typed field %s of struct %s", fn, v.Type().Name())
+			}
+			fv := v.Field(i).Interface()
 			if ct := fv.(Tensor).T; ct != nil {
+				// An exported Tenosr-field could have value nil
 				r[fn] = fv.(Tensor)
 			}
 		}
