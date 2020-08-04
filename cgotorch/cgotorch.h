@@ -44,13 +44,8 @@ void Dataset_Stack(Dataset dataset, Transform transform);
 typedef void *Iterator;
 typedef void *DataLoader;
 
-typedef struct Data{
-  Tensor Data;
-  Tensor Target;
-} Data;
-
 Iterator Loader_Begin(DataLoader loader);
-Data Loader_Data(Iterator iter);
+void Loader_Data(Iterator iter, Tensor data[]);
 bool Loader_Next(DataLoader loader, Iterator iter);
 DataLoader MakeDataLoader(Dataset dataset, int batchsize);
 

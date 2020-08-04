@@ -8,6 +8,7 @@ package gotorch
 import "C"
 import (
 	"fmt"
+	"reflect"
 	"unsafe"
 )
 
@@ -63,7 +64,7 @@ func (d *Dataset) AddTransforms(transforms []Transform) {
 // DataLoader struct
 type DataLoader struct {
 	T    C.DataLoader
-	data *Data
+	data []Tensor
 	iter C.Iterator
 }
 
@@ -78,34 +79,36 @@ func NewDataLoader(dataset *Dataset, batchSize int) *DataLoader {
 	loader := C.MakeDataLoader(C.Dataset(dataset.T), C.int(batchSize))
 	return &DataLoader{
 		T:    loader,
-		data: nil,
+		data: []Tensor{},
 		iter: nil,
 	}
 }
 
-// NewData returns Data in DataLoader
-func NewData(data C.Data) *Data {
-	return &Data{
-		Data:   Tensor{&data.Data},
-		Target: Tensor{&data.Target},
-	}
+// NewSample returns the batch data as Tensor slice
+func NewSample(iter *C.Iterator) []Tensor {
+	T := make([]C.Tensor, 2)
+	p := (*reflect.SliceHeader)(unsafe.Pointer(&T)).Data
+	C.Loader_Data(*iter, (*C.Tensor)(unsafe.Pointer(p)))
+	setTensorFinalizer(&T[0])
+	setTensorFinalizer(&T[1])
+	return []Tensor{Tensor{(*C.Tensor)(&T[0])}, Tensor{(*C.Tensor)(&T[1])}}
 }
 
 // Scan scans the batch from DataLoader
 func (loader *DataLoader) Scan() bool {
 	if loader.iter == nil {
 		loader.iter = C.Loader_Begin(loader.T)
-		loader.data = NewData(C.Loader_Data(loader.iter))
+		loader.data = NewSample(&loader.iter)
 	}
 	// returns false if no next iteration
 	if C.Loader_Next(loader.T, loader.iter) == false {
 		return false
 	}
-	C.Loader_Data(loader.iter)
+	loader.data = NewSample(&loader.iter)
 	return true
 }
 
 // Data returns the data in DataLoader
-func (loader *DataLoader) Data() *Data {
+func (loader *DataLoader) Data() []Tensor {
 	return loader.data
 }

@@ -109,11 +109,9 @@ Iterator Loader_Begin(DataLoader loader) {
   return new TypeIterator(static_cast<TypeDataLoader *>(loader)->begin());
 }
 
-Data Loader_Data(Iterator iter) {
-  Data data;
-  data.Data = new at::Tensor((*static_cast<TypeIterator *>(iter))->data()->data);
-  data.Target = new at::Tensor((*static_cast<TypeIterator *>(iter))->data()->target);
-  return data;
+void Loader_Data(Iterator iter, Tensor array[]) {
+  array[0] = new at::Tensor((*static_cast<TypeIterator *>(iter))->data()->data);
+  array[1] = new at::Tensor((*static_cast<TypeIterator *>(iter))->data()->target);
 }
 
 bool Loader_Next(DataLoader loader, Iterator iter) {
