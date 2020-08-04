@@ -17,7 +17,7 @@ var (
 )
 
 func setTensorFinalizer(t *C.Tensor) {
-	// We don't want the following conditional and the finalizer using 
+	// We don't want the following conditional and the finalizer using
 	// different gcPrepared values, so we leverage p and closure here.
 	p := gcPrepared
 	if p {
