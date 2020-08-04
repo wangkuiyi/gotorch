@@ -1,5 +1,7 @@
 #include "torch/script.h"
 #include "torch/torch.h"
+
+// FIXME(shendiaomo): including cgotorch.h before torch/torch.h will fail
 #include "cgotorch.h"
 
 #include <iostream>
@@ -8,25 +10,23 @@
 Tensor RandN(int rows, int cols, int require_grad) {
   at::Tensor t = torch::randn({rows, cols},
                               at::TensorOptions().requires_grad(require_grad));
-  return new at::Tensor(std::move(t));
+  return new at::Tensor(t);
 }
 
 Tensor MM(Tensor a, Tensor b) {
   at::Tensor c =
       at::mm(*static_cast<at::Tensor *>(a), *static_cast<at::Tensor *>(b));
-  return new at::Tensor(std::move(c));
+  return new at::Tensor(c);
 }
 
 Tensor Sum(Tensor a) {
-  at::Tensor r = static_cast<at::Tensor *>(a)->sum();
-  return new at::Tensor(std::move(r));
+  return new at::Tensor(static_cast<at::Tensor *>(a)->sum());
 }
 
 void Tensor_Backward(Tensor a) { static_cast<at::Tensor *>(a)->backward(); }
 
 Tensor Tensor_Grad(Tensor a) {
-  at::Tensor r = static_cast<at::Tensor *>(a)->grad();
-  return new at::Tensor(std::move(r));
+  return new at::Tensor(static_cast<at::Tensor *>(a)->grad());
 }
 
 void Tensor_Print(Tensor a) {
@@ -84,12 +84,12 @@ Transform Stack() {
   return new torch::data::transforms::Stack<>();
 }
 
-void AddNormalize(Dataset dataset, Transform transform) {
+void Dataset_Normalize(Dataset dataset, Transform transform) {
   static_cast<torch::data::datasets::MNIST *>(dataset)->map(
     *(static_cast<torch::data::transforms::Normalize<> *>(transform)));
 }
 
-void AddStack(Dataset dataset, Transform transform){
+void Dataset_Stack(Dataset dataset, Transform transform){
   static_cast<torch::data::datasets::MNIST *>(dataset)->map(
     *(static_cast<torch::data::transforms::Stack<> *>(transform)));
 }
@@ -98,9 +98,9 @@ using TypeDataLoader = torch::data::StatelessDataLoader<torch::data::datasets::M
 using TypeIterator = torch::data::Iterator<TypeDataLoader::BatchType>;
 
 DataLoader MakeDataLoader(Dataset dataset, int batchsize) {
-  auto p = torch::data::make_data_loader<torch::data::samplers::SequentialSampler>(
-          std::move(*(static_cast<torch::data::datasets::MNIST *>(dataset))), batchsize);
-  return std::move(p.release());
+  auto p = torch::data::make_data_loader(
+          *(static_cast<torch::data::datasets::MNIST *>(dataset)), batchsize);
+  return p.release();
 }
 
 Iterator Loader_Begin(DataLoader loader) {
@@ -109,15 +109,11 @@ Iterator Loader_Begin(DataLoader loader) {
 
 Data Loader_Data(Iterator iter) {
   Data data;
-  data.Data = new at::Tensor(std::move(*static_cast<TypeIterator *>(iter))->data()->data);
-  data.Target = new at::Tensor(std::move(*static_cast<TypeIterator *>(iter))->data()->target);
+  data.Data = new at::Tensor((*static_cast<TypeIterator *>(iter))->data()->data);
+  data.Target = new at::Tensor((*static_cast<TypeIterator *>(iter))->data()->target);
   return data;
 }
 
 bool Loader_Next(DataLoader loader, Iterator iter) {
-  ++(*static_cast<TypeIterator *>(iter));
-  if (static_cast<TypeDataLoader *>(loader)->end() == *static_cast<TypeIterator *>(iter))  {
-    return false;
-  }
-  return true;
+  return ++*static_cast<TypeIterator *>(iter) != static_cast<TypeDataLoader *>(loader)->end();
 }
