@@ -54,6 +54,17 @@ type Tensor struct {
 	T *C.Tensor
 }
 
+// RandN returns a tensor filled with random number
+func RandN(rows, cols int, requireGrad bool) Tensor {
+	rg := 0
+	if requireGrad {
+		rg = 1
+	}
+	t := C.RandN(C.int(rows), C.int(cols), C.int(rg))
+	setTensorFinalizer(&t)
+	return Tensor{&t}
+}
+
 // String returns the Tensor as a string
 func (a Tensor) String() string {
 	s := C.Tensor_String(*a.T)
