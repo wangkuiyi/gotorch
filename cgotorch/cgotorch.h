@@ -1,5 +1,6 @@
 #ifndef __C_TORCH_H_
 #define __C_TORCH_H_
+#include <stdbool.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -26,6 +27,32 @@ void ZeroGrad(Optimizer opt);
 void Step(Optimizer opt);
 void AddParameters(Optimizer opt, Tensor *tensors, int length);
 void Optimizer_Close(Optimizer opt);
+
+// transform APIs
+typedef void *Transform;
+Transform Normalize(double mean, double stddev);
+Transform Stack();
+
+// dataset APIs
+typedef void *Dataset;
+Dataset MNIST(const char *data_root);
+
+// Add transform on dataset
+void AddNormalize(Dataset dataset, Transform transform);
+void AddStack(Dataset dataset, Transform transform);
+
+typedef void *Iterator;
+typedef void *DataLoader;
+
+typedef struct Data{
+  Tensor Data;
+  Tensor Target;
+} Data;
+
+Iterator Loader_Begin(DataLoader loader);
+Data Loader_Data(Iterator iter);
+bool Loader_Next(DataLoader loader, Iterator iter);
+DataLoader MakeDataLoader(Dataset dataset, int batchsize);
 
 #ifdef __cplusplus
 }

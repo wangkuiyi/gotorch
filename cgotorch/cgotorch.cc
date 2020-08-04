@@ -71,3 +71,53 @@ void AddParameters(Optimizer opt, Tensor *tensors, int length) {
 void Optimizer_Close(Optimizer opt) {
   delete static_cast<torch::optim::SGD *>(opt);
 }
+
+Dataset MNIST(const char *data_root) {
+  return new torch::data::datasets::MNIST(std::string(data_root));
+}
+
+Transform Normalize(double mean, double stddev) {
+  return new torch::data::transforms::Normalize<>(mean, stddev);
+}
+
+Transform Stack() {
+  return new torch::data::transforms::Stack<>();
+}
+
+void AddNormalize(Dataset dataset, Transform transform) {
+  static_cast<torch::data::datasets::MNIST *>(dataset)->map(
+    *(static_cast<torch::data::transforms::Normalize<> *>(transform)));
+}
+
+void AddStack(Dataset dataset, Transform transform){
+  static_cast<torch::data::datasets::MNIST *>(dataset)->map(
+    *(static_cast<torch::data::transforms::Stack<> *>(transform)));
+}
+
+using TypeDataLoader = torch::data::StatelessDataLoader<torch::data::datasets::MNIST, torch::data::samplers::SequentialSampler>;
+using TypeIterator = torch::data::Iterator<TypeDataLoader::BatchType>;
+
+DataLoader MakeDataLoader(Dataset dataset, int batchsize) {
+  auto p = torch::data::make_data_loader<torch::data::samplers::SequentialSampler>(
+          std::move(*(static_cast<torch::data::datasets::MNIST *>(dataset))), batchsize);
+  return std::move(p.release());
+}
+
+Iterator Loader_Begin(DataLoader loader) {
+  return new TypeIterator(static_cast<TypeDataLoader *>(loader)->begin());
+}
+
+Data Loader_Data(Iterator iter) {
+  Data data;
+  data.Data = new at::Tensor(std::move(*static_cast<TypeIterator *>(iter))->data()->data);
+  data.Target = new at::Tensor(std::move(*static_cast<TypeIterator *>(iter))->data()->target);
+  return data;
+}
+
+bool Loader_Next(DataLoader loader, Iterator iter) {
+  ++(*static_cast<TypeIterator *>(iter));
+  if (static_cast<TypeDataLoader *>(loader)->end() == *static_cast<TypeIterator *>(iter))  {
+    return false;
+  }
+  return true;
+}
