@@ -1,4 +1,4 @@
-package main
+package gotorch_test
 
 import (
 	"fmt"
@@ -6,7 +6,7 @@ import (
 	torch "github.com/wangkuiyi/gotorch"
 )
 
-func main() {
+func NotCompleteExampleMNIST() {
 	dataset := torch.NewMNIST("./data")
 	dataset.AddTransforms([]torch.Transform{
 		torch.NewNormalize(0.1307, 0.3081),
@@ -18,4 +18,5 @@ func main() {
 		fmt.Println(data.Data)
 		fmt.Println(data.Target)
 	}
+	// Output:
 }

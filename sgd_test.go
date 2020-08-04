@@ -1,4 +1,4 @@
-package main
+package gotorch_test
 
 import (
 	torch "github.com/wangkuiyi/gotorch"
@@ -27,7 +27,7 @@ func (n *myNet) Forward(x torch.Tensor) torch.Tensor {
 	return x
 }
 
-func main() {
+func ExampleSGD() {
 	net := MyNet()
 	opt := torch.SGD(0.1, 0, 0, 0, false)
 	opt.AddParameters(torch.GetParameters(net))
@@ -45,4 +45,5 @@ func main() {
 	torch.FinishGC()
 	opt.Close()
 	torch.CloseModule(net)
+	// Output:
 }
