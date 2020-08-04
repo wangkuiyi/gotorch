@@ -44,4 +44,6 @@ func main() {
 		opt.Step()
 	}
 	torch.FinishGC()
+	opt.Close()
+	torch.CloseModule(net)
 }

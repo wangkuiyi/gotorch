@@ -168,3 +168,11 @@ func GetParameters(m Module) []Tensor {
 	}
 	return result
 }
+
+// CloseModule closes the module
+func CloseModule(m Module) {
+	params := GetParameters(m)
+	for _, p := range params {
+		p.Close()
+	}
+}
