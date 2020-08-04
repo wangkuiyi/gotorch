@@ -38,8 +38,8 @@ typedef void *Dataset;
 Dataset MNIST(const char *data_root);
 
 // Add transform on dataset
-void AddNormalize(Dataset dataset, Transform transform);
-void AddStack(Dataset dataset, Transform transform);
+void Dataset_Normalize(Dataset dataset, Transform transform);
+void Dataset_Stack(Dataset dataset, Transform transform);
 
 typedef void *Iterator;
 typedef void *DataLoader;
