@@ -28,14 +28,8 @@ func (n *myNet) Forward(x torch.Tensor) torch.Tensor {
 
 func ExampleSGD() {
 	net := MyNet()
-
 	np := torch.GetNamedParameters(net)
 	for n := range np {
-		fmt.Println(n)
-	}
-
-	nb := torch.GetNamedBuffers(net)
-	for n := range nb {
 		fmt.Println(n)
 	}
 
