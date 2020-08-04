@@ -29,7 +29,7 @@ func (n *myNet) Forward(x torch.Tensor) torch.Tensor {
 
 func main() {
 	net := MyNet()
-	opt := torch.NewSGDOpt(0.1, 0, 0, 0, false)
+	opt := torch.SGD(0.1, 0, 0, 0, false)
 	opt.AddParameters(torch.GetParameters(net))
 
 	for i := 0; i < 100; i++ {
