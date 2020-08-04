@@ -20,15 +20,13 @@ Tensor MM(Tensor a, Tensor b) {
 }
 
 Tensor Sum(Tensor a) {
-  at::Tensor r = static_cast<at::Tensor *>(a)->sum();
-  return new at::Tensor(r);
+  return new at::Tensor(static_cast<at::Tensor *>(a)->sum());
 }
 
 void Tensor_Backward(Tensor a) { static_cast<at::Tensor *>(a)->backward(); }
 
 Tensor Tensor_Grad(Tensor a) {
-  at::Tensor r = static_cast<at::Tensor *>(a)->grad();
-  return new at::Tensor(r);
+  return new at::Tensor(static_cast<at::Tensor *>(a)->grad());
 }
 
 void Tensor_Print(Tensor a) {
@@ -115,9 +113,5 @@ void Loader_Data(Iterator iter, Tensor array[]) {
 }
 
 bool Loader_Next(DataLoader loader, Iterator iter) {
-  ++(*static_cast<TypeIterator *>(iter));
-  if (static_cast<TypeDataLoader *>(loader)->end() == *static_cast<TypeIterator *>(iter))  {
-    return false;
-  }
-  return true;
+  return ++*static_cast<TypeIterator *>(iter) != static_cast<TypeDataLoader *>(loader)->end();
 }
