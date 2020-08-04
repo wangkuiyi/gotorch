@@ -57,11 +57,15 @@ func getNamedParamsOrBuffers(m Module, param bool) map[string]Tensor {
 	return r
 }
 
+// recordParamOrBuffer is the only implementation of this function type.
 type moduleFieldVisitor func(f reflect.StructField, v reflect.Value, p string)
 
-func visitModuleFields(m Module, prefix string, fn moduleFieldVisitor) {
-	moduleType := reflect.TypeOf((*Module)(nil)).Elem()
+var (
+	tensorType = reflect.TypeOf((*Tensor)(nil)).Elem()
+	moduleType = reflect.TypeOf((*Module)(nil)).Elem()
+)
 
+func visitModuleFields(m Module, prefix string, fn moduleFieldVisitor) {
 	sv := reflect.ValueOf(m).Elem() // Elem gets what the pointer points to.
 	for i := 0; i < sv.NumField(); i++ {
 		f := sv.Type().Field(i)
@@ -79,8 +83,6 @@ func visitModuleFields(m Module, prefix string, fn moduleFieldVisitor) {
 		}
 	}
 }
-
-var tensorType = reflect.TypeOf((*Tensor)(nil)).Elem()
 
 // If field f is a parameter or buffer field and the value v is not a nil
 // tensor, insert v into map r with key is prefix+"."+f.Name.

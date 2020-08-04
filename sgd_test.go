@@ -30,12 +30,12 @@ func ExampleSGD() {
 	net := MyNet()
 
 	np := torch.GetNamedParameters(net)
-	for n, _ := range np {
+	for n := range np {
 		fmt.Println(n)
 	}
 
 	nb := torch.GetNamedBuffers(net)
-	for n, _ := range nb {
+	for n := range nb {
 		fmt.Println(n)
 	}
 
