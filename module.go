@@ -47,12 +47,9 @@ func GetNamedParameters(m Module) map[string]Tensor {
 	return r
 }
 
-var (
-	tensorType = reflect.TypeOf((*Tensor)(nil)).Elem()
-	moduleType = reflect.TypeOf((*Module)(nil)).Elem()
-)
-
 func getNamedNonNilTensors(m Module, prefix string, param, buffer bool, r map[string]Tensor) {
+	moduleType := reflect.TypeOf((*Module)(nil)).Elem()
+
 	sv := reflect.ValueOf(m).Elem() // Elem gets what the pointer points to.
 	for i := 0; i < sv.NumField(); i++ {
 		f := sv.Type().Field(i)
@@ -76,6 +73,7 @@ func getNamedNonNilTensors(m Module, prefix string, param, buffer bool, r map[st
 func recordNonNilTensor(f reflect.StructField, v reflect.Value,
 	prefix string, r map[string]Tensor, param, buffer bool) {
 
+	tensorType := reflect.TypeOf((*Tensor)(nil)).Elem()
 	if f.Type != tensorType {
 		return // Either parameter or buffer is of type Tensor.
 	}
