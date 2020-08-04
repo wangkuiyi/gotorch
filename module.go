@@ -15,39 +15,7 @@ type Module interface {
 	Forward(x Tensor) Tensor
 }
 
-// Model struct
-type Model struct {
-	parameters map[string]Tensor
-	buffers    map[string]Tensor
-	modules    map[string]Module
-}
-
-// RegisterBuffer registers a buffer to the model
-func (m *Model) RegisterBuffer(s string, t Tensor) {
-	if m.buffers == nil {
-		m.buffers = make(map[string]Tensor)
-	}
-	m.buffers[s] = t
-}
-
-// RegisterParameter registers a parameter to the model
-func (m *Model) RegisterParameter(s string, p Tensor) {
-	if m.parameters == nil {
-		m.parameters = make(map[string]Tensor)
-	}
-	m.parameters[s] = p
-}
-
-// RegisterModule registers a module to the model
-func (m *Model) RegisterModule(s string, module Module) {
-	if m.modules == nil {
-		m.modules = make(map[string]Module)
-	}
-	m.modules[s] = module
-}
-
 type linear struct {
-	Model
 	InFeatures  int
 	OutFeatures int
 	Weight      Tensor
@@ -61,10 +29,8 @@ func Linear(in int, out int, bias bool) Module {
 		OutFeatures: out,
 	}
 	l.Weight = RandN(in, out, true)
-	l.RegisterParameter("Weight", l.Weight)
 	if bias {
 		l.Bias = RandN(out, 1, true)
-		l.RegisterParameter("Bias", l.Bias)
 	}
 	return l
 }
@@ -75,37 +41,75 @@ func (l *linear) Forward(x Tensor) Tensor {
 }
 
 func GetNamedParameters(m Module) map[string]Tensor {
+	return getNamedParamsOrBuffers(m, true)
+}
+
+func GetNamedBuffers(m Module) map[string]Tensor {
+	return getNamedParamsOrBuffers(m, false)
+}
+
+func getNamedParamsOrBuffers(m Module, param bool) map[string]Tensor {
 	r := make(map[string]Tensor)
+	visitModuleFields(m, reflect.TypeOf(m).Elem().Name(),
+		func(f reflect.StructField, v reflect.Value, p string) {
+			recordParamOrBuffer(f, v, p, r, param)
+		})
+	return r
+}
 
+type moduleFieldVisitor func(f reflect.StructField, v reflect.Value, p string)
+
+func visitModuleFields(m Module, prefix string, fn moduleFieldVisitor) {
 	moduleType := reflect.TypeOf((*Module)(nil)).Elem()
-	tensorType := reflect.TypeOf((*Tensor)(nil)).Elem()
 
-	v := reflect.ValueOf(m).Elem() // Elem gets what the pointer points to.
-	for i := 0; i < v.NumField(); i++ {
-		fn := v.Type().Field(i).Name
-		ft := v.Type().Field(i).Type
-		fg := v.Type().Field(i).Tag
+	sv := reflect.ValueOf(m).Elem() // Elem gets what the pointer points to.
+	for i := 0; i < sv.NumField(); i++ {
+		f := sv.Type().Field(i)
+		v := sv.Field(i)
 
-		if ft.Implements(moduleType) {
-			if !v.Field(i).CanInterface() {
-				log.Fatalf("GoTorch requires exporting Module-typed field %s of struct %s", fn, v.Type().Name())
+		if f.Type.Implements(moduleType) {
+			if !v.CanInterface() {
+				log.Fatalf("GoTorch requires exporting Module field %s.%s",
+					sv.Type().Name(), f.Name)
 			}
-			rr := GetNamedParameters(v.Field(i).Interface().(Module))
-			for k, v := range rr {
-				r[fn+"."+k] = v
-			}
-		} else if ft == tensorType && fg.Get("gotorch") != "buffer" {
-			if !v.Field(i).CanInterface() {
-				log.Fatalf("GoTorch requires exporting Tensor-typed field %s of struct %s", fn, v.Type().Name())
-			}
-			fv := v.Field(i).Interface()
-			if ct := fv.(Tensor).T; ct != nil {
-				// An exported Tenosr-field could have value nil
-				r[fn] = fv.(Tensor)
-			}
+			visitModuleFields(v.Interface().(Module),
+				prefix+"."+f.Name, fn)
+		} else {
+			fn(f, v, prefix)
 		}
 	}
-	return r
+}
+
+var tensorType = reflect.TypeOf((*Tensor)(nil)).Elem()
+
+// If field f is a parameter or buffer field and the value v is not a nil
+// tensor, insert v into map r with key is prefix+"."+f.Name.
+func recordParamOrBuffer(f reflect.StructField, v reflect.Value,
+	prefix string, r map[string]Tensor, param bool) {
+
+	if f.Type != tensorType {
+		return // Either parameter or buffer is of type Tensor.
+	}
+
+	tag := f.Tag.Get("gotorch")
+	if param && tag == "buffer" {
+		return // Wants a parameter but this field is a buffer.
+	}
+	if !param && (tag == "param" || tag == "") {
+		return // Wants a buffer but this field is a parameter.
+	}
+
+	if !v.CanInterface() {
+		log.Fatalf("GoTorch requires exporting Tensor field %s.%s",
+			v.Type().Name(), f.Name)
+	}
+
+	fv := v.Interface().(Tensor)
+	if fv.T == nil {
+		return // Don't record nil Tensor
+	}
+
+	r[prefix+"."+f.Name] = fv
 }
 
 // GetParameters returns parameters
