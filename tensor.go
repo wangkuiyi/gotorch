@@ -17,13 +17,16 @@ var (
 )
 
 func setTensorFinalizer(t *C.Tensor) {
-	if gcPrepared {
+	// We don't want the following conditional and the finalizer using
+	// different gcPrepared values, so we leverage p and closure here.
+	p := gcPrepared
+	if p {
 		tensorFinalizersWG.Add(1)
 	}
 	runtime.SetFinalizer(t, func(t *C.Tensor) {
 		go func() {
 			C.Tensor_Close(*t)
-			if gcPrepared {
+			if p {
 				tensorFinalizersWG.Done()
 			}
 		}()
