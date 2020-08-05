@@ -9,8 +9,12 @@ extern "C" {
 
 typedef void *Tensor;
 typedef void *Optimizer;
+typedef struct {
+  Tensor t;
+  char *err;
+} Result;
 Tensor RandN(int rows, int cols, int require_grad);
-Tensor MM(Tensor a, Tensor b);
+Result MM(Tensor a, Tensor b);
 Tensor Sum(Tensor a);
 
 const char *Tensor_String(Tensor a);

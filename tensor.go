@@ -100,7 +100,13 @@ func (a Tensor) Grad() Tensor {
 
 // MM multiplies each element of the input two tensors
 func MM(a, b Tensor) Tensor {
-	t := C.MM(*a.T, *b.T)
+	r := C.MM(*a.T, *b.T)
+	if r.err != nil {
+		msg := C.GoString(r.err)
+		C.FreeString(r.err)
+		panic(msg)
+	}
+	t := r.t
 	setTensorFinalizer(&t)
 	return Tensor{&t}
 }

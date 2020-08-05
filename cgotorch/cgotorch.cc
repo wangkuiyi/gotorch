@@ -16,10 +16,18 @@ Tensor RandN(int rows, int cols, int require_grad) {
   return new at::Tensor(t);
 }
 
-Tensor MM(Tensor a, Tensor b) {
-  at::Tensor c =
-      at::mm(*static_cast<at::Tensor *>(a), *static_cast<at::Tensor *>(b));
-  return new at::Tensor(c);
+Result MM(Tensor a, Tensor b) {
+  Result ret = {};
+  try {
+    at::Tensor c =
+        at::mm(*static_cast<at::Tensor *>(a), *static_cast<at::Tensor *>(b));
+    ret.t = new at::Tensor(c);
+  } catch (const std::exception& e) {
+    auto len = strlen(e.what());
+    ret.err = new char[len + 1];
+    snprintf(ret.err, len, "%s", e.what());
+  }
+  return ret;
 }
 
 Tensor Sum(Tensor a) {
