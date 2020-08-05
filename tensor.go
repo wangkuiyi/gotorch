@@ -9,6 +9,7 @@ import "C"
 import (
 	"runtime"
 	"sync"
+	"unsafe"
 )
 
 var (
@@ -108,6 +109,41 @@ func MM(a, b Tensor) Tensor {
 // Sum returns the sum of all elements in the input tensor
 func Sum(a Tensor) Tensor {
 	t := C.Sum(*a.T)
+	setTensorFinalizer(&t)
+	return Tensor{&t}
+}
+
+// Conv2d does 2d-convolution
+func Conv2d(input Tensor, weight Tensor, bias Tensor, stride []int,
+	padding []int, dilation []int, groups int) Tensor {
+	if bias.T == nil {
+		t := C.Conv2d(
+			*input.T,
+			*weight.T,
+			nil,
+			(*C.longlong)(unsafe.Pointer(&stride[0])),
+			C.longlong(len(stride)),
+			(*C.longlong)(unsafe.Pointer(&padding[0])),
+			C.longlong(len(padding)),
+			(*C.longlong)(unsafe.Pointer(&dilation[0])),
+			C.longlong(len(dilation)),
+			C.longlong(groups),
+		)
+		setTensorFinalizer(&t)
+		return Tensor{&t}
+	}
+	t := C.Conv2d(
+		*input.T,
+		*weight.T,
+		*bias.T,
+		(*C.longlong)(unsafe.Pointer(&stride[0])),
+		C.longlong(len(stride)),
+		(*C.longlong)(unsafe.Pointer(&padding[0])),
+		C.longlong(len(padding)),
+		(*C.longlong)(unsafe.Pointer(&dilation[0])),
+		C.longlong(len(dilation)),
+		C.longlong(groups),
+	)
 	setTensorFinalizer(&t)
 	return Tensor{&t}
 }

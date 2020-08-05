@@ -26,6 +26,18 @@ Tensor Sum(Tensor a) {
   return new at::Tensor(static_cast<at::Tensor *>(a)->sum());
 }
 
+Tensor Conv2d(Tensor input, Tensor weight, Tensor bias, int64_t *stride_data,
+              int64_t stride_len, int64_t *padding_data, int64_t padding_len,
+              int64_t *dilation_data, int64_t dilation_len, int64_t groups) {
+  auto output = at::conv2d(
+      *static_cast<at::Tensor *>(input), *static_cast<at::Tensor *>(weight),
+      (bias ? *static_cast<at::Tensor *>(bias) : at::Tensor()),
+      torch::IntArrayRef(stride_data, stride_len),
+      torch::IntArrayRef(padding_data, padding_len),
+      torch::IntArrayRef(dilation_data, dilation_len), groups);
+  return new at::Tensor(output);
+}
+
 void Tensor_Backward(Tensor a) { static_cast<at::Tensor *>(a)->backward(); }
 
 Tensor Tensor_Grad(Tensor a) {
@@ -57,7 +69,7 @@ Optimizer SGD(double learning_rate, double momentum, double dampening,
                      .dampening(dampening)
                      .weight_decay(weight_decay)
                      .nesterov(nesterov);
-  return static_cast<torch::optim::Optimizer*>(
+  return static_cast<torch::optim::Optimizer *>(
       new torch::optim::SGD(std::vector<torch::Tensor>(), options));
 }
 
@@ -65,12 +77,16 @@ void ZeroGrad(Optimizer opt) {
   static_cast<torch::optim::Optimizer *>(opt)->zero_grad();
 }
 
-void Step(Optimizer opt) { static_cast<torch::optim::Optimizer *>(opt)->step(); }
+void Step(Optimizer opt) {
+  static_cast<torch::optim::Optimizer *>(opt)->step();
+}
 
 void Optimizer_AddParameters(Optimizer opt, Tensor *tensors, int length) {
   for (int i = 0; i < length; ++i)
-    static_cast<torch::optim::Optimizer *>(opt)->param_groups()[0].params().push_back(
-        *(static_cast<torch::Tensor *>(tensors[i])));
+    static_cast<torch::optim::Optimizer *>(opt)
+        ->param_groups()[0]
+        .params()
+        .push_back(*(static_cast<torch::Tensor *>(tensors[i])));
 }
 
 void Optimizer_Close(Optimizer opt) {
