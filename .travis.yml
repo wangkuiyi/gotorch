@@ -21,8 +21,8 @@ install:
 
 env:
   global:
-  - GOPATH=$HOME/go
-  - PATH=$GOPATH/bin:$PATH
+    - GOPATH=$HOME/go
+    - PATH=$GOPATH/bin:$PATH
 
 cache:
   directories:
