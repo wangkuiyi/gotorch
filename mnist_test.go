@@ -1,12 +1,12 @@
 package gotorch_test
 
 import (
-	"fmt"
+	"testing"
 
 	torch "github.com/wangkuiyi/gotorch"
 )
 
-func NotCompleteExampleMNIST() {
+func NotCompleteExampleMNIST(t *testing.T) {
 	dataset := torch.NewMNIST("./data")
 	dataset.AddTransforms([]torch.Transform{
 		torch.NewNormalize(0.1307, 0.3081),
@@ -14,9 +14,11 @@ func NotCompleteExampleMNIST() {
 	})
 	trainLoader := torch.NewDataLoader(dataset, 8)
 	for trainLoader.Scan() {
-		data := trainLoader.Data()
-		fmt.Println(data.Data)
-		fmt.Println(data.Target)
+		torch.GC()
+		trainLoader.Data()
 	}
+	trainLoader.Close()
+	dataset.Close()
+	torch.FinishGC()
 	// Output:
 }
