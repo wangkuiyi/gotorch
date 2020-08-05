@@ -41,4 +41,6 @@ script:
   - pre-commit run -a
   - (cd cgotorch; make -f Makefile.linux)
   - go get -u -t ./...
+  - echo $LD_LIBRARY_PATH
+  - ls $LD_LIBRARY_PATH
   - go test -v ./...
