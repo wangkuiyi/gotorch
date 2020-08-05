@@ -26,11 +26,11 @@ char *MM(Tensor a, Tensor b, Tensor *result) {
         at::mm(*static_cast<at::Tensor *>(a), *static_cast<at::Tensor *>(b));
     *result = new at::Tensor(c);
     return nullptr;
-  } catch (const std::exception& e) {
+  } catch (const std::exception &e) {
     auto len = strlen(e.what());
     auto r = new char[len + 1];
     snprintf(r, len, "%s", e.what());
-	return r;
+    return r;
   }
 }
 
