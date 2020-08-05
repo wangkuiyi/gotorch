@@ -7,7 +7,7 @@ macos/libtorch : libtorch-macos-1.5.1.zip
 	unzip -qq -o $< -d macos
 
 libcgotorch.so : cgotorch.cc cgotorch.h macos/libtorch
-	rm -f libtorch
+	rm -rf libtorch/
 	ln -s macos/libtorch libtorch
 	clang++ -std=c++14 \
 	-I .. \

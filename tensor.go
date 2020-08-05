@@ -7,6 +7,7 @@ package gotorch
 import "C"
 
 import (
+	"fmt"
 	"runtime"
 	"sync"
 )
@@ -100,13 +101,13 @@ func (a Tensor) Grad() Tensor {
 
 // MM multiplies each element of the input two tensors
 func MM(a, b Tensor) Tensor {
-	r := C.MM(*a.T, *b.T)
-	if r.err != nil {
-		msg := C.GoString(r.err)
-		C.FreeString(r.err)
+	var t C.Tensor
+	err := C.MM(*a.T, *b.T, &t)
+	if err != nil {
+		msg := C.GoString(err)
+		C.FreeString(err)
 		panic(msg)
 	}
-	t := r.t
 	setTensorFinalizer(&t)
 	return Tensor{&t}
 }

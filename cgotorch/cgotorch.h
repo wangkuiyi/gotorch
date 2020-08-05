@@ -14,7 +14,7 @@ typedef struct {
   char *err;
 } Result;
 Tensor RandN(int rows, int cols, int require_grad);
-Result MM(Tensor a, Tensor b);
+char *MM(Tensor a, Tensor b, Tensor *result);
 Tensor Sum(Tensor a);
 
 const char *Tensor_String(Tensor a);
