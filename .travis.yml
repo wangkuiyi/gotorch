@@ -18,7 +18,6 @@ install:
   - go get github.com/stretchr/testify
   - sudo cp "$GOPATH"/bin/* /usr/local/bin/
   - pip install cpplint
-  - brew install cppcheck
 
 env:
   global:
