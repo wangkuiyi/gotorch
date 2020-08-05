@@ -7,7 +7,6 @@ package gotorch
 import "C"
 
 import (
-	"fmt"
 	"runtime"
 	"sync"
 )
