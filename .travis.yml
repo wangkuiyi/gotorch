@@ -13,7 +13,8 @@ addons:
       - cppcheck
 
 install:
-  - python3 -m pip install --upgrade pip setuptools pre-commit cpplint
+  - python3 -m pip install --upgrade pip setuptools
+  - python3 -m pip install pre-commit cpplint
   - go get golang.org/x/lint/golint
   - go get github.com/stretchr/testify
   - sudo cp "$GOPATH"/bin/* /usr/local/bin/
