@@ -84,27 +84,26 @@ func NewDataLoader(dataset *Dataset, batchSize int) *DataLoader {
 	}
 }
 
-// NewSample returns the batch data as Tensor slice
-func NewSample(iter *C.Iterator) []Tensor {
+// NewData returns the batch data as Tensor slice
+func NewData(iter C.Iterator) []Tensor {
 	T := make([]C.Tensor, 2)
 	p := (*reflect.SliceHeader)(unsafe.Pointer(&T)).Data
-	C.Loader_Data(*iter, (*C.Tensor)(unsafe.Pointer(p)))
-	setTensorFinalizer(&T[0])
-	setTensorFinalizer(&T[1])
-	return []Tensor{Tensor{(*C.Tensor)(&T[0])}, Tensor{(*C.Tensor)(&T[1])}}
+	C.Loader_Data(iter, (*C.Tensor)(unsafe.Pointer(p)))
+	setTensorArrayFinalizer(T)
+	return []Tensor{Tensor{(*C.Tensor)(T[0])}, Tensor{(*C.Tensor)(T[1])}}
 }
 
 // Scan scans the batch from DataLoader
 func (loader *DataLoader) Scan() bool {
 	if loader.iter == nil {
 		loader.iter = C.Loader_Begin(loader.T)
-		loader.data = NewSample(&loader.iter)
+		loader.data = NewData(loader.iter)
 	}
 	// returns false if no next iteration
 	if C.Loader_Next(loader.T, loader.iter) == false {
 		return false
 	}
-	loader.data = NewSample(&loader.iter)
+	loader.data = NewData(loader.iter)
 	return true
 }
 
