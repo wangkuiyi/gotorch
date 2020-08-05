@@ -18,10 +18,18 @@ Tensor RandN(int rows, int cols, int require_grad) {
   return new at::Tensor(t);
 }
 
-Tensor MM(Tensor a, Tensor b) {
-  at::Tensor c =
-      at::mm(*static_cast<at::Tensor *>(a), *static_cast<at::Tensor *>(b));
-  return new at::Tensor(c);
+char *MM(Tensor a, Tensor b, Tensor *result) {
+  try {
+    at::Tensor c =
+        at::mm(*static_cast<at::Tensor *>(a), *static_cast<at::Tensor *>(b));
+    *result = new at::Tensor(c);
+    return nullptr;
+  } catch (const std::exception& e) {
+    auto len = strlen(e.what());
+    auto r = new char[len + 1];
+    snprintf(r, len, "%s", e.what());
+	return r;
+  }
 }
 
 Tensor Sum(Tensor a) {
@@ -106,6 +114,10 @@ Dataset MNIST(const char *data_root) {
   return new torch::data::datasets::MNIST(std::string(data_root));
 }
 
+void MNIST_Close(Dataset d) {
+  delete static_cast<torch::data::datasets::MNIST *>(d);
+}
+
 Transform Normalize(double mean, double stddev) {
   return new torch::data::transforms::Normalize<>(mean, stddev);
 }
@@ -138,15 +150,16 @@ Iterator Loader_Begin(DataLoader loader) {
   return new TypeIterator(static_cast<TypeDataLoader *>(loader)->begin());
 }
 
-Data Loader_Data(Iterator iter) {
-  Data data;
-  auto pi = static_cast<TypeIterator *>(iter);
-  data.Data = new at::Tensor((*pi)->data()->data);
-  data.Target = new at::Tensor((*pi)->data()->target);
-  return data;
+void Loader_Data(Iterator iter, Tensor array[]) {
+  array[0] = new at::Tensor((*static_cast<TypeIterator *>(iter))->data()->data);
+  array[1] = new at::Tensor((*static_cast<TypeIterator *>(iter))->data()->target);
 }
 
 bool Loader_Next(DataLoader loader, Iterator iter) {
   return ++*static_cast<TypeIterator *>(iter) !=
          static_cast<TypeDataLoader *>(loader)->end();
+}
+
+void Loader_Close(DataLoader loader) {
+  delete static_cast<TypeDataLoader *>(loader);
 }

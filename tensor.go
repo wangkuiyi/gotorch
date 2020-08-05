@@ -34,6 +34,23 @@ func setTensorFinalizer(t *C.Tensor) {
 	})
 }
 
+func setTensorArrayFinalizer(t []C.Tensor) {
+	p := gcPrepared
+	if p {
+		tensorFinalizersWG.Add(1)
+	}
+	runtime.SetFinalizer(&t, func(ts *[]C.Tensor) {
+		go func() {
+			for _, t := range *ts {
+				C.Tensor_Close(t)
+			}
+			if p {
+				tensorFinalizersWG.Done()
+			}
+		}()
+	})
+}
+
 // FinishGC should be called right after a train/predict loop
 func FinishGC() {
 	GC()
@@ -114,7 +131,13 @@ func (a Tensor) Grad() Tensor {
 
 // MM multiplies each element of the input two tensors
 func MM(a, b Tensor) Tensor {
-	t := C.MM(*a.T, *b.T)
+	var t C.Tensor
+	err := C.MM(*a.T, *b.T, &t)
+	if err != nil {
+		msg := C.GoString(err)
+		C.FreeString(err)
+		panic(msg)
+	}
 	setTensorFinalizer(&t)
 	return Tensor{&t}
 }

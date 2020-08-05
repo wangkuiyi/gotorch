@@ -10,7 +10,7 @@ extern "C" {
 typedef void *Tensor;
 typedef void *Optimizer;
 Tensor RandN(int rows, int cols, int require_grad);
-Tensor MM(Tensor a, Tensor b);
+char *MM(Tensor a, Tensor b, Tensor *result);
 Tensor Sum(Tensor a);
 
 const char *Tensor_String(Tensor a);
@@ -42,6 +42,7 @@ Transform Stack();
 // dataset APIs
 typedef void *Dataset;
 Dataset MNIST(const char *data_root);
+void MNIST_Close(Dataset d);
 
 // Add transform on dataset
 void Dataset_Normalize(Dataset dataset, Transform transform);
@@ -50,13 +51,9 @@ void Dataset_Stack(Dataset dataset, Transform transform);
 typedef void *Iterator;
 typedef void *DataLoader;
 
-typedef struct Data {
-  Tensor Data;
-  Tensor Target;
-} Data;
-
+void Loader_Close(DataLoader loader);
 Iterator Loader_Begin(DataLoader loader);
-Data Loader_Data(Iterator iter);
+void Loader_Data(Iterator iter, Tensor data[]);
 bool Loader_Next(DataLoader loader, Iterator iter);
 DataLoader MakeDataLoader(Dataset dataset, int batchsize);
 
