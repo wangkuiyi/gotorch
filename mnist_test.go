@@ -1,12 +1,10 @@
 package gotorch_test
 
 import (
-	"testing"
-
 	torch "github.com/wangkuiyi/gotorch"
 )
 
-func NotCompleteExampleMNIST(t *testing.T) {
+func NotWorkingExampleMNIST() {
 	dataset := torch.NewMNIST("./data")
 	dataset.AddTransforms([]torch.Transform{
 		torch.NewNormalize(0.1307, 0.3081),

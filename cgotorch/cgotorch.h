@@ -24,8 +24,8 @@ void FreeString(const char *s);
 Optimizer SGD(double learning_rate, double momentum, double dampening,
               double weight_decay, int nesterov);
 
-void ZeroGrad(Optimizer opt);
-void Step(Optimizer opt);
+void Optimizer_ZeroGrad(Optimizer opt);
+void Optimizer_Step(Optimizer opt);
 void Optimizer_AddParameters(Optimizer opt, Tensor *tensors, int length);
 void Optimizer_Close(Optimizer opt);
 
@@ -56,4 +56,4 @@ DataLoader MakeDataLoader(Dataset dataset, int batchsize);
 }
 #endif
 
-#endif  // CGOTORCH_CGOTORCH_H_
+#endif // CGOTORCH_CGOTORCH_H_
