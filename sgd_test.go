@@ -29,9 +29,7 @@ func (n *myNet) Forward(x torch.Tensor) torch.Tensor {
 func ExampleSGD() {
 	net := MyNet()
 	np := torch.GetNamedParameters(net)
-	for n := range np {
-		fmt.Println(n)
-	}
+	fmt.Println(len(np))
 
 	opt := torch.SGD(0.1, 0, 0, 0, false)
 	opt.AddParameters(torch.GetParameters(net))
@@ -51,6 +49,5 @@ func ExampleSGD() {
 	torch.CloseModule(net)
 
 	// Output:
-	// myNet.L1.Weight
-	// myNet.L2.Weight
+	// 2
 }
