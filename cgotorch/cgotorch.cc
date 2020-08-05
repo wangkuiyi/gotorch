@@ -50,12 +50,6 @@ Tensor Conv2d(Tensor input, Tensor weight, Tensor bias, int64_t *stride_data,
   return new at::Tensor(output);
 }
 
-void Tensor_Backward(Tensor a) { static_cast<at::Tensor *>(a)->backward(); }
-
-Tensor Tensor_Grad(Tensor a) {
-  return new at::Tensor(static_cast<at::Tensor *>(a)->grad());
-}
-
 void Tensor_Print(Tensor a) {
   std::cout << *static_cast<at::Tensor *>(a) << std::endl;
 }
