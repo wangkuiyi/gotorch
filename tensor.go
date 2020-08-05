@@ -80,7 +80,10 @@ func (a Tensor) Print() {
 
 // Close the tensor
 func (a Tensor) Close() {
-	C.Tensor_Close(*a.T)
+	if a.T != nil {
+		C.Tensor_Close(*a.T)
+		a.T = nil
+	}
 }
 
 // Backward compute the gradient of current tensor
