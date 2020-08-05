@@ -44,7 +44,8 @@ const char *Tensor_String(Tensor a) {
   ss << *static_cast<at::Tensor *>(a);
   std::string s = ss.str();
   char *r = new char[s.size() + 1];
-  return snprintf(r, s.size(), "%s", s.c_str());
+  snprintf(r, s.size(), "%s", s.c_str());
+  return r;
 }
 
 void FreeString(const char *s) { delete[] s; }
@@ -83,29 +84,27 @@ Transform Normalize(double mean, double stddev) {
   return new torch::data::transforms::Normalize<>(mean, stddev);
 }
 
-Transform Stack() {
-  return new torch::data::transforms::Stack<>();
-}
+Transform Stack() { return new torch::data::transforms::Stack<>(); }
 
 void Dataset_Normalize(Dataset dataset, Transform transform) {
   static_cast<torch::data::datasets::MNIST *>(dataset)->map(
-    *(static_cast<torch::data::transforms::Normalize<> *>(transform)));
+      *(static_cast<torch::data::transforms::Normalize<> *>(transform)));
 }
 
 void Dataset_Stack(Dataset dataset, Transform transform) {
   static_cast<torch::data::datasets::MNIST *>(dataset)->map(
-    *(static_cast<torch::data::transforms::Stack<> *>(transform)));
+      *(static_cast<torch::data::transforms::Stack<> *>(transform)));
 }
 
-using TypeDataLoader = torch::data::StatelessDataLoader<
-  torch::data::datasets::MNIST,
-  torch::data::samplers::SequentialSampler>;
+using TypeDataLoader =
+    torch::data::StatelessDataLoader<torch::data::datasets::MNIST,
+                                     torch::data::samplers::SequentialSampler>;
 
 using TypeIterator = torch::data::Iterator<TypeDataLoader::BatchType>;
 
 DataLoader MakeDataLoader(Dataset dataset, int batchsize) {
   auto p = torch::data::make_data_loader(
-          *(static_cast<torch::data::datasets::MNIST *>(dataset)), batchsize);
+      *(static_cast<torch::data::datasets::MNIST *>(dataset)), batchsize);
   return p.release();
 }
 
@@ -123,5 +122,5 @@ Data Loader_Data(Iterator iter) {
 
 bool Loader_Next(DataLoader loader, Iterator iter) {
   return ++*static_cast<TypeIterator *>(iter) !=
-    static_cast<TypeDataLoader *>(loader)->end();
+         static_cast<TypeDataLoader *>(loader)->end();
 }
