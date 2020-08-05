@@ -1,34 +1,38 @@
 package gotorch_test
 
 import (
+	"fmt"
+
 	torch "github.com/wangkuiyi/gotorch"
 )
 
 type myNet struct {
-	torch.Model
-	l1, l2 torch.Module
+	L1, L2 torch.Module
 }
 
 // MyNet returns a MyNet instance
 func MyNet() torch.Module {
 	n := &myNet{
-		l1: torch.Linear(100, 200, false),
-		l2: torch.Linear(200, 10, false),
+		L1: torch.Linear(100, 200, false),
+		L2: torch.Linear(200, 10, false),
 	}
-	n.RegisterModule("l1", n.l1)
-	n.RegisterModule("l2", n.l2)
 	return n
 }
 
 // Forward executes the calculation
 func (n *myNet) Forward(x torch.Tensor) torch.Tensor {
-	x = n.l1.Forward(x)
-	x = n.l2.Forward(x)
+	x = n.L1.Forward(x)
+	x = n.L2.Forward(x)
 	return x
 }
 
 func ExampleSGD() {
 	net := MyNet()
+	np := torch.GetNamedParameters(net)
+	for n := range np {
+		fmt.Println(n)
+	}
+
 	opt := torch.SGD(0.1, 0, 0, 0, false)
 	opt.AddParameters(torch.GetParameters(net))
 
@@ -45,5 +49,8 @@ func ExampleSGD() {
 	torch.FinishGC()
 	opt.Close()
 	torch.CloseModule(net)
+
 	// Output:
+	// myNet.L1.Weight
+	// myNet.L2.Weight
 }
