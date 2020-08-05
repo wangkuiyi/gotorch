@@ -20,7 +20,8 @@ libcgotorch.so : cgotorch.cc cgotorch.h linux/libtorch
 	-o $@ -install_name @rpath/$@ \
 	-Wl,-rpath,libtorch/lib \
 	-Wl,-force_load libtorch/lib/libc10.so \
-	-lc10 -ltorch -ltorch_cpu
+	-lc10 -ltorch -ltorch_cpu \
+	-D_GLIBCXX_USE_CXX11_ABI=0
 
 clean:
 	rm -rf *.so

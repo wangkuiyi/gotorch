@@ -10,7 +10,7 @@ extern "C" {
 typedef void *Tensor;
 typedef void *Optimizer;
 Tensor RandN(int rows, int cols, int require_grad);
-Tensor MM(Tensor a, Tensor b);
+char *MM(Tensor a, Tensor b, Tensor *result);
 Tensor Sum(Tensor a);
 
 const char *Tensor_String(Tensor a);
