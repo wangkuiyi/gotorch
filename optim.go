@@ -47,12 +47,12 @@ func (opt Optimizer) AddParameters(tensors []Tensor) {
 
 // ZeroGrad reset gradients to zero
 func (opt Optimizer) ZeroGrad() {
-	C.ZeroGrad(*opt.Opt)
+	C.Optimizer_ZeroGrad(*opt.Opt)
 }
 
 // Step updates parameters
 func (opt Optimizer) Step() {
-	C.Step(*opt.Opt)
+	C.Optimizer_Step(*opt.Opt)
 }
 
 // Close the optimizer
