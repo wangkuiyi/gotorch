@@ -1,10 +1,10 @@
-package main
+package gotorch_test
 
 import (
 	torch "github.com/wangkuiyi/gotorch"
 )
 
-func trainLoop() {
+func NotCompleteExampleMNIST() {
 	dataset := torch.NewMNIST("./data")
 	dataset.AddTransforms([]torch.Transform{
 		torch.NewNormalize(0.1307, 0.3081),
@@ -14,10 +14,7 @@ func trainLoop() {
 	for trainLoader.Scan() {
 		torch.GC()
 		trainLoader.Data()
-		torch.FinishGC()
 	}
-}
-
-func main() {
-	trainLoop()
+	torch.FinishGC()
+	// Output:
 }

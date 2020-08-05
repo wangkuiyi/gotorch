@@ -16,19 +16,8 @@ type Optimizer struct {
 	Opt *C.Optimizer
 }
 
-// RandN returns a tensor filled with random number
-func RandN(rows, cols int, requireGrad bool) Tensor {
-	rg := 0
-	if requireGrad {
-		rg = 1
-	}
-	t := C.RandN(C.int(rows), C.int(cols), C.int(rg))
-	setTensorFinalizer(&t)
-	return Tensor{&t}
-}
-
-// NewSGDOpt creates a SGD Optimizer
-func NewSGDOpt(lr, momentum, dampening, weightDecay float64, nesterov bool) Optimizer {
+// SGD creates a SGD Optimizer
+func SGD(lr, momentum, dampening, weightDecay float64, nesterov bool) Optimizer {
 	nt := 0
 	if nesterov {
 		nt = 1

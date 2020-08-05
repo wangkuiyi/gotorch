@@ -17,13 +17,16 @@ var (
 )
 
 func setTensorFinalizer(t *C.Tensor) {
-	if gcPrepared {
+	// We don't want the following conditional and the finalizer using
+	// different gcPrepared values, so we leverage p and closure here.
+	p := gcPrepared
+	if p {
 		tensorFinalizersWG.Add(1)
 	}
 	runtime.SetFinalizer(t, func(t *C.Tensor) {
 		go func() {
 			C.Tensor_Close(*t)
-			if gcPrepared {
+			if p {
 				tensorFinalizersWG.Done()
 			}
 		}()
@@ -51,6 +54,17 @@ type Tensor struct {
 	T *C.Tensor
 }
 
+// RandN returns a tensor filled with random number
+func RandN(rows, cols int, requireGrad bool) Tensor {
+	rg := 0
+	if requireGrad {
+		rg = 1
+	}
+	t := C.RandN(C.int(rows), C.int(cols), C.int(rg))
+	setTensorFinalizer(&t)
+	return Tensor{&t}
+}
+
 // String returns the Tensor as a string
 func (a Tensor) String() string {
 	s := C.Tensor_String(*a.T)
@@ -62,6 +76,11 @@ func (a Tensor) String() string {
 // Print the tensor
 func (a Tensor) Print() {
 	C.Tensor_Print(*a.T)
+}
+
+// Close the tensor
+func (a Tensor) Close() {
+	C.Tensor_Close(*a.T)
 }
 
 // Backward compute the gradient of current tensor
