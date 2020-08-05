@@ -138,9 +138,9 @@ Iterator Loader_Begin(DataLoader loader) {
 }
 
 void Loader_Data(Iterator iter, Tensor array[]) {
-  array[0] = new at::Tensor((*static_cast<TypeIterator *>(iter))->data()->data);
-  array[1] =
-      new at::Tensor((*static_cast<TypeIterator *>(iter))->data()->target);
+  auto i = *static_cast<TypeIterator *>(iter);
+  array[0] = new at::Tensor(i->data()->data);
+  array[1] = new at::Tensor(i->data()->target);
 }
 
 bool Loader_Next(DataLoader loader, Iterator iter) {
