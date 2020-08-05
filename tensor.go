@@ -79,7 +79,7 @@ func (a Tensor) Print() {
 }
 
 // Close the tensor
-func (a Tensor) Close() {
+func (a *Tensor) Close() {
 	if a.T != nil {
 		C.Tensor_Close(*a.T)
 		a.T = nil
