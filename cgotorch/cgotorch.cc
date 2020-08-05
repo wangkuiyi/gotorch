@@ -10,6 +10,10 @@
 // FIXME(shendiaomo): including cgotorch.h before torch/torch.h will fail
 #include "cgotorch/cgotorch.h"
 
+////////////////////////////////////////////////////////////////////////////////
+// Tensor construction and operations
+////////////////////////////////////////////////////////////////////////////////
+
 Tensor RandN(int rows, int cols, int require_grad) {
   at::Tensor t = torch::randn({rows, cols},
                               at::TensorOptions().requires_grad(require_grad));
@@ -22,11 +26,11 @@ char *MM(Tensor a, Tensor b, Tensor *result) {
         at::mm(*static_cast<at::Tensor *>(a), *static_cast<at::Tensor *>(b));
     *result = new at::Tensor(c);
     return nullptr;
-  } catch (const std::exception& e) {
+  } catch (const std::exception &e) {
     auto len = strlen(e.what());
     auto r = new char[len + 1];
     snprintf(r, len, "%s", e.what());
-	return r;
+    return r;
   }
 }
 
@@ -70,6 +74,20 @@ const char *Tensor_String(Tensor a) {
 
 void FreeString(const char *s) { delete[] s; }
 
+////////////////////////////////////////////////////////////////////////////////
+// Backward, Gradient
+////////////////////////////////////////////////////////////////////////////////
+
+void Tensor_Backward(Tensor a) { static_cast<at::Tensor *>(a)->backward(); }
+
+Tensor Tensor_Grad(Tensor a) {
+  return new at::Tensor(static_cast<at::Tensor *>(a)->grad());
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Optimizer
+////////////////////////////////////////////////////////////////////////////////
+
 Optimizer SGD(double learning_rate, double momentum, double dampening,
               double weight_decay, int nesterov) {
   auto options = torch::optim::SGDOptions(learning_rate)
@@ -81,11 +99,11 @@ Optimizer SGD(double learning_rate, double momentum, double dampening,
       new torch::optim::SGD(std::vector<torch::Tensor>(), options));
 }
 
-void ZeroGrad(Optimizer opt) {
+void Optimizer_ZeroGrad(Optimizer opt) {
   static_cast<torch::optim::Optimizer *>(opt)->zero_grad();
 }
 
-void Step(Optimizer opt) {
+void Optimizer_Step(Optimizer opt) {
   static_cast<torch::optim::Optimizer *>(opt)->step();
 }
 
@@ -100,6 +118,10 @@ void Optimizer_AddParameters(Optimizer opt, Tensor *tensors, int length) {
 void Optimizer_Close(Optimizer opt) {
   delete static_cast<torch::optim::Optimizer *>(opt);
 }
+
+////////////////////////////////////////////////////////////////////////////////
+// Dataset, DataLoader, and Iterator
+////////////////////////////////////////////////////////////////////////////////
 
 Dataset MNIST(const char *data_root) {
   return new torch::data::datasets::MNIST(std::string(data_root));
@@ -142,8 +164,9 @@ Iterator Loader_Begin(DataLoader loader) {
 }
 
 void Loader_Data(Iterator iter, Tensor array[]) {
-  array[0] = new at::Tensor((*static_cast<TypeIterator *>(iter))->data()->data);
-  array[1] = new at::Tensor((*static_cast<TypeIterator *>(iter))->data()->target);
+  auto i = *static_cast<TypeIterator *>(iter);
+  array[0] = new at::Tensor(i->data()->data);
+  array[1] = new at::Tensor(i->data()->target);
 }
 
 bool Loader_Next(DataLoader loader, Iterator iter) {
