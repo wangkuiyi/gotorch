@@ -2,6 +2,8 @@
 # https://docs.travis-ci.com/user/languages/minimal-and-generic/#generic, the
 # generic language includes Go.
 language: go
+go:
+  - 1.13
 os: osx
 compiler: clang
 
