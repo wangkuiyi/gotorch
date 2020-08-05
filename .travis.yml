@@ -2,6 +2,8 @@
 # https://docs.travis-ci.com/user/languages/minimal-and-generic/#generic, the
 # generic language includes Go.
 language: go
+go:
+  - 1.13
 os: osx
 compiler: clang
 
@@ -13,6 +15,7 @@ addons:
 install:
   - pip install pre-commit
   - go get golang.org/x/lint/golint
+  - go get github.com/stretchr/testify
   - sudo cp "$GOPATH"/bin/* /usr/local/bin/
 
 env:
