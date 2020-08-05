@@ -25,7 +25,6 @@ env:
   global:
     - GOPATH=$HOME/go
     - PATH=$GOPATH/bin:$PATH
-    - LD_LIBRARY_PATH=$GOPATH/src/github.com/wangkuiyi/gotorch/cgotorch/libtorch/lib
 
 cache:
   directories:
@@ -41,6 +40,7 @@ script:
   - pre-commit run -a
   - (cd cgotorch; make -f Makefile.linux)
   - go get -u -t ./...
+  - export LD_LIBRARY_PATH=$TRAVIS_BUILD_DIR/cgotorch/libtorch/lib:$LD_LIBRARY_PATH
   - echo $LD_LIBRARY_PATH
   - ls $LD_LIBRARY_PATH
   - go test -v ./...
