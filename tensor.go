@@ -9,6 +9,7 @@ import "C"
 import (
 	"runtime"
 	"sync"
+	"unsafe"
 )
 
 var (
@@ -84,6 +85,19 @@ func (a *Tensor) Close() {
 		C.Tensor_Close(*a.T)
 		a.T = nil
 	}
+}
+
+// Numel returns the total number of elements
+func (a Tensor) Numel() int {
+	return int(C.Tensor_Numel(*a.T))
+}
+
+// ToSlice converts a torch tensor to a Go array
+func (a Tensor) ToSlice() []float32 {
+	arr := make([]float32, a.Numel())
+	arrPtr := (*C.float)(unsafe.Pointer(&arr[0]))
+	C.Tensor_Copy(*a.T, arrPtr, C.int(a.Numel()))
+	return arr
 }
 
 // Backward compute the gradient of current tensor

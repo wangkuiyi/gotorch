@@ -18,6 +18,9 @@ void Tensor_Backward(Tensor a);
 Tensor Tensor_Grad(Tensor a);
 void Tensor_Print(Tensor a);
 void Tensor_Close(Tensor a);
+// TODO(qijun) support more data types
+void Tensor_Copy(Tensor a, float *data, int num);
+int Tensor_Numel(Tensor a);
 
 void FreeString(const char *s);
 
@@ -61,4 +64,4 @@ DataLoader MakeDataLoader(Dataset dataset, int batchsize);
 }
 #endif
 
-#endif  // CGOTORCH_CGOTORCH_H_
+#endif // CGOTORCH_CGOTORCH_H_
