@@ -2,6 +2,9 @@
 # https://docs.travis-ci.com/user/languages/minimal-and-generic/#generic, the
 # generic language includes Go.
 language: go
+go:
+  # We rely on github.com/stretchr/testify, which requires a recent Go version.
+  - 1.14
 dist: bionic
 compiler: clang
 
@@ -22,6 +25,7 @@ env:
   global:
     - GOPATH=$HOME/go
     - PATH=$GOPATH/bin:$PATH
+    - LD_LIBRARY_PATH=$GOPATH/src/github.com/wangkuiyi/gotorch/cgotorch/libtorch/lib
 
 cache:
   directories:
