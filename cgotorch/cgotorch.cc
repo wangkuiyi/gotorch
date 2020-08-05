@@ -62,7 +62,7 @@ void ZeroGrad(Optimizer opt) {
 
 void Step(Optimizer opt) { static_cast<torch::optim::SGD *>(opt)->step(); }
 
-void AddParameters(Optimizer opt, Tensor *tensors, int length) {
+void Optimizer_AddParameters(Optimizer opt, Tensor *tensors, int length) {
   for (int i = 0; i < length; ++i)
     static_cast<torch::optim::SGD *>(opt)->param_groups()[0].params().push_back(
         *(static_cast<torch::Tensor *>(tensors[i])));
