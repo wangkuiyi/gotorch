@@ -19,12 +19,7 @@ install:
   - python3 -m pip install --upgrade pip setuptools
   - python3 -m pip install pre-commit cpplint
   - go get -u golang.org/x/lint/golint
-  - sudo cp "$GOPATH"/bin/* /usr/local/bin/
-
-env:
-  global:
-    - GOPATH=$HOME/go
-    - PATH=$GOPATH/bin:$PATH
+  - sudo cp $(go env $GOPATH)/bin/* /usr/local/bin/
 
 cache:
   directories:
@@ -42,5 +37,4 @@ script:
   - go get -u -t ./...
   - export LD_LIBRARY_PATH=$TRAVIS_BUILD_DIR/cgotorch/libtorch/lib:$LD_LIBRARY_PATH
   - echo $LD_LIBRARY_PATH
-  - ls $LD_LIBRARY_PATH
   - go test -v ./...
