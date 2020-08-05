@@ -2,18 +2,18 @@
 # https://docs.travis-ci.com/user/languages/minimal-and-generic/#generic, the
 # generic language includes Go.
 language: go
-go:
-  - 1.13
-os: osx
+dist: bionic
 compiler: clang
 
 addons:
   apt:
     packages:
       - python3-pip
+      - clang-format
+      - cppcheck
 
 install:
-  - pip install pre-commit
+  - python3 -m pip install pre-commit cpplint
   - go get golang.org/x/lint/golint
   - go get github.com/stretchr/testify
   - sudo cp "$GOPATH"/bin/* /usr/local/bin/
@@ -34,5 +34,8 @@ branches:
     - develop
 
 script:
-  - pre-commit run -a && (cd cgotorch; make) && go install ./...
+  - set -e
+  - pre-commit run -a
+  - (cd cgotorch; make -f Makefile.linux)
+  - go install ./...
   - go test -v ./...
