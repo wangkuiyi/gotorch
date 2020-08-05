@@ -27,7 +27,7 @@ func (n *myNet) Forward(x Tensor) Tensor {
 }
 
 type myNet2 struct {
-	Weight Tensor
+	Weight Tensor `gotorch:"buffer"`
 	L1     Module
 }
 
@@ -75,8 +75,7 @@ func TestModule(t *testing.T) {
 
 	n2 := MyNet2()
 	namedParams2 := GetNamedParameters(n2)
-	assert.Equal(t, 2, len(namedParams2))
-	assert.Contains(t, namedParams2, "myNet2.Weight")
+	assert.Equal(t, 1, len(namedParams2))
 	assert.Contains(t, namedParams2, "myNet2.L1.Weight")
 
 	hn := HierarchyNet()
