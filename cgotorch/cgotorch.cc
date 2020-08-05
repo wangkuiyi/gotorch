@@ -10,6 +10,10 @@
 // FIXME(shendiaomo): including cgotorch.h before torch/torch.h will fail
 #include "cgotorch/cgotorch.h"
 
+////////////////////////////////////////////////////////////////////////////////
+// Tensor construction and operations
+////////////////////////////////////////////////////////////////////////////////
+
 Tensor RandN(int rows, int cols, int require_grad) {
   at::Tensor t = torch::randn({rows, cols},
                               at::TensorOptions().requires_grad(require_grad));
@@ -24,12 +28,6 @@ Tensor MM(Tensor a, Tensor b) {
 
 Tensor Sum(Tensor a) {
   return new at::Tensor(static_cast<at::Tensor *>(a)->sum());
-}
-
-void Tensor_Backward(Tensor a) { static_cast<at::Tensor *>(a)->backward(); }
-
-Tensor Tensor_Grad(Tensor a) {
-  return new at::Tensor(static_cast<at::Tensor *>(a)->grad());
 }
 
 void Tensor_Print(Tensor a) {
@@ -49,6 +47,20 @@ const char *Tensor_String(Tensor a) {
 }
 
 void FreeString(const char *s) { delete[] s; }
+
+////////////////////////////////////////////////////////////////////////////////
+// Backward, Gradient
+////////////////////////////////////////////////////////////////////////////////
+
+void Tensor_Backward(Tensor a) { static_cast<at::Tensor *>(a)->backward(); }
+
+Tensor Tensor_Grad(Tensor a) {
+  return new at::Tensor(static_cast<at::Tensor *>(a)->grad());
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Optimizer
+////////////////////////////////////////////////////////////////////////////////
 
 Optimizer SGD(double learning_rate, double momentum, double dampening,
               double weight_decay, int nesterov) {
@@ -80,6 +92,10 @@ void Optimizer_AddParameters(Optimizer opt, Tensor *tensors, int length) {
 void Optimizer_Close(Optimizer opt) {
   delete static_cast<torch::optim::Optimizer *>(opt);
 }
+
+////////////////////////////////////////////////////////////////////////////////
+// Dataset, DataLoader, and Iterator
+////////////////////////////////////////////////////////////////////////////////
 
 Dataset MNIST(const char *data_root) {
   return new torch::data::datasets::MNIST(std::string(data_root));
