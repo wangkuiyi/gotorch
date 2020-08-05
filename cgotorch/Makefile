@@ -6,6 +6,7 @@ libtorch :
 
 libcgotorch.so : cgotorch.cc cgotorch.h libtorch
 	clang++ -std=c++14 \
+	-I .. \
 	-I libtorch/include \
 	-I libtorch/include/torch/csrc/api/include \
 	-L libtorch/lib \
