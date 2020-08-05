@@ -37,6 +37,11 @@ func NewMNIST(dataRoot string) *Dataset {
 	return &Dataset{C.MNIST(cstr)}
 }
 
+// Close Dataset to release the memory
+func (d *Dataset) Close() {
+	C.MNIST_Close(d.T)
+}
+
 // NewNormalize returns normalize transformer
 func NewNormalize(mean float64, stddev float64) *Normalize {
 	return &Normalize{unsafe.Pointer(C.Normalize(C.double(mean), C.double(stddev)))}
@@ -82,6 +87,11 @@ func NewDataLoader(dataset *Dataset, batchSize int) *DataLoader {
 		data: []Tensor{},
 		iter: nil,
 	}
+}
+
+// Close DataLoader
+func (loader *DataLoader) Close() {
+	C.Loader_Close(loader.T)
 }
 
 // NewData returns the batch data as Tensor slice

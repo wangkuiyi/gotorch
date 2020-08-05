@@ -37,6 +37,7 @@ Transform Stack();
 // dataset APIs
 typedef void *Dataset;
 Dataset MNIST(const char *data_root);
+void MNIST_Close(Dataset d);
 
 // Add transform on dataset
 void Dataset_Normalize(Dataset dataset, Transform transform);
@@ -45,6 +46,7 @@ void Dataset_Stack(Dataset dataset, Transform transform);
 typedef void *Iterator;
 typedef void *DataLoader;
 
+void Loader_Close(DataLoader loader);
 Iterator Loader_Begin(DataLoader loader);
 void Loader_Data(Iterator iter, Tensor data[]);
 bool Loader_Next(DataLoader loader, Iterator iter);

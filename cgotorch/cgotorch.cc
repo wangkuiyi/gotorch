@@ -80,6 +80,10 @@ Dataset MNIST(const char *data_root) {
   return new torch::data::datasets::MNIST(std::string(data_root));
 }
 
+void MNIST_Close(Dataset d) {
+  delete static_cast<torch::data::datasets::MNIST *>(d);
+}
+
 Transform Normalize(double mean, double stddev) {
   return new torch::data::transforms::Normalize<>(mean, stddev);
 }
@@ -120,4 +124,8 @@ void Loader_Data(Iterator iter, Tensor array[]) {
 bool Loader_Next(DataLoader loader, Iterator iter) {
   return ++*static_cast<TypeIterator *>(iter) !=
          static_cast<TypeDataLoader *>(loader)->end();
+}
+
+void Loader_Close(DataLoader loader) {
+  delete static_cast<TypeDataLoader *>(loader);
 }
