@@ -11,7 +11,7 @@ extern "C" {
 typedef void *Tensor;
 typedef void *Optimizer;
 Tensor RandN(int rows, int cols, int require_grad);
-Tensor MM(Tensor a, Tensor b);
+char *MM(Tensor a, Tensor b, Tensor *result);
 Tensor Sum(Tensor a);
 Tensor Conv2d(Tensor input, Tensor weight, Tensor bias, int64_t *stride_data,
               int64_t stride_len, int64_t *padding_data, int64_t padding_len,
