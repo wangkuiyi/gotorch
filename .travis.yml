@@ -16,7 +16,7 @@ install:
   - python3 -m pip install --upgrade pip setuptools
   - python3 -m pip install pre-commit cpplint
   - go get -u golang.org/x/lint/golint
-  - go get -u github.com/stretchr/testify
+  - go get -u github.com/stretchr/testify/assert
   - sudo cp "$GOPATH"/bin/* /usr/local/bin/
 
 env:
