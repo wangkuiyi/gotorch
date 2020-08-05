@@ -9,3 +9,4 @@ RUN cp /go/bin/* /usr/local/bin/
 
 RUN echo 'export GOPATH=/go' >> /root/.bashrc
 RUN echo 'export PATH=/usr/local/go/bin:/go/bin:$PATH' >> /root/.bashrc
+RUN echo 'export LD_LIBRARY_PATH=$GOPATH/src/github.com/wangkuiyi/gotorch/cgotorch/libtorch/lib'
