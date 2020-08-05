@@ -25,7 +25,7 @@ Optimizer SGD(double learning_rate, double momentum, double dampening,
 
 void ZeroGrad(Optimizer opt);
 void Step(Optimizer opt);
-void AddParameters(Optimizer opt, Tensor *tensors, int length);
+void Optimizer_AddParameters(Optimizer opt, Tensor *tensors, int length);
 void Optimizer_Close(Optimizer opt);
 
 // transform APIs

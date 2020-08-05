@@ -35,7 +35,7 @@ func (opt Optimizer) AddParameters(tensors []Tensor) {
 		CT = append(CT, unsafe.Pointer(*t.T))
 	}
 	p := (*reflect.SliceHeader)(unsafe.Pointer(&CT)).Data
-	C.AddParameters(*opt.Opt, (*C.Tensor)(unsafe.Pointer(p)), C.int(len(CT)))
+	C.Optimizer_AddParameters(*opt.Opt, (*C.Tensor)(unsafe.Pointer(p)), C.int(len(CT)))
 }
 
 // ZeroGrad reset gradients to zero
