@@ -73,11 +73,11 @@ Optimizer SGD(double learning_rate, double momentum, double dampening,
       new torch::optim::SGD(std::vector<torch::Tensor>(), options));
 }
 
-void ZeroGrad(Optimizer opt) {
+void Optimizer_ZeroGrad(Optimizer opt) {
   static_cast<torch::optim::Optimizer *>(opt)->zero_grad();
 }
 
-void Step(Optimizer opt) {
+void Optimizer_Step(Optimizer opt) {
   static_cast<torch::optim::Optimizer *>(opt)->step();
 }
 
