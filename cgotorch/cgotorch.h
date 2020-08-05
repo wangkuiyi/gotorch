@@ -61,4 +61,4 @@ DataLoader MakeDataLoader(Dataset dataset, int batchsize);
 }
 #endif
 
-#endif // CGOTORCH_CGOTORCH_H_
+#endif  // CGOTORCH_CGOTORCH_H_
