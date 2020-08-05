@@ -28,6 +28,13 @@ func SGD(lr, momentum, dampening, weightDecay float64, nesterov bool) Optimizer 
 	return Optimizer{&sgd}
 }
 
+// Adam creates an Adam Optimizer
+func Adam(lr, beta1, beta2, weightDecay float64) {
+	adam := C.Adam(C.double(lr), C.double(beta1), C.double(beta2), C.double(weightDecay))
+	runtime.SetFinalizer(&adam, func(p *C.Optimizer) { C.Optimizer_Close(*p) })
+	return Optimizer{&adam}
+}
+
 // AddParameters adds parameters
 func (opt Optimizer) AddParameters(tensors []Tensor) {
 	CT := []unsafe.Pointer{}

@@ -22,6 +22,8 @@ void FreeString(const char *s);
 
 Optimizer SGD(double learning_rate, double momentum, double dampening,
               double weight_decay, int nesterov);
+Optimizer Adam(double learning_rate, double beta1, double beta2,
+               double weight_decay);
 
 void ZeroGrad(Optimizer opt);
 void Step(Optimizer opt);
@@ -44,7 +46,7 @@ void Dataset_Stack(Dataset dataset, Transform transform);
 typedef void *Iterator;
 typedef void *DataLoader;
 
-typedef struct Data{
+typedef struct Data {
   Tensor Data;
   Tensor Target;
 } Data;
