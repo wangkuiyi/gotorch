@@ -13,7 +13,7 @@ addons:
 install:
   - pip install pre-commit
   - go get golang.org/x/lint/golint
-  - go get github.com/stretchr/testify/assert
+  - go get github.com/stretchr/testify
   - sudo cp "$GOPATH"/bin/* /usr/local/bin/
 
 env:
