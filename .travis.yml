@@ -32,7 +32,15 @@ cache:
 branches:
   only:
     - develop
-
-script:
-  - pre-commit run -a && (cd cgotorch; make) && go install ./...
-  - go test -v ./...
+jobs:
+  include:
+  - env: ARCH=MacOS
+    script:
+    - set -e
+    - bash ./scripts/build_and_test.sh
+  - env: ARCH=Linux
+    script:
+    - set -e
+    - docker build -t gotorch:dev -f docker/Dockerfile .
+    - docker run --rm -it -v $TRAVIS_BUILD_DIR:/go/src/github.com/wangkuiy/gotorch
+        -w /go/src/github.com/wangkuiy/gotorch gotorch:dev scripts/build_and_test.sh
