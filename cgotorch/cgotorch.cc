@@ -57,23 +57,24 @@ Optimizer SGD(double learning_rate, double momentum, double dampening,
                      .dampening(dampening)
                      .weight_decay(weight_decay)
                      .nesterov(nesterov);
-  return new torch::optim::SGD(std::vector<torch::Tensor>(), options);
+  return static_cast<torch::optim::Optimizer*>(
+      new torch::optim::SGD(std::vector<torch::Tensor>(), options));
 }
 
 void ZeroGrad(Optimizer opt) {
-  static_cast<torch::optim::SGD *>(opt)->zero_grad();
+  static_cast<torch::optim::Optimizer *>(opt)->zero_grad();
 }
 
-void Step(Optimizer opt) { static_cast<torch::optim::SGD *>(opt)->step(); }
+void Step(Optimizer opt) { static_cast<torch::optim::Optimizer *>(opt)->step(); }
 
 void Optimizer_AddParameters(Optimizer opt, Tensor *tensors, int length) {
   for (int i = 0; i < length; ++i)
-    static_cast<torch::optim::SGD *>(opt)->param_groups()[0].params().push_back(
+    static_cast<torch::optim::Optimizer *>(opt)->param_groups()[0].params().push_back(
         *(static_cast<torch::Tensor *>(tensors[i])));
 }
 
 void Optimizer_Close(Optimizer opt) {
-  delete static_cast<torch::optim::SGD *>(opt);
+  delete static_cast<torch::optim::Optimizer *>(opt);
 }
 
 Dataset MNIST(const char *data_root) {
