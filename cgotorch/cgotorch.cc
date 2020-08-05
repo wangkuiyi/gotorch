@@ -57,7 +57,7 @@ Optimizer SGD(double learning_rate, double momentum, double dampening,
                      .dampening(dampening)
                      .weight_decay(weight_decay)
                      .nesterov(nesterov);
-  return static_cast<torch::optim::Optimizer*>(
+  return static_cast<torch::optim::Optimizer *>(
       new torch::optim::SGD(std::vector<torch::Tensor>(), options));
 }
 
@@ -65,12 +65,16 @@ void ZeroGrad(Optimizer opt) {
   static_cast<torch::optim::Optimizer *>(opt)->zero_grad();
 }
 
-void Step(Optimizer opt) { static_cast<torch::optim::Optimizer *>(opt)->step(); }
+void Step(Optimizer opt) {
+  static_cast<torch::optim::Optimizer *>(opt)->step();
+}
 
 void Optimizer_AddParameters(Optimizer opt, Tensor *tensors, int length) {
   for (int i = 0; i < length; ++i)
-    static_cast<torch::optim::Optimizer *>(opt)->param_groups()[0].params().push_back(
-        *(static_cast<torch::Tensor *>(tensors[i])));
+    static_cast<torch::optim::Optimizer *>(opt)
+        ->param_groups()[0]
+        .params()
+        .push_back(*(static_cast<torch::Tensor *>(tensors[i])));
 }
 
 void Optimizer_Close(Optimizer opt) {
@@ -119,7 +123,8 @@ Iterator Loader_Begin(DataLoader loader) {
 
 void Loader_Data(Iterator iter, Tensor array[]) {
   array[0] = new at::Tensor((*static_cast<TypeIterator *>(iter))->data()->data);
-  array[1] = new at::Tensor((*static_cast<TypeIterator *>(iter))->data()->target);
+  array[1] =
+      new at::Tensor((*static_cast<TypeIterator *>(iter))->data()->target);
 }
 
 bool Loader_Next(DataLoader loader, Iterator iter) {
