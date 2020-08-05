@@ -1,5 +1,6 @@
-#ifndef __C_TORCH_H_
-#define __C_TORCH_H_
+/* Copyright 2020, GoTorch Authors */
+#ifndef CGOTORCH_CGOTORCH_H_
+#define CGOTORCH_CGOTORCH_H_
 #include <stdbool.h>
 
 #ifdef __cplusplus
@@ -60,4 +61,4 @@ DataLoader MakeDataLoader(Dataset dataset, int batchsize);
 }
 #endif
 
-#endif //__C_TORCH_H_
+#endif  // CGOTORCH_CGOTORCH_H_

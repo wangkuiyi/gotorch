@@ -1,11 +1,14 @@
+// Copyright 2020, GoTorch Authors
+#include <iostream>
+#include <sstream>
+#include <string>
+#include <vector>
+
 #include "torch/script.h"
 #include "torch/torch.h"
 
 // FIXME(shendiaomo): including cgotorch.h before torch/torch.h will fail
-#include "cgotorch.h"
-
-#include <iostream>
-#include <sstream>
+#include "cgotorch/cgotorch.h"
 
 Tensor RandN(int rows, int cols, int require_grad) {
   at::Tensor t = torch::randn({rows, cols},
@@ -41,7 +44,8 @@ const char *Tensor_String(Tensor a) {
   ss << *static_cast<at::Tensor *>(a);
   std::string s = ss.str();
   char *r = new char[s.size() + 1];
-  return strcpy(r, s.c_str());
+  snprintf(r, s.size(), "%s", s.c_str());
+  return r;
 }
 
 void FreeString(const char *s) { delete[] s; }
@@ -103,6 +107,7 @@ void Dataset_Stack(Dataset dataset, Transform transform) {
 using TypeDataLoader =
     torch::data::StatelessDataLoader<torch::data::datasets::MNIST,
                                      torch::data::samplers::SequentialSampler>;
+
 using TypeIterator = torch::data::Iterator<TypeDataLoader::BatchType>;
 
 DataLoader MakeDataLoader(Dataset dataset, int batchsize) {
@@ -117,10 +122,9 @@ Iterator Loader_Begin(DataLoader loader) {
 
 Data Loader_Data(Iterator iter) {
   Data data;
-  data.Data =
-      new at::Tensor((*static_cast<TypeIterator *>(iter))->data()->data);
-  data.Target =
-      new at::Tensor((*static_cast<TypeIterator *>(iter))->data()->target);
+  auto pi = static_cast<TypeIterator *>(iter);
+  data.Data = new at::Tensor((*pi)->data()->data);
+  data.Target = new at::Tensor((*pi)->data()->target);
   return data;
 }
 
