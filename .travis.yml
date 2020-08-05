@@ -17,6 +17,8 @@ install:
   - go get golang.org/x/lint/golint
   - go get github.com/stretchr/testify
   - sudo cp "$GOPATH"/bin/* /usr/local/bin/
+  - pip install cpplint
+  - brew install clang-format cppcheck
 
 env:
   global:
