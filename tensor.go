@@ -50,6 +50,14 @@ func GC() {
 	tensorFinalizersWG.Wait()
 }
 
+func mustNil(err *C.char) {
+	if err != nil {
+		msg := C.GoString(err)
+		C.FreeString(err)
+		panic(msg)
+	}
+}
+
 // Tensor wrappers a pointer to C.Tensor
 type Tensor struct {
 	T *C.Tensor
@@ -102,12 +110,7 @@ func (a Tensor) Grad() Tensor {
 // MM multiplies each element of the input two tensors
 func MM(a, b Tensor) Tensor {
 	var t C.Tensor
-	err := C.MM(*a.T, *b.T, &t)
-	if err != nil {
-		msg := C.GoString(err)
-		C.FreeString(err)
-		panic(msg)
-	}
+	mustNil(C.MM(*a.T, *b.T, &t))
 	setTensorFinalizer(&t)
 	return Tensor{&t}
 }

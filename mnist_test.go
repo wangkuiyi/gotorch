@@ -33,6 +33,15 @@ func TestExampleMNIST(t *testing.T) {
 	// Output:
 }
 
+func TestPanicMNIST(t *testing.T) {
+	defer func() {
+		if r := recover(); r == nil {
+			t.Errorf("TestPanicMNIST should have paniced")
+		}
+	}()
+	torch.NewMNIST("nonexist")
+}
+
 const (
 	images = "train-images-idx3-ubyte"
 	labels = "train-labels-idx1-ubyte"

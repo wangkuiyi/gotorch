@@ -12,6 +12,17 @@
 #include "cgotorch/cgotorch.h"
 
 ////////////////////////////////////////////////////////////////////////////////
+// Helper functions
+////////////////////////////////////////////////////////////////////////////////
+
+char *exception_str(const std::exception &e) {
+  auto len = strlen(e.what());
+  auto r = new char[len + 1];
+  snprintf(r, len, "%s", e.what());
+  return r;
+}
+
+////////////////////////////////////////////////////////////////////////////////
 // Tensor construction and operations
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -28,10 +39,7 @@ char *MM(Tensor a, Tensor b, Tensor *result) {
     *result = new at::Tensor(c);
     return nullptr;
   } catch (const std::exception &e) {
-    auto len = strlen(e.what());
-    auto r = new char[len + 1];
-    snprintf(r, len, "%s", e.what());
-    return r;
+    return exception_str(e);
   }
 }
 
@@ -127,8 +135,13 @@ void Optimizer_Close(Optimizer opt) {
 // Dataset, DataLoader, and Iterator
 ////////////////////////////////////////////////////////////////////////////////
 
-Dataset MNIST(const char *data_root) {
-  return new torch::data::datasets::MNIST(std::string(data_root));
+char *MNIST(const char *data_root, Dataset *dataset) {
+  try {
+    *dataset = new torch::data::datasets::MNIST(std::string(data_root));
+    return nullptr;
+  } catch (const std::exception &e) {
+    return exception_str(e);
+  }
 }
 
 void MNIST_Close(Dataset d) {
