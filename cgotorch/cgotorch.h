@@ -41,7 +41,7 @@ Transform Stack();
 
 // dataset APIs
 typedef void *Dataset;
-Dataset MNIST(const char *data_root);
+char *MNIST(const char *data_root, Dataset *dataset);
 void MNIST_Close(Dataset d);
 
 // Add transform on dataset
