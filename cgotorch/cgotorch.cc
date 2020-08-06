@@ -75,6 +75,43 @@ char *Conv2d(Tensor input, Tensor weight, Tensor bias, int64_t *stride_data,
   }
 }
 
+char *Relu(Tensor a, Tensor *result) {
+  try {
+    *result = new at::Tensor(static_cast<at::Tensor *>(a)->relu());
+    return nullptr;
+  } catch (const std::exception &e) {
+    return exception_str(e);
+  }
+}
+
+char *LeakyRelu(Tensor a, double negative_slope, Tensor *result) {
+  try {
+    *result = new at::Tensor(
+        at::leaky_relu(*static_cast<at::Tensor *>(a), negative_slope));
+    return nullptr;
+  } catch (const std::exception &e) {
+    return exception_str(e);
+  }
+}
+
+char *Tanh(Tensor a, Tensor *result) {
+  try {
+    *result = new at::Tensor(static_cast<at::Tensor *>(a)->tanh());
+    return nullptr;
+  } catch (const std::exception &e) {
+    return exception_str(e);
+  }
+}
+
+char *Sigmoid(Tensor a, Tensor *result) {
+  try {
+    *result = new at::Tensor(static_cast<at::Tensor *>(a)->sigmoid());
+    return nullptr;
+  } catch (const std::exception &e) {
+    return exception_str(e);
+  }
+}
+
 void Tensor_Print(Tensor a) {
   std::cout << *static_cast<at::Tensor *>(a) << std::endl;
 }
