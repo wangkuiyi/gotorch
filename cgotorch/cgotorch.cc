@@ -2,6 +2,7 @@
 #include <iostream>
 #include <sstream>
 #include <string>
+#include <tuple>
 #include <vector>
 
 #include "torch/script.h"
@@ -91,6 +92,15 @@ Optimizer SGD(double learning_rate, double momentum, double dampening,
                      .nesterov(nesterov);
   return static_cast<torch::optim::Optimizer *>(
       new torch::optim::SGD(std::vector<torch::Tensor>(), options));
+}
+
+Optimizer Adam(double learning_rate, double beta1, double beta2,
+               double weight_decay) {
+  auto options = torch::optim::AdamOptions(learning_rate)
+                     .betas(std::tuple<double, double>(beta1, beta2))
+                     .weight_decay(weight_decay);
+  return static_cast<torch::optim::Optimizer *>(
+      new torch::optim::Adam(std::vector<torch::Tensor>(), options));
 }
 
 void Optimizer_ZeroGrad(Optimizer opt) {

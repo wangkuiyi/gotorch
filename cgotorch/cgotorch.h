@@ -22,11 +22,12 @@ void Tensor_Backward(Tensor a);
 Tensor Tensor_Grad(Tensor a);
 void Tensor_Print(Tensor a);
 void Tensor_Close(Tensor a);
-
 void FreeString(const char *s);
 
 Optimizer SGD(double learning_rate, double momentum, double dampening,
               double weight_decay, int nesterov);
+Optimizer Adam(double learning_rate, double beta1, double beta2,
+               double weight_decay);
 
 void Optimizer_ZeroGrad(Optimizer opt);
 void Optimizer_Step(Optimizer opt);
