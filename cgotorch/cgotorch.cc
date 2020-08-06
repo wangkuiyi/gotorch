@@ -26,10 +26,15 @@ char *exception_str(const std::exception &e) {
 // Tensor construction and operations
 ////////////////////////////////////////////////////////////////////////////////
 
-Tensor RandN(int rows, int cols, int require_grad) {
-  at::Tensor t = torch::randn({rows, cols},
-                              at::TensorOptions().requires_grad(require_grad));
-  return new at::Tensor(t);
+char *RandN(int rows, int cols, int require_grad, Tensor *result) {
+  try {
+    at::Tensor t = torch::randn(
+        {rows, cols}, at::TensorOptions().requires_grad(require_grad));
+    *result = new at::Tensor(t);
+    return nullptr;
+  } catch (const std::exception &e) {
+    return exception_str(e);
+  }
 }
 
 char *MM(Tensor a, Tensor b, Tensor *result) {
@@ -43,20 +48,31 @@ char *MM(Tensor a, Tensor b, Tensor *result) {
   }
 }
 
-Tensor Sum(Tensor a) {
-  return new at::Tensor(static_cast<at::Tensor *>(a)->sum());
+char *Sum(Tensor a, Tensor *result) {
+  try {
+    *result = new at::Tensor(static_cast<at::Tensor *>(a)->sum());
+    return nullptr;
+  } catch (const std::exception &e) {
+    return exception_str(e);
+  }
 }
 
-Tensor Conv2d(Tensor input, Tensor weight, Tensor bias, int64_t *stride_data,
-              int64_t stride_len, int64_t *padding_data, int64_t padding_len,
-              int64_t *dilation_data, int64_t dilation_len, int64_t groups) {
-  auto output = at::conv2d(
-      *static_cast<at::Tensor *>(input), *static_cast<at::Tensor *>(weight),
-      (bias ? *static_cast<at::Tensor *>(bias) : at::Tensor()),
-      torch::IntArrayRef(stride_data, stride_len),
-      torch::IntArrayRef(padding_data, padding_len),
-      torch::IntArrayRef(dilation_data, dilation_len), groups);
-  return new at::Tensor(output);
+char *Conv2d(Tensor input, Tensor weight, Tensor bias, int64_t *stride_data,
+             int64_t stride_len, int64_t *padding_data, int64_t padding_len,
+             int64_t *dilation_data, int64_t dilation_len, int64_t groups,
+             Tensor *result) {
+  try {
+    auto output = at::conv2d(
+        *static_cast<at::Tensor *>(input), *static_cast<at::Tensor *>(weight),
+        (bias ? *static_cast<at::Tensor *>(bias) : at::Tensor()),
+        torch::IntArrayRef(stride_data, stride_len),
+        torch::IntArrayRef(padding_data, padding_len),
+        torch::IntArrayRef(dilation_data, dilation_len), groups);
+    *result = new at::Tensor(output);
+    return nullptr;
+  } catch (const std::exception &e) {
+    return exception_str(e);
+  }
 }
 
 void Tensor_Print(Tensor a) {
