@@ -48,7 +48,7 @@ typedef void *DataLoader;
 
 void Loader_Close(DataLoader loader);
 Iterator Loader_Begin(DataLoader loader);
-void Loader_Data(Iterator iter, Tensor data[]);
+void Iterator_Batch(Iterator iter, Tensor *data, Tensor *target);
 bool Loader_Next(DataLoader loader, Iterator iter);
 DataLoader MakeDataLoader(Dataset dataset, int batchsize);
 

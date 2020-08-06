@@ -33,23 +33,6 @@ func setTensorFinalizer(t *C.Tensor) {
 	})
 }
 
-func setTensorArrayFinalizer(t []C.Tensor) {
-	p := gcPrepared
-	if p {
-		tensorFinalizersWG.Add(1)
-	}
-	runtime.SetFinalizer(&t, func(ts *[]C.Tensor) {
-		go func() {
-			for _, t := range *ts {
-				C.Tensor_Close(t)
-			}
-			if p {
-				tensorFinalizersWG.Done()
-			}
-		}()
-	})
-}
-
 // FinishGC should be called right after a train/predict loop
 func FinishGC() {
 	GC()

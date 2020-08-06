@@ -8,11 +8,12 @@ import (
 	"os"
 	"os/user"
 	"path"
+	"testing"
 
 	torch "github.com/wangkuiyi/gotorch"
 )
 
-func ExampleMNIST() {
+func TestExampleMNIST(t *testing.T) {
 	if e := downloadMNIST(); e != nil {
 		log.Printf("Cannot find or download MNIST dataset: %v", e)
 	}
@@ -24,8 +25,7 @@ func ExampleMNIST() {
 	})
 	trainLoader := torch.NewDataLoader(dataset, 8)
 	for trainLoader.Scan() {
-		torch.GC()
-		trainLoader.Data()
+		_ = trainLoader.Batch()
 	}
 	trainLoader.Close()
 	dataset.Close()

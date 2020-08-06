@@ -8,7 +8,6 @@ package gotorch
 import "C"
 import (
 	"fmt"
-	"reflect"
 	"unsafe"
 )
 
@@ -68,13 +67,13 @@ func (d *Dataset) AddTransforms(transforms []Transform) {
 
 // DataLoader struct
 type DataLoader struct {
-	T    C.DataLoader
-	data []Tensor
-	iter C.Iterator
+	T     C.DataLoader
+	batch *Batch
+	iter  C.Iterator
 }
 
-// Data struct which contains Data and Target sample
-type Data struct {
+// Batch struct contains data and target
+type Batch struct {
 	Data   Tensor
 	Target Tensor
 }
@@ -83,9 +82,9 @@ type Data struct {
 func NewDataLoader(dataset *Dataset, batchSize int) *DataLoader {
 	loader := C.MakeDataLoader(C.Dataset(dataset.T), C.int(batchSize))
 	return &DataLoader{
-		T:    loader,
-		data: []Tensor{},
-		iter: nil,
+		T:     loader,
+		batch: nil,
+		iter:  nil,
 	}
 }
 
@@ -94,30 +93,39 @@ func (loader *DataLoader) Close() {
 	C.Loader_Close(loader.T)
 }
 
-// NewData returns the batch data as Tensor slice
-func NewData(iter C.Iterator) []Tensor {
-	T := make([]C.Tensor, 2)
-	p := (*reflect.SliceHeader)(unsafe.Pointer(&T)).Data
-	C.Loader_Data(iter, (*C.Tensor)(unsafe.Pointer(p)))
-	setTensorArrayFinalizer(T)
-	return []Tensor{Tensor{(*C.Tensor)(T[0])}, Tensor{(*C.Tensor)(T[1])}}
+// NewBatch returns the batch data as Tensor slice
+func NewBatch(iter C.Iterator) *Batch {
+	var data C.Tensor
+	var target C.Tensor
+	C.Iterator_Batch(iter, &data, &target)
+	setTensorFinalizer(&data)
+	setTensorFinalizer(&target)
+	return &Batch{
+		Data:   Tensor{&data},
+		Target: Tensor{&target},
+	}
 }
 
 // Scan scans the batch from DataLoader
 func (loader *DataLoader) Scan() bool {
+	// make the previous batch object to be unreachable
+	// to release the Tensor memory.
+	loader.batch = nil
+	GC()
 	if loader.iter == nil {
 		loader.iter = C.Loader_Begin(loader.T)
-		loader.data = NewData(loader.iter)
+		loader.batch = NewBatch(loader.iter)
+		return true
 	}
 	// returns false if no next iteration
 	if C.Loader_Next(loader.T, loader.iter) == false {
 		return false
 	}
-	loader.data = NewData(loader.iter)
+	loader.batch = NewBatch(loader.iter)
 	return true
 }
 
-// Data returns the data in DataLoader
-func (loader *DataLoader) Data() []Tensor {
-	return loader.data
+// Batch returns the batch data on the current iteration.
+func (loader *DataLoader) Batch() *Batch {
+	return loader.batch
 }
