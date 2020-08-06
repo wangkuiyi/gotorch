@@ -16,7 +16,7 @@ char *Sum(Tensor a, Tensor *result);
 char *Conv2d(Tensor input, Tensor weight, Tensor bias, int64_t *stride_data,
              int64_t stride_len, int64_t *padding_data, int64_t padding_len,
              int64_t *dilation_data, int64_t dilation_len, int64_t groups,
-			 Tensor *result);
+             Tensor *result);
 
 const char *Tensor_String(Tensor a);
 void Tensor_Backward(Tensor a);
