@@ -55,13 +55,45 @@ type Tensor struct {
 	T *C.Tensor
 }
 
-// RandN returns a tensor filled with random number
-func RandN(rows, cols int, requireGrad bool) Tensor {
+// RandN returns a tensor filled with standard normal distribution
+func RandN(shape []int, requireGrad bool) Tensor {
 	rg := 0
 	if requireGrad {
 		rg = 1
 	}
-	t := C.RandN(C.int(rows), C.int(cols), C.int(rg))
+	t := C.RandN((*C.int64_t)(unsafe.Pointer(&shape[0])),
+		C.int64_t(len(shape)), C.int64_t(rg))
+	setTensorFinalizer(&t)
+	return Tensor{&t}
+}
+
+// Zeros returns a tensor filled with zero value
+func Zeros(shape []int, requireGrad bool) Tensor {
+	rg := 0
+	if requireGrad {
+		rg = 1
+	}
+	t := C.Zeros((*C.int64_t)(unsafe.Pointer(&shape[0])),
+		C.int64_t(len(shape)), C.int64_t(rg))
+	setTensorFinalizer(&t)
+	return Tensor{&t}
+}
+
+// Empty returns a tensor filled with random number
+func Empty(shape []int, requireGrad bool) Tensor {
+	rg := 0
+	if requireGrad {
+		rg = 1
+	}
+	t := C.Empty((*C.int64_t)(unsafe.Pointer(&shape[0])),
+		C.int64_t(len(shape)), C.int64_t(rg))
+	setTensorFinalizer(&t)
+	return Tensor{&t}
+}
+
+// Uniform inplace
+func (a Tensor) Uniform(low, high float64) Tensor {
+	t := C.Uniform_(*a.T, C.double(low), C.double(high))
 	setTensorFinalizer(&t)
 	return Tensor{&t}
 }

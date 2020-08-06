@@ -80,7 +80,7 @@ type Batch struct {
 
 // NewDataLoader returns DataLoader pointer
 func NewDataLoader(dataset *Dataset, batchSize int) *DataLoader {
-	loader := C.MakeDataLoader(C.Dataset(dataset.T), C.int(batchSize))
+	loader := C.MakeDataLoader(C.Dataset(dataset.T), C.int64_t(batchSize))
 	return &DataLoader{
 		T:     loader,
 		batch: nil,

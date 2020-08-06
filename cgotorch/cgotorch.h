@@ -10,7 +10,12 @@ extern "C" {
 
 typedef void *Tensor;
 typedef void *Optimizer;
-Tensor RandN(int rows, int cols, int require_grad);
+
+Tensor RandN(int64_t *size, int64_t length, int64_t require_grad);
+Tensor Zeros(int64_t *size, int64_t length, int64_t require_grad);
+Tensor Empty(int64_t *size, int64_t length, int64_t require_grad);
+Tensor Uniform_(Tensor a, double low, double high);
+
 char *MM(Tensor a, Tensor b, Tensor *result);
 Tensor Sum(Tensor a);
 Tensor Conv2d(Tensor input, Tensor weight, Tensor bias, int64_t *stride_data,
@@ -25,13 +30,13 @@ void Tensor_Close(Tensor a);
 void FreeString(const char *s);
 
 Optimizer SGD(double learning_rate, double momentum, double dampening,
-              double weight_decay, int nesterov);
+              double weight_decay, int64_t nesterov);
 Optimizer Adam(double learning_rate, double beta1, double beta2,
                double weight_decay);
 
 void Optimizer_ZeroGrad(Optimizer opt);
 void Optimizer_Step(Optimizer opt);
-void Optimizer_AddParameters(Optimizer opt, Tensor *tensors, int length);
+void Optimizer_AddParameters(Optimizer opt, Tensor *tensors, int64_t length);
 void Optimizer_Close(Optimizer opt);
 
 // transform APIs
@@ -55,7 +60,7 @@ void Loader_Close(DataLoader loader);
 Iterator Loader_Begin(DataLoader loader);
 void Iterator_Batch(Iterator iter, Tensor *data, Tensor *target);
 bool Loader_Next(DataLoader loader, Iterator iter);
-DataLoader MakeDataLoader(Dataset dataset, int batchsize);
+DataLoader MakeDataLoader(Dataset dataset, int64_t batchsize);
 
 #ifdef __cplusplus
 }

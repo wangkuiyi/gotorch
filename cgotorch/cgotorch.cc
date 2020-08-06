@@ -15,9 +15,26 @@
 // Tensor construction and operations
 ////////////////////////////////////////////////////////////////////////////////
 
-Tensor RandN(int rows, int cols, int require_grad) {
-  at::Tensor t = torch::randn({rows, cols},
+Tensor RandN(int64_t *size, int64_t length, int64_t require_grad) {
+  at::Tensor t = torch::randn(torch::IntArrayRef(size, length),
                               at::TensorOptions().requires_grad(require_grad));
+  return new at::Tensor(t);
+}
+
+Tensor Zeros(int64_t *size, int64_t length, int64_t require_grad) {
+  at::Tensor t = torch::zeros(torch::IntArrayRef(size, length),
+                              at::TensorOptions().requires_grad(require_grad));
+  return new at::Tensor(t);
+}
+
+Tensor Empty(int64_t *size, int64_t length, int64_t require_grad) {
+  at::Tensor t = torch::empty(torch::IntArrayRef(size, length),
+                              at::TensorOptions().requires_grad(require_grad));
+  return new at::Tensor(t);
+}
+
+Tensor Uniform_(Tensor a, double low, double high) {
+  at::Tensor t = static_cast<at::Tensor *>(a)->uniform_(low, high);
   return new at::Tensor(t);
 }
 
@@ -84,7 +101,7 @@ Tensor Tensor_Grad(Tensor a) {
 ////////////////////////////////////////////////////////////////////////////////
 
 Optimizer SGD(double learning_rate, double momentum, double dampening,
-              double weight_decay, int nesterov) {
+              double weight_decay, int64_t nesterov) {
   auto options = torch::optim::SGDOptions(learning_rate)
                      .momentum(momentum)
                      .dampening(dampening)
@@ -111,8 +128,8 @@ void Optimizer_Step(Optimizer opt) {
   static_cast<torch::optim::Optimizer *>(opt)->step();
 }
 
-void Optimizer_AddParameters(Optimizer opt, Tensor *tensors, int length) {
-  for (int i = 0; i < length; ++i)
+void Optimizer_AddParameters(Optimizer opt, Tensor *tensors, int64_t length) {
+  for (int64_t i = 0; i < length; ++i)
     static_cast<torch::optim::Optimizer *>(opt)
         ->param_groups()[0]
         .params()
@@ -157,7 +174,7 @@ using TypeDataLoader =
 
 using TypeIterator = torch::data::Iterator<TypeDataLoader::BatchType>;
 
-DataLoader MakeDataLoader(Dataset dataset, int batchsize) {
+DataLoader MakeDataLoader(Dataset dataset, int64_t batchsize) {
   auto p = torch::data::make_data_loader(
       *(static_cast<torch::data::datasets::MNIST *>(dataset)), batchsize);
   return p.release();
