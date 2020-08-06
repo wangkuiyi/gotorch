@@ -46,19 +46,6 @@ void Tensor_Print(Tensor a) {
 
 void Tensor_Close(Tensor a) { delete static_cast<at::Tensor *>(a); }
 
-void Tensor_Copy(Tensor a, float *data, int num) {
-  auto t = static_cast<at::Tensor *>(a);
-  if (t->device().type() != at::kCPU) {
-    auto tmp = t->to(at::kCPU).contiguous();
-    std::memcpy(data, tmp.data_ptr(), num * sizeof(float));
-  } else {
-    auto tmp = t->contiguous();
-    std::memcpy(data, tmp.data_ptr(), num * sizeof(float));
-  }
-}
-
-int Tensor_Numel(Tensor a) { return static_cast<at::Tensor *>(a)->numel(); }
-
 // The caller must free the returned string by calling FreeString.
 const char *Tensor_String(Tensor a) {
   std::stringstream ss;
