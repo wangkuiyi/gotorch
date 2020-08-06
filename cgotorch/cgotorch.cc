@@ -87,7 +87,8 @@ Optimizer Adam(double learning_rate, double beta1, double beta2,
   auto options = torch::optim::AdamOptions(learning_rate)
                      .betas(std::tuple<double, double>(beta1, beta2))
                      .weight_decay(weight_decay);
-  return new torch::optim::Adam(std::vector<torch::Tensor>(), options);
+  return static_cast<torch::optim::Optimizer *>(
+      new torch::optim::Adam(std::vector<torch::Tensor>(), options));
 }
 
 void Optimizer_ZeroGrad(Optimizer opt) {
