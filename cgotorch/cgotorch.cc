@@ -59,6 +59,22 @@ Tensor Conv2d(Tensor input, Tensor weight, Tensor bias, int64_t *stride_data,
   return new at::Tensor(output);
 }
 
+Tensor ConvTranspose2d(Tensor input, Tensor weight, Tensor bias,
+                       int64_t *stride_data, int64_t stride_len,
+                       int64_t *padding_data, int64_t padding_len,
+                       int64_t *output_padding_data, int64_t output_padding_len,
+                       int64_t groups, int64_t *dilation_data,
+                       int64_t dilation_len) {
+  auto output = at::conv_transpose2d(
+      *static_cast<at::Tensor *>(input), *static_cast<at::Tensor *>(weight),
+      (bias ? *static_cast<at::Tensor *>(bias) : at::Tensor()),
+      torch::IntArrayRef(stride_data, stride_len),
+      torch::IntArrayRef(padding_data, padding_len),
+      torch::IntArrayRef(output_padding_data, output_padding_len), groups,
+      torch::IntArrayRef(dilation_data, dilation_len));
+  return new at::Tensor(output);
+}
+
 void Tensor_Print(Tensor a) {
   std::cout << *static_cast<at::Tensor *>(a) << std::endl;
 }

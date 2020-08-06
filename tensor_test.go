@@ -10,3 +10,6 @@ func ExampleTensor() {
 	t.Close()
 	// Output:
 }
+
+func TestConvTranspose2d() {
+}
