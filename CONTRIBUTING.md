@@ -2,7 +2,7 @@
 
 ## How to Build on macOS
 
-Retrieve the source code into the directory `$GOPATH/src/github.com/wangkuiyi/gotorch`.
+Retrieve the source code into the directory `$GOPATH/src/github.com/wangkuiyi/gotorch` -- you can set GOPATH pointing to any directory by setting `export GOPATH=some/directory`.
 
 ```bash
 go get github.com/wangkuiyi/gotorch
