@@ -1,5 +1,4 @@
 // Copyright 2020, GoTorch Authors
-#include <cstring>
 #include <iostream>
 #include <sstream>
 #include <string>
