@@ -49,7 +49,6 @@ type conv2d struct {
 	Padding     int
 	Dilation    int
 	Groups      int
-	HasBias     bool
 	PaddingMode string
 	Weight      Tensor
 	Bias        Tensor
@@ -68,7 +67,6 @@ func Conv2d(inChannels, outChannels, kernelSize, stride, padding, dilation,
 		Padding:     padding,
 		Dilation:    dilation,
 		Groups:      groups,
-		HasBias:     bias,
 		PaddingMode: "zeros",
 	}
 	c.Weight = Empty([]int{outChannels, inChannels / groups, kernelSize,
