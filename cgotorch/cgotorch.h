@@ -30,6 +30,10 @@ char *Conv2d(Tensor input, Tensor weight, Tensor bias, int64_t *stride_data,
              int64_t stride_len, int64_t *padding_data, int64_t padding_len,
              int64_t *dilation_data, int64_t dilation_len, int64_t groups,
              Tensor *result);
+char *Relu(Tensor a, Tensor *result);
+char *LeakyRelu(Tensor a, double negative_slope, Tensor *result);
+char *Tanh(Tensor a, Tensor *result);
+char *Sigmoid(Tensor a, Tensor *result);
 
 const char *Tensor_String(Tensor a);
 void Tensor_Backward(Tensor a);
