@@ -82,8 +82,9 @@ func RandNByShape(shape []int, requireGrad bool) Tensor {
 		rg = 1
 	}
 	var t C.Tensor
-	mustNil(C.RandNByShape((*C.int64_t)(unsafe.Pointer(&shape[0])), C.int64_t(len(shape)),
-		C.int(rg), &t))
+	mustNil(C.RandNByShape(
+		(*C.int64_t)(unsafe.Pointer(&shape[0])),
+		C.int64_t(len(shape)), C.int(rg), &t))
 	setTensorFinalizer(&t)
 	return Tensor{&t}
 }
@@ -233,15 +234,15 @@ func ConvTranspose2d(
 	stride, padding, outputPadding []int,
 	groups int, dilation []int) Tensor {
 
-	var cbais, t C.Tensor
+	var cbias, t C.Tensor
 	if bias.T != nil {
-		cbais = *bias.T
+		cbias = *bias.T
 	}
 
 	mustNil(C.ConvTranspose2d(
 		*input.T,
 		*weight.T,
-		cbais,
+		cbias,
 		(*C.int64_t)(unsafe.Pointer(&stride[0])),
 		C.int64_t(len(stride)),
 		(*C.int64_t)(unsafe.Pointer(&padding[0])),
