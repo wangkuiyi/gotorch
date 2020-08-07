@@ -37,6 +37,19 @@ char *RandN(int rows, int cols, int require_grad, Tensor *result) {
   }
 }
 
+char *RandNByShape(int64_t *shape, int64_t shape_len, int require_grad,
+                   Tensor *result) {
+  try {
+    at::Tensor t =
+        torch::randn(at::IntArrayRef(shape, shape_len),
+                     at::TensorOptions().requires_grad(require_grad));
+    *result = new at::Tensor(t);
+    return nullptr;
+  } catch (const std::exception &e) {
+    return exception_str(e);
+  }
+}
+
 char *MM(Tensor a, Tensor b, Tensor *result) {
   try {
     at::Tensor c =
@@ -106,6 +119,27 @@ char *Tanh(Tensor a, Tensor *result) {
 char *Sigmoid(Tensor a, Tensor *result) {
   try {
     *result = new at::Tensor(static_cast<at::Tensor *>(a)->sigmoid());
+        return nullptr;
+  } catch (const std::exception &e) {
+    return exception_str(e);
+  }
+}
+
+char *ConvTranspose2d(Tensor input, Tensor weight, Tensor bias,
+                      int64_t *stride_data, int64_t stride_len,
+                      int64_t *padding_data, int64_t padding_len,
+                      int64_t *output_padding_data, int64_t output_padding_len,
+                      int64_t groups, int64_t *dilation_data,
+                      int64_t dilation_len, Tensor *result) {
+  try {
+    auto output = at::conv_transpose2d(
+        *static_cast<at::Tensor *>(input), *static_cast<at::Tensor *>(weight),
+        (bias ? *static_cast<at::Tensor *>(bias) : at::Tensor()),
+        torch::IntArrayRef(stride_data, stride_len),
+        torch::IntArrayRef(padding_data, padding_len),
+        torch::IntArrayRef(output_padding_data, output_padding_len), groups,
+        torch::IntArrayRef(dilation_data, dilation_len));
+    *result = new at::Tensor(output);
     return nullptr;
   } catch (const std::exception &e) {
     return exception_str(e);
