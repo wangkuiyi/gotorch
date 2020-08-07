@@ -56,8 +56,10 @@ type conv2d struct {
 }
 
 // Conv2d does conv2d computaion. torch.conv2d
-// TODO(qijun): only support zero padding
-func Conv2d(inChannels, outChannels, kernelSize, stride, padding, dilation, groups int, bias bool, paddingMode string) {
+// TODO(qijun): only support zero padding mode
+// only support symmetry kernel/stride/padding/dilation
+func Conv2d(inChannels, outChannels, kernelSize, stride, padding, dilation,
+	groups int, bias bool, paddingMode string) {
 	c := &conv2d{
 		InChannels:  inChannels,
 		OutChannels: outChannels,
@@ -69,7 +71,8 @@ func Conv2d(inChannels, outChannels, kernelSize, stride, padding, dilation, grou
 		HasBias:     bias,
 		PaddingMode: "zeros",
 	}
-	c.Weight = Empty([]int{inChannels, outChannels / groups, kernelSize, kernelSize}, true)
+	c.Weight = Empty([]int{inChannels, outChannels / groups, kernelSize,
+		kernelSize}, true)
 	KaimingUniform(&c.Weight, math.Sqrt(5.0), "fan_in", "leaky_relu")
 	if bias {
 		c.Bias = Empty([]int{outChannels}, true)
