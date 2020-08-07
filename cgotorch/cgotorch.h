@@ -20,7 +20,7 @@ char *Empty(int64_t *size, int64_t length, int64_t require_grad,
 char *Zeros_(Tensor input, Tensor *result);
 // torch.nn.init.uniform_
 char *Uniform_(Tensor input, Tensor *result);
-// torch.nn.init.kaiming_uniform
+// torch.nn.init.kaiming_uniform_
 char *KaimingUniform_(Tensor input, double a, const char *fan_mod,
                        const char *non_linearity, Tensor *result);
 
