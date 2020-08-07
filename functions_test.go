@@ -41,7 +41,7 @@ func ExampleRelu() {
 		torch.FinishGC()
 	}()
 
-	x := torch.RandN(10, 20, true)
+	x := torch.RandN([]int{10, 20}, true)
 	r := torch.Relu(x)
 	r = torch.LeakyRelu(x, 0.01)
 	_ = r

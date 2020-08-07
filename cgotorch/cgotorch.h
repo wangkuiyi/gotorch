@@ -11,29 +11,30 @@ extern "C" {
 typedef void *Tensor;
 typedef void *Optimizer;
 // torch.randn
-char *RandN(int64_t *size, int64_t length, int64_t require_grad,
-            Tensor *result);
+const char *RandN(int64_t *size, int64_t length, int64_t require_grad,
+                  Tensor *result);
 // torch.empty
-char *Empty(int64_t *size, int64_t length, int64_t require_grad,
-            Tensor *result);
+const char *Empty(int64_t *size, int64_t length, int64_t require_grad,
+                  Tensor *result);
 // torch.nn.init.zero_
-char *Zeros_(Tensor input, Tensor *result);
+const char *Zeros_(Tensor input, Tensor *result);
 // torch.nn.init.uniform_
-char *Uniform_(Tensor input, Tensor *result);
+const char *Uniform_(Tensor input, Tensor *result);
 // torch.nn.init.kaiming_uniform_
-char *KaimingUniform_(Tensor input, double a, const char *fan_mod,
-                      const char *non_linearity, Tensor *result);
+const char *KaimingUniform_(Tensor input, double a, const char *fan_mod,
+                            const char *non_linearity, Tensor *result);
 
-char *MM(Tensor a, Tensor b, Tensor *result);
-char *Sum(Tensor a, Tensor *result);
-char *Conv2d(Tensor input, Tensor weight, Tensor bias, int64_t *stride_data,
-             int64_t stride_len, int64_t *padding_data, int64_t padding_len,
-             int64_t *dilation_data, int64_t dilation_len, int64_t groups,
-             Tensor *result);
-char *Relu(Tensor a, Tensor *result);
-char *LeakyRelu(Tensor a, double negative_slope, Tensor *result);
-char *Tanh(Tensor a, Tensor *result);
-char *Sigmoid(Tensor a, Tensor *result);
+const char *MM(Tensor a, Tensor b, Tensor *result);
+const char *Sum(Tensor a, Tensor *result);
+const char *Conv2d(Tensor input, Tensor weight, Tensor bias,
+                   int64_t *stride_data, int64_t stride_len,
+                   int64_t *padding_data, int64_t padding_len,
+                   int64_t *dilation_data, int64_t dilation_len, int64_t groups,
+                   Tensor *result);
+const char *Relu(Tensor a, Tensor *result);
+const char *LeakyRelu(Tensor a, double negative_slope, Tensor *result);
+const char *Tanh(Tensor a, Tensor *result);
+const char *Sigmoid(Tensor a, Tensor *result);
 
 const char *Tensor_String(Tensor a);
 void Tensor_Backward(Tensor a);
@@ -59,7 +60,7 @@ Transform Stack();
 
 // dataset APIs
 typedef void *Dataset;
-char *MNIST(const char *data_root, Dataset *dataset);
+const char *MNIST(const char *data_root, Dataset *dataset);
 void MNIST_Close(Dataset d);
 
 // Add transform on dataset

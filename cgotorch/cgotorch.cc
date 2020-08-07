@@ -16,7 +16,7 @@
 // Helper functions
 ////////////////////////////////////////////////////////////////////////////////
 
-char *exception_str(const std::exception &e) {
+const char *exception_str(const std::exception &e) {
   auto len = strlen(e.what());
   auto r = new char[len + 1];
   snprintf(r, len, "%s", e.what());
@@ -47,8 +47,8 @@ std::unordered_map<std::string, torch::nn::init::NonlinearityType>
 // Tensor construction and operations
 ////////////////////////////////////////////////////////////////////////////////
 
-char *RandN(int64_t *size, int64_t length, int64_t require_grad,
-            Tensor *result) {
+const char *RandN(int64_t *size, int64_t length, int64_t require_grad,
+                  Tensor *result) {
   try {
     at::Tensor t =
         torch::randn(torch::IntArrayRef(size, length),
@@ -60,8 +60,8 @@ char *RandN(int64_t *size, int64_t length, int64_t require_grad,
   }
 }
 
-char *Empty(int64_t *size, int64_t length, int64_t require_grad,
-            Tensor *result) {
+const char *Empty(int64_t *size, int64_t length, int64_t require_grad,
+                  Tensor *result) {
   try {
     at::Tensor t =
         torch::empty(torch::IntArrayRef(size, length),
@@ -73,7 +73,7 @@ char *Empty(int64_t *size, int64_t length, int64_t require_grad,
   }
 }
 
-char *Zeros_(Tensor input, Tensor *result) {
+const char *Zeros_(Tensor input, Tensor *result) {
   try {
     at::Tensor t = torch::nn::init::zeros_(*static_cast<at::Tensor *>(input));
     *result = new at::Tensor(t);
@@ -83,7 +83,7 @@ char *Zeros_(Tensor input, Tensor *result) {
   }
 }
 
-char *Uniform_(Tensor input, Tensor *result) {
+const char *Uniform_(Tensor input, Tensor *result) {
   try {
     at::Tensor t = torch::nn::init::uniform_(*static_cast<at::Tensor *>(input));
     *result = new at::Tensor(t);
@@ -93,8 +93,8 @@ char *Uniform_(Tensor input, Tensor *result) {
   }
 }
 
-char *KaimingUniform_(Tensor input, double a, const char *fan_mod,
-                      const char *non_linearity, Tensor *result) {
+const char *KaimingUniform_(Tensor input, double a, const char *fan_mod,
+                            const char *non_linearity, Tensor *result) {
   try {
     at::Tensor t = torch::nn::init::kaiming_uniform_(
         *static_cast<at::Tensor *>(input), a,
@@ -107,7 +107,7 @@ char *KaimingUniform_(Tensor input, double a, const char *fan_mod,
   }
 }
 
-char *MM(Tensor a, Tensor b, Tensor *result) {
+const char *MM(Tensor a, Tensor b, Tensor *result) {
   try {
     at::Tensor c =
         at::mm(*static_cast<at::Tensor *>(a), *static_cast<at::Tensor *>(b));
@@ -118,7 +118,7 @@ char *MM(Tensor a, Tensor b, Tensor *result) {
   }
 }
 
-char *Sum(Tensor a, Tensor *result) {
+const char *Sum(Tensor a, Tensor *result) {
   try {
     *result = new at::Tensor(static_cast<at::Tensor *>(a)->sum());
     return nullptr;
@@ -127,10 +127,11 @@ char *Sum(Tensor a, Tensor *result) {
   }
 }
 
-char *Conv2d(Tensor input, Tensor weight, Tensor bias, int64_t *stride_data,
-             int64_t stride_len, int64_t *padding_data, int64_t padding_len,
-             int64_t *dilation_data, int64_t dilation_len, int64_t groups,
-             Tensor *result) {
+const char *Conv2d(Tensor input, Tensor weight, Tensor bias,
+                   int64_t *stride_data, int64_t stride_len,
+                   int64_t *padding_data, int64_t padding_len,
+                   int64_t *dilation_data, int64_t dilation_len, int64_t groups,
+                   Tensor *result) {
   try {
     auto output = at::conv2d(
         *static_cast<at::Tensor *>(input), *static_cast<at::Tensor *>(weight),
@@ -145,7 +146,7 @@ char *Conv2d(Tensor input, Tensor weight, Tensor bias, int64_t *stride_data,
   }
 }
 
-char *Relu(Tensor a, Tensor *result) {
+const char *Relu(Tensor a, Tensor *result) {
   try {
     *result = new at::Tensor(static_cast<at::Tensor *>(a)->relu());
     return nullptr;
@@ -154,7 +155,7 @@ char *Relu(Tensor a, Tensor *result) {
   }
 }
 
-char *LeakyRelu(Tensor a, double negative_slope, Tensor *result) {
+const char *LeakyRelu(Tensor a, double negative_slope, Tensor *result) {
   try {
     *result = new at::Tensor(
         at::leaky_relu(*static_cast<at::Tensor *>(a), negative_slope));
@@ -164,7 +165,7 @@ char *LeakyRelu(Tensor a, double negative_slope, Tensor *result) {
   }
 }
 
-char *Tanh(Tensor a, Tensor *result) {
+const char *Tanh(Tensor a, Tensor *result) {
   try {
     *result = new at::Tensor(static_cast<at::Tensor *>(a)->tanh());
     return nullptr;
@@ -173,7 +174,7 @@ char *Tanh(Tensor a, Tensor *result) {
   }
 }
 
-char *Sigmoid(Tensor a, Tensor *result) {
+const char *Sigmoid(Tensor a, Tensor *result) {
   try {
     *result = new at::Tensor(static_cast<at::Tensor *>(a)->sigmoid());
     return nullptr;
@@ -258,7 +259,7 @@ void Optimizer_Close(Optimizer opt) {
 // Dataset, DataLoader, and Iterator
 ////////////////////////////////////////////////////////////////////////////////
 
-char *MNIST(const char *data_root, Dataset *dataset) {
+const char *MNIST(const char *data_root, Dataset *dataset) {
   try {
     *dataset = new torch::data::datasets::MNIST(std::string(data_root));
     return nullptr;
