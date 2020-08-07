@@ -23,7 +23,7 @@ func SGD(lr, momentum, dampening, weightDecay float64, nesterov bool) Optimizer 
 		nt = 1
 	}
 	sgd := C.SGD(C.double(lr), C.double(momentum), C.double(dampening),
-		C.double(weightDecay), C.int(nt))
+		C.double(weightDecay), C.int64_t(nt))
 	runtime.SetFinalizer(&sgd, func(p *C.Optimizer) { C.Optimizer_Close(*p) })
 	return Optimizer{&sgd}
 }
@@ -42,7 +42,7 @@ func (opt Optimizer) AddParameters(tensors []Tensor) {
 		CT = append(CT, unsafe.Pointer(*t.T))
 	}
 	p := (*reflect.SliceHeader)(unsafe.Pointer(&CT)).Data
-	C.Optimizer_AddParameters(*opt.Opt, (*C.Tensor)(unsafe.Pointer(p)), C.int(len(CT)))
+	C.Optimizer_AddParameters(*opt.Opt, (*C.Tensor)(unsafe.Pointer(p)), C.int64_t(len(CT)))
 }
 
 // ZeroGrad reset gradients to zero

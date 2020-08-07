@@ -5,7 +5,7 @@ import (
 )
 
 func ExampleTensor() {
-	t := torch.RandN(10, 100, false)
+	t := torch.RandN([]int{10, 100}, false)
 	t.Close()
 	t.Close()
 	// Output:

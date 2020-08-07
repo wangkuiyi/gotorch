@@ -34,7 +34,7 @@ type myNet2 struct {
 // MyNet2 returns a myNet2 instance
 func MyNet2() Module {
 	n := &myNet2{
-		Weight: RandN(100, 200, false),
+		Weight: RandN([]int{100, 200}, false),
 		L1:     Linear(100, 200, false),
 	}
 	return n
