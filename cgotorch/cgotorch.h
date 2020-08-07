@@ -10,10 +10,19 @@ extern "C" {
 
 typedef void *Tensor;
 typedef void *Optimizer;
-char *RandN(int rows, int cols, int require_grad, Tensor *result);
-Tensor Zeros(int64_t *size, int64_t length, int64_t require_grad);
-Tensor Empty(int64_t *size, int64_t length, int64_t require_grad);
-Tensor Uniform_(Tensor a, double low, double high);
+// torch.randn
+char *RandN(int64_t *size, int64_t length, int64_t require_grad,
+            Tensor *result);
+// torch.empty
+char *Empty(int64_t *size, int64_t length, int64_t require_grad,
+            Tensor *result);
+// torch.nn.init.zero_
+char *Zeros_(Tensor input, Tensor *result);
+// torch.nn.init.uniform_
+char *Uniform_(Tensor input, Tensor *result);
+// torch.nn.init.kaiming_uniform
+char *KaimingUniform_(Tensor input, double a, const char *fan_mod,
+                       const char *non_linearity, Tensor *result);
 
 char *MM(Tensor a, Tensor b, Tensor *result);
 char *Sum(Tensor a, Tensor *result);

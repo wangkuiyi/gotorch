@@ -3,6 +3,7 @@
 #include <sstream>
 #include <string>
 #include <tuple>
+#include <unordered_map>
 #include <vector>
 
 #include "torch/script.h"
@@ -22,14 +23,36 @@ char *exception_str(const std::exception &e) {
   return r;
 }
 
+std::unordered_map<std::string, torch::nn::init::FanModeType> fan_mode_map = {
+    {"fan_in", torch::kFanIn},
+    {"fan_out", torch::kFanOut},
+};
+
+std::unordered_map<std::string, torch::nn::init::NonlinearityType>
+    non_linearity_map = {
+        {"relu", torch::kReLU},
+        {"leaky_relu", torch::kLeakyReLU},
+        {"tanh", torch::kTanh},
+        {"sigmoid", torch::kSigmoid},
+        {"linear", torch::kLinear},
+        {"conv1d", torch::kConv1D},
+        {"conv2d", torch::kConv2D},
+        {"conv3d", torch::kConv3D},
+        {"conv_transpose1d", torch::kConvTranspose1D},
+        {"conv_transpose2d", torch::kConvTranspose2D},
+        {"conv_transpose3d", torch::kConvTranspose3D},
+};
+
 ////////////////////////////////////////////////////////////////////////////////
 // Tensor construction and operations
 ////////////////////////////////////////////////////////////////////////////////
 
-char *RandN(int64_t *size, int64_t length, int64_t require_grad, Tensor *result) {
+char *RandN(int64_t *size, int64_t length, int64_t require_grad,
+            Tensor *result) {
   try {
-    at::Tensor t = torch::randn(
-        torch::IntArrayRef(size, length),, at::TensorOptions().requires_grad(require_grad));
+    at::Tensor t =
+        torch::randn(torch::IntArrayRef(size, length),
+                     at::TensorOptions().requires_grad(require_grad));
     *result = new at::Tensor(t);
     return nullptr;
   } catch (const std::exception &e) {
@@ -37,21 +60,51 @@ char *RandN(int64_t *size, int64_t length, int64_t require_grad, Tensor *result)
   }
 }
 
-Tensor Zeros(int64_t *size, int64_t length, int64_t require_grad) {
-  at::Tensor t = torch::zeros(torch::IntArrayRef(size, length),
-                              at::TensorOptions().requires_grad(require_grad));
-  return new at::Tensor(t);
+char *Empty(int64_t *size, int64_t length, int64_t require_grad,
+            Tensor *result) {
+  try {
+    at::Tensor t =
+        torch::empty(torch::IntArrayRef(size, length),
+                     at::TensorOptions().requires_grad(require_grad));
+    *result = new at::Tensor(t);
+    return nullptr;
+  } catch (const std::exception &e) {
+    return exception_str(e);
+  }
 }
 
-Tensor Empty(int64_t *size, int64_t length, int64_t require_grad) {
-  at::Tensor t = torch::empty(torch::IntArrayRef(size, length),
-                              at::TensorOptions().requires_grad(require_grad));
-  return new at::Tensor(t);
+char *Zeros_(Tensor input, Tensor *result) {
+  try {
+    at::Tensor t = torch::nn::init::zeros_(*static_cast<at::Tensor *>(input));
+    *result = new at::Tensor(t);
+    return nullptr;
+  } catch (const std::exception &e) {
+    return exception_str(e);
+  }
 }
 
-Tensor Uniform_(Tensor a, double low, double high) {
-  at::Tensor t = static_cast<at::Tensor *>(a)->uniform_(low, high);
-  return new at::Tensor(t);
+char *Uniform_(Tensor input, Tensor *result) {
+  try {
+    at::Tensor t = torch::nn::init::uniform_(*static_cast<at::Tensor *>(input));
+    *result = new at::Tensor(t);
+    return nullptr;
+  } catch (const std::exception &e) {
+    return exception_str(e);
+  }
+}
+
+char *KaimingUniform_(Tensor input, double a, const char *fan_mod,
+                       const char *non_linearity, Tensor *result) {
+  try {
+    at::Tensor t = torch::nn::init::kaiming_uniform_(
+        *static_cast<at::Tensor *>(input), a,
+        fan_mode_map[std::string(fan_mod)],
+        non_linearity_map[std::string(non_linearity)]);
+    *result = new at::Tensor(t);
+    return nullptr;
+  } catch (const std::exception &e) {
+    return exception_str(e);
+  }
 }
 
 char *MM(Tensor a, Tensor b, Tensor *result) {
