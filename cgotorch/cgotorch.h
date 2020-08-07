@@ -17,12 +17,14 @@ const char *RandN(int64_t *size, int64_t length, int64_t require_grad,
 const char *Empty(int64_t *size, int64_t length, int64_t require_grad,
                   Tensor *result);
 // torch.nn.init.zero_
-const char *Zeros_(Tensor input, Tensor *result);
+const char *Zeros_(Tensor *tensor);
 // torch.nn.init.uniform_
-const char *Uniform_(Tensor input, Tensor *result);
+const char *Uniform_(Tensor *tensor, double low, double high);
 // torch.nn.init.kaiming_uniform_
-const char *KaimingUniform_(Tensor input, double a, const char *fan_mod,
-                            const char *non_linearity, Tensor *result);
+const char *KaimingUniform_(double a, const char *fan_mod,
+                            const char *non_linearity, Tensor *tensor);
+const char *CalculateFanInAndFanOut(Tensor tensor, int64_t *fan_in,
+                                    int64_t *fan_out);
 
 const char *MM(Tensor a, Tensor b, Tensor *result);
 const char *Sum(Tensor a, Tensor *result);

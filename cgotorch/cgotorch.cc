@@ -73,34 +73,44 @@ const char *Empty(int64_t *size, int64_t length, int64_t require_grad,
   }
 }
 
-const char *Zeros_(Tensor input, Tensor *result) {
+const char *Zeros_(Tensor *tensor) {
   try {
-    at::Tensor t = torch::nn::init::zeros_(*static_cast<at::Tensor *>(input));
-    *result = new at::Tensor(t);
+    torch::nn::init::zeros_(*static_cast<at::Tensor *>(*tensor));
     return nullptr;
   } catch (const std::exception &e) {
     return exception_str(e);
   }
 }
 
-const char *Uniform_(Tensor input, Tensor *result) {
+const char *Uniform_(Tensor *tensor, double low, double high) {
   try {
-    at::Tensor t = torch::nn::init::uniform_(*static_cast<at::Tensor *>(input));
-    *result = new at::Tensor(t);
+    torch::nn::init::uniform_(*static_cast<at::Tensor *>(*tensor), low, high);
     return nullptr;
   } catch (const std::exception &e) {
     return exception_str(e);
   }
 }
 
-const char *KaimingUniform_(Tensor input, double a, const char *fan_mod,
-                            const char *non_linearity, Tensor *result) {
+const char *KaimingUniform_(double a, const char *fan_mod,
+                            const char *non_linearity, Tensor *tensor) {
   try {
-    at::Tensor t = torch::nn::init::kaiming_uniform_(
-        *static_cast<at::Tensor *>(input), a,
+    torch::nn::init::kaiming_uniform_(
+        *static_cast<at::Tensor *>(*tensor), a,
         fan_mode_map[std::string(fan_mod)],
         non_linearity_map[std::string(non_linearity)]);
-    *result = new at::Tensor(t);
+    return nullptr;
+  } catch (const std::exception &e) {
+    return exception_str(e);
+  }
+}
+
+const char *CalculateFanInAndFanOut(Tensor tensor, int64_t *fan_in,
+                                    int64_t *fan_out) {
+  try {
+    const auto &res = torch::nn::init::_calculate_fan_in_and_fan_out(
+        *static_cast<at::Tensor *>(tensor));
+    *fan_in = std::get<0>(res);
+    *fan_out = std::get<1>(res);
     return nullptr;
   } catch (const std::exception &e) {
     return exception_str(e);

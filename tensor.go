@@ -70,7 +70,8 @@ func RandN(shape []int, requireGrad bool) Tensor {
 		rg = 1
 	}
 	var t C.Tensor
-	mustNil(C.RandN((*C.int64_t)(unsafe.Pointer(&shape[0])), C.int64_t(len(shape)), C.int64_t(rg), &t))
+	mustNil(C.RandN((*C.int64_t)(unsafe.Pointer(&shape[0])),
+		C.int64_t(len(shape)), C.int64_t(rg), &t))
 	setTensorFinalizer(&t)
 	return Tensor{&t}
 }
@@ -82,33 +83,36 @@ func Empty(shape []int, requireGrad bool) Tensor {
 		rg = 1
 	}
 	var t C.Tensor
-	mustNil(C.Empty((*C.int64_t)(unsafe.Pointer(&shape[0])), C.int64_t(len(shape)), C.int64_t(rg), &t))
+	mustNil(C.Empty((*C.int64_t)(unsafe.Pointer(&shape[0])),
+		C.int64_t(len(shape)), C.int64_t(rg), &t))
 	setTensorFinalizer(&t)
 	return Tensor{&t}
 }
 
 // Zeros initialization, torch.nn.init.zeros_
-func Zeros(a Tensor) Tensor {
-	var t C.Tensor
-	mustNil(C.Zeros_(*a.T, &t))
-	setTensorFinalizer(&t)
-	return Tensor{&t}
+func Zeros(a *Tensor) {
+	mustNil(C.Zeros_(a.T))
 }
 
 // Uniform initialization, torch.nn.init.uniform_
-func Uniform(a Tensor) Tensor {
-	var t C.Tensor
-	mustNil(C.Uniform_(*a.T, &t))
-	setTensorFinalizer(&t)
-	return Tensor{&t}
+func Uniform(a *Tensor, low, high float64) {
+	mustNil(C.Uniform_(a.T, C.double(low), C.double(high)))
 }
 
 // KaimingUniform initialization, torch.nn.init.kaiming_uniform_
-func KaimingUniform(input Tensor, a float64, fanMode string, nonLinearity string) Tensor {
-	var t C.Tensor
-	mustNil(C.KaimingUniform_(*input.T, C.double(a), C.CString(fanMode), C.CString(nonLinearity), &t))
-	setTensorFinalizer(&t)
-	return Tensor{&t}
+func KaimingUniform(input *Tensor, a float64, fanMode string,
+	nonLinearity string) {
+	mustNil(C.KaimingUniform_(C.double(a), C.CString(fanMode),
+		C.CString(nonLinearity), input.T))
+}
+
+// CalculateFanInAndFanOut torch.nn.init._calculate_fan_in_and_fan_out
+func CalculateFanInAndFanOut(input Tensor) (int, int) {
+	var fanIn, fanOut int
+	mustNil(C.CalculateFanInAndFanOut(*input.T,
+		(*C.int64_t)(unsafe.Pointer(&fanIn)),
+		(*C.int64_t)(unsafe.Pointer(&fanOut))))
+	return fanIn, fanOut
 }
 
 // String returns the Tensor as a string
@@ -212,40 +216,18 @@ func Sum(a Tensor) Tensor {
 	return Tensor{&t}
 }
 
-// Conv2d does 2d-convolution
-func Conv2d(input Tensor, weight Tensor, bias Tensor, stride []int,
+// FConv2d does 2d-convolution
+func FConv2d(input Tensor, weight Tensor, bias Tensor, stride []int,
 	padding []int, dilation []int, groups int) Tensor {
-	var t C.Tensor
-	if bias.T == nil {
-		mustNil(
-			C.Conv2d(
-				*input.T,
-				*weight.T,
-				nil,
-				(*C.int64_t)(unsafe.Pointer(&stride[0])),
-				C.int64_t(len(stride)),
-				(*C.int64_t)(unsafe.Pointer(&padding[0])),
-				C.int64_t(len(padding)),
-				(*C.int64_t)(unsafe.Pointer(&dilation[0])),
-				C.int64_t(len(dilation)),
-				C.int64_t(groups),
-				&t))
-		setTensorFinalizer(&t)
-		return Tensor{&t}
+	var cbias, t C.Tensor
+	if bias.T != nil {
+		cbias = *bias.T
 	}
-	mustNil(
-		C.Conv2d(
-			*input.T,
-			*weight.T,
-			*bias.T,
-			(*C.int64_t)(unsafe.Pointer(&stride[0])),
-			C.int64_t(len(stride)),
-			(*C.int64_t)(unsafe.Pointer(&padding[0])),
-			C.int64_t(len(padding)),
-			(*C.int64_t)(unsafe.Pointer(&dilation[0])),
-			C.int64_t(len(dilation)),
-			C.int64_t(groups),
-			&t))
+	mustNil(C.Conv2d(*input.T, *weight.T, cbias,
+		(*C.int64_t)(unsafe.Pointer(&stride[0])), C.int64_t(len(stride)),
+		(*C.int64_t)(unsafe.Pointer(&padding[0])), C.int64_t(len(padding)),
+		(*C.int64_t)(unsafe.Pointer(&dilation[0])), C.int64_t(len(dilation)),
+		C.int64_t(groups), &t))
 	setTensorFinalizer(&t)
 	return Tensor{&t}
 }

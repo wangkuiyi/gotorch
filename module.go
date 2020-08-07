@@ -7,6 +7,7 @@ package gotorch
 import "C"
 import (
 	"log"
+	"math"
 	"reflect"
 )
 
@@ -38,6 +39,50 @@ func Linear(in int, out int, bias bool) Module {
 // Forward method
 func (l *linear) Forward(x Tensor) Tensor {
 	return MM(x, l.Weight)
+}
+
+type conv2d struct {
+	InChannels  int
+	OutChannels int
+	KernelSize  int
+	Stride      int
+	Padding     int
+	Dilation    int
+	Groups      int
+	HasBias     bool
+	PaddingMode string
+	Weight      Tensor
+	Bias        Tensor
+}
+
+// Conv2d does conv2d computaion. torch.conv2d
+// TODO(qijun): only support zero padding
+func Conv2d(inChannels, outChannels, kernelSize, stride, padding, dilation, groups int, bias bool, paddingMode string) {
+	c := &conv2d{
+		InChannels:  inChannels,
+		OutChannels: outChannels,
+		KernelSize:  kernelSize,
+		Stride:      stride,
+		Padding:     padding,
+		Dilation:    dilation,
+		Groups:      groups,
+		HasBias:     bias,
+		PaddingMode: "zeros",
+	}
+	c.Weight = Empty([]int{inChannels, outChannels / groups, kernelSize, kernelSize}, true)
+	KaimingUniform(&c.Weight, math.Sqrt(5.0), "fan_in", "leaky_relu")
+	if bias {
+		c.Bias = Empty([]int{outChannels}, true)
+		fanIn, _ := CalculateFanInAndFanOut(c.Weight)
+		bound := 1.0 / math.Sqrt(float64(fanIn))
+		Uniform(&c.Bias, -bound, bound)
+	}
+}
+
+// Forward method
+func (c *conv2d) Forward(x Tensor) Tensor {
+	return FConv2d(x, c.Weight, c.Bias, []int{c.Stride, c.Stride},
+		[]int{c.Padding, c.Padding}, []int{c.Dilation, c.Dilation}, c.Groups)
 }
 
 // GetNamedParameters returns parameters in the module recursively.
