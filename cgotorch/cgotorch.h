@@ -22,7 +22,7 @@ char *Zeros_(Tensor input, Tensor *result);
 char *Uniform_(Tensor input, Tensor *result);
 // torch.nn.init.kaiming_uniform_
 char *KaimingUniform_(Tensor input, double a, const char *fan_mod,
-                       const char *non_linearity, Tensor *result);
+                      const char *non_linearity, Tensor *result);
 
 char *MM(Tensor a, Tensor b, Tensor *result);
 char *Sum(Tensor a, Tensor *result);

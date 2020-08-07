@@ -94,7 +94,7 @@ char *Uniform_(Tensor input, Tensor *result) {
 }
 
 char *KaimingUniform_(Tensor input, double a, const char *fan_mod,
-                       const char *non_linearity, Tensor *result) {
+                      const char *non_linearity, Tensor *result) {
   try {
     at::Tensor t = torch::nn::init::kaiming_uniform_(
         *static_cast<at::Tensor *>(input), a,
