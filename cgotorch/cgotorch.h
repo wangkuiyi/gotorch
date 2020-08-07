@@ -10,17 +10,17 @@ extern "C" {
 
 typedef void *Tensor;
 typedef void *Optimizer;
-
-Tensor RandN(int64_t *size, int64_t length, int64_t require_grad);
+char *RandN(int rows, int cols, int require_grad, Tensor *result);
 Tensor Zeros(int64_t *size, int64_t length, int64_t require_grad);
 Tensor Empty(int64_t *size, int64_t length, int64_t require_grad);
 Tensor Uniform_(Tensor a, double low, double high);
 
 char *MM(Tensor a, Tensor b, Tensor *result);
-Tensor Sum(Tensor a);
-Tensor Conv2d(Tensor input, Tensor weight, Tensor bias, int64_t *stride_data,
-              int64_t stride_len, int64_t *padding_data, int64_t padding_len,
-              int64_t *dilation_data, int64_t dilation_len, int64_t groups);
+char *Sum(Tensor a, Tensor *result);
+char *Conv2d(Tensor input, Tensor weight, Tensor bias, int64_t *stride_data,
+             int64_t stride_len, int64_t *padding_data, int64_t padding_len,
+             int64_t *dilation_data, int64_t dilation_len, int64_t groups,
+             Tensor *result);
 
 const char *Tensor_String(Tensor a);
 void Tensor_Backward(Tensor a);
@@ -46,7 +46,7 @@ Transform Stack();
 
 // dataset APIs
 typedef void *Dataset;
-Dataset MNIST(const char *data_root);
+char *MNIST(const char *data_root, Dataset *dataset);
 void MNIST_Close(Dataset d);
 
 // Add transform on dataset

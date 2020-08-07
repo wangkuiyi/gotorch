@@ -1,0 +1,27 @@
+all : libcgotorch.so
+
+libtorch-rpi-cxx11-abi-shared-1.6.0.zip :
+	curl -LsO 'https://github.com/ljk53/pytorch-rpi/raw/master/libtorch-rpi-cxx11-abi-shared-1.6.0.zip'
+
+rpi/libtorch : libtorch-rpi-cxx11-abi-shared-1.6.0.zip
+	unzip -qq -o $< -d rpi
+
+libcgotorch.so : cgotorch.cc cgotorch.h rpi/libtorch
+	rm -f libtorch
+	ln -s rpi/libtorch libtorch
+	clang++ -std=c++14 \
+	-I .. \
+	-I libtorch/include \
+	-I libtorch/include/torch/csrc/api/include \
+	-L libtorch/lib \
+	-fPIC \
+	-shared \
+	cgotorch.cc \
+	-o $@ -install_name @rpath/$@ \
+	-Wl,-rpath,libtorch/lib \
+	-Wl,-force_load libtorch/lib/libc10.so \
+	-lc10 -ltorch -ltorch_cpu \
+	-D_GLIBCXX_USE_CXX11_ABI=1
+
+clean:
+	rm -rf *.so

@@ -12,13 +12,29 @@
 #include "cgotorch/cgotorch.h"
 
 ////////////////////////////////////////////////////////////////////////////////
+// Helper functions
+////////////////////////////////////////////////////////////////////////////////
+
+char *exception_str(const std::exception &e) {
+  auto len = strlen(e.what());
+  auto r = new char[len + 1];
+  snprintf(r, len, "%s", e.what());
+  return r;
+}
+
+////////////////////////////////////////////////////////////////////////////////
 // Tensor construction and operations
 ////////////////////////////////////////////////////////////////////////////////
 
-Tensor RandN(int64_t *size, int64_t length, int64_t require_grad) {
-  at::Tensor t = torch::randn(torch::IntArrayRef(size, length),
-                              at::TensorOptions().requires_grad(require_grad));
-  return new at::Tensor(t);
+char *RandN(int64_t *size, int64_t length, int64_t require_grad, Tensor *result) {
+  try {
+    at::Tensor t = torch::randn(
+        torch::IntArrayRef(size, length),, at::TensorOptions().requires_grad(require_grad));
+    *result = new at::Tensor(t);
+    return nullptr;
+  } catch (const std::exception &e) {
+    return exception_str(e);
+  }
 }
 
 Tensor Zeros(int64_t *size, int64_t length, int64_t require_grad) {
@@ -45,27 +61,35 @@ char *MM(Tensor a, Tensor b, Tensor *result) {
     *result = new at::Tensor(c);
     return nullptr;
   } catch (const std::exception &e) {
-    auto len = strlen(e.what());
-    auto r = new char[len + 1];
-    snprintf(r, len, "%s", e.what());
-    return r;
+    return exception_str(e);
   }
 }
 
-Tensor Sum(Tensor a) {
-  return new at::Tensor(static_cast<at::Tensor *>(a)->sum());
+char *Sum(Tensor a, Tensor *result) {
+  try {
+    *result = new at::Tensor(static_cast<at::Tensor *>(a)->sum());
+    return nullptr;
+  } catch (const std::exception &e) {
+    return exception_str(e);
+  }
 }
 
-Tensor Conv2d(Tensor input, Tensor weight, Tensor bias, int64_t *stride_data,
-              int64_t stride_len, int64_t *padding_data, int64_t padding_len,
-              int64_t *dilation_data, int64_t dilation_len, int64_t groups) {
-  auto output = at::conv2d(
-      *static_cast<at::Tensor *>(input), *static_cast<at::Tensor *>(weight),
-      (bias ? *static_cast<at::Tensor *>(bias) : at::Tensor()),
-      torch::IntArrayRef(stride_data, stride_len),
-      torch::IntArrayRef(padding_data, padding_len),
-      torch::IntArrayRef(dilation_data, dilation_len), groups);
-  return new at::Tensor(output);
+char *Conv2d(Tensor input, Tensor weight, Tensor bias, int64_t *stride_data,
+             int64_t stride_len, int64_t *padding_data, int64_t padding_len,
+             int64_t *dilation_data, int64_t dilation_len, int64_t groups,
+             Tensor *result) {
+  try {
+    auto output = at::conv2d(
+        *static_cast<at::Tensor *>(input), *static_cast<at::Tensor *>(weight),
+        (bias ? *static_cast<at::Tensor *>(bias) : at::Tensor()),
+        torch::IntArrayRef(stride_data, stride_len),
+        torch::IntArrayRef(padding_data, padding_len),
+        torch::IntArrayRef(dilation_data, dilation_len), groups);
+    *result = new at::Tensor(output);
+    return nullptr;
+  } catch (const std::exception &e) {
+    return exception_str(e);
+  }
 }
 
 void Tensor_Print(Tensor a) {
@@ -144,8 +168,13 @@ void Optimizer_Close(Optimizer opt) {
 // Dataset, DataLoader, and Iterator
 ////////////////////////////////////////////////////////////////////////////////
 
-Dataset MNIST(const char *data_root) {
-  return new torch::data::datasets::MNIST(std::string(data_root));
+char *MNIST(const char *data_root, Dataset *dataset) {
+  try {
+    *dataset = new torch::data::datasets::MNIST(std::string(data_root));
+    return nullptr;
+  } catch (const std::exception &e) {
+    return exception_str(e);
+  }
 }
 
 void MNIST_Close(Dataset d) {

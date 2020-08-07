@@ -50,10 +50,19 @@ func GC() {
 	tensorFinalizersWG.Wait()
 }
 
+func mustNil(err *C.char) {
+	if err != nil {
+		msg := C.GoString(err)
+		C.FreeString(err)
+		panic(msg)
+	}
+}
+
 // Tensor wrappers a pointer to C.Tensor
 type Tensor struct {
 	T *C.Tensor
 }
+
 
 // RandN returns a tensor filled with standard normal distribution
 func RandN(shape []int, requireGrad bool) Tensor {
@@ -61,8 +70,14 @@ func RandN(shape []int, requireGrad bool) Tensor {
 	if requireGrad {
 		rg = 1
 	}
-	t := C.RandN((*C.int64_t)(unsafe.Pointer(&shape[0])),
-		C.int64_t(len(shape)), C.int64_t(rg))
+
+	var t C.Tensor
+	mustNil(
+		C.RandN((*C.int64_t)(unsafe.Pointer(&shape[0])),
+		C.int64_t(len(shape)), C.int64_t(rg) &t)
+	
+	
+		)	
 	setTensorFinalizer(&t)
 	return Tensor{&t}
 }
@@ -134,19 +149,15 @@ func (a Tensor) Grad() Tensor {
 // MM multiplies each element of the input two tensors
 func MM(a, b Tensor) Tensor {
 	var t C.Tensor
-	err := C.MM(*a.T, *b.T, &t)
-	if err != nil {
-		msg := C.GoString(err)
-		C.FreeString(err)
-		panic(msg)
-	}
+	mustNil(C.MM(*a.T, *b.T, &t))
 	setTensorFinalizer(&t)
 	return Tensor{&t}
 }
 
 // Sum returns the sum of all elements in the input tensor
 func Sum(a Tensor) Tensor {
-	t := C.Sum(*a.T)
+	var t C.Tensor
+	mustNil(C.Sum(*a.T, &t))
 	setTensorFinalizer(&t)
 	return Tensor{&t}
 }
@@ -154,11 +165,29 @@ func Sum(a Tensor) Tensor {
 // Conv2d does 2d-convolution
 func Conv2d(input Tensor, weight Tensor, bias Tensor, stride []int,
 	padding []int, dilation []int, groups int) Tensor {
+	var t C.Tensor
 	if bias.T == nil {
-		t := C.Conv2d(
+		mustNil(
+			C.Conv2d(
+				*input.T,
+				*weight.T,
+				nil,
+				(*C.int64_t)(unsafe.Pointer(&stride[0])),
+				C.int64_t(len(stride)),
+				(*C.int64_t)(unsafe.Pointer(&padding[0])),
+				C.int64_t(len(padding)),
+				(*C.int64_t)(unsafe.Pointer(&dilation[0])),
+				C.int64_t(len(dilation)),
+				C.int64_t(groups),
+				&t))
+		setTensorFinalizer(&t)
+		return Tensor{&t}
+	}
+	mustNil(
+		C.Conv2d(
 			*input.T,
 			*weight.T,
-			nil,
+			*bias.T,
 			(*C.int64_t)(unsafe.Pointer(&stride[0])),
 			C.int64_t(len(stride)),
 			(*C.int64_t)(unsafe.Pointer(&padding[0])),
@@ -166,22 +195,7 @@ func Conv2d(input Tensor, weight Tensor, bias Tensor, stride []int,
 			(*C.int64_t)(unsafe.Pointer(&dilation[0])),
 			C.int64_t(len(dilation)),
 			C.int64_t(groups),
-		)
-		setTensorFinalizer(&t)
-		return Tensor{&t}
-	}
-	t := C.Conv2d(
-		*input.T,
-		*weight.T,
-		*bias.T,
-		(*C.int64_t)(unsafe.Pointer(&stride[0])),
-		C.int64_t(len(stride)),
-		(*C.int64_t)(unsafe.Pointer(&padding[0])),
-		C.int64_t(len(padding)),
-		(*C.int64_t)(unsafe.Pointer(&dilation[0])),
-		C.int64_t(len(dilation)),
-		C.int64_t(groups),
-	)
+			&t))
 	setTensorFinalizer(&t)
 	return Tensor{&t}
 }

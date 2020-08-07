@@ -31,9 +31,11 @@ type Stack struct {
 
 // NewMNIST returns MNIST dataset
 func NewMNIST(dataRoot string) *Dataset {
+	var dataset C.Dataset
 	cstr := C.CString(dataRoot)
 	defer C.free(unsafe.Pointer(cstr))
-	return &Dataset{C.MNIST(cstr)}
+	mustNil(C.MNIST(cstr, &dataset))
+	return &Dataset{dataset}
 }
 
 // Close Dataset to release the memory
