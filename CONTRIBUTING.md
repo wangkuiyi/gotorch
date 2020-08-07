@@ -25,7 +25,7 @@ go test -v
 The above `go test` command might fail and complain that it cannot find the `.so` or `.dylib` files.  If so, please run the following command.
 
 ```bash
-export LD_LIBRARY_PATH=$GOPATH/src/github.com/wangkuiyi/cgotorch/libtorch/lib:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=$GOPATH/src/github.com/wangkuiyi/gotorch/cgotorch/libtorch/lib:$LD_LIBRARY_PATH
 ```
 
 ## Build and Test on Linux
