@@ -278,3 +278,31 @@ func ConvTranspose2d(
 	setTensorFinalizer(&t)
 	return Tensor{&t}
 }
+
+// BatchNorm does batch nomalization for `input`
+func BatchNorm(input, weight, bias, runningMean, runningVar Tensor,
+	training bool, momentum, eps float64, cudnnEnabled bool) Tensor {
+	var cTraining, cCudnnEnabled C.int8_t
+	if training {
+		cTraining = 1
+	}
+	if cudnnEnabled {
+		cCudnnEnabled = 1
+
+	}
+	var t C.Tensor
+	mustNil(
+		C.BatchNorm(
+			*input.T,
+			*weight.T,
+			bias.T,
+			runningMean.T,
+			runningVar.T,
+			cTraining,
+			C.double(momentum),
+			C.double(eps),
+			cCudnnEnabled,
+			&t))
+	setTensorFinalizer(&t)
+	return Tensor{&t}
+}
