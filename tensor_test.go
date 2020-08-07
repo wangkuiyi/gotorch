@@ -5,15 +5,15 @@ import (
 )
 
 func ExampleTensor() {
-	t := torch.RandN(10, 100, false)
+	t := torch.RandN([]int{10, 100}, false)
 	t.Close()
 	t.Close()
 	// Output:
 }
 
 func ExampleTranspose2d() {
-	input := torch.RandNByShape([]int{1, 1, 1}, false)
-	weight := torch.RandNByShape([]int{1, 3, 3}, false)
+	input := torch.RandN([]int{1, 1, 1}, false)
+	weight := torch.RandN([]int{1, 3, 3}, false)
 	var bias torch.Tensor
 	stride := []int{1}
 	padding := []int{0}

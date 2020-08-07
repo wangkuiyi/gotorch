@@ -63,28 +63,50 @@ type Tensor struct {
 	T *C.Tensor
 }
 
-// RandN returns a tensor filled with random number
-func RandN(rows, cols int, requireGrad bool) Tensor {
+// RandN returns a tensor filled with standard normal distribution, torch.randn
+func RandN(shape []int, requireGrad bool) Tensor {
 	rg := 0
 	if requireGrad {
 		rg = 1
 	}
 	var t C.Tensor
-	mustNil(C.RandN(C.int(rows), C.int(cols), C.int(rg), &t))
+	mustNil(C.RandN((*C.int64_t)(unsafe.Pointer(&shape[0])), C.int64_t(len(shape)), C.int64_t(rg), &t))
 	setTensorFinalizer(&t)
 	return Tensor{&t}
 }
 
-// RandNByShape return a tensor with given shape
-func RandNByShape(shape []int, requireGrad bool) Tensor {
+// Empty returns a tensor filled with random number, torch.empty
+func Empty(shape []int, requireGrad bool) Tensor {
 	rg := 0
 	if requireGrad {
 		rg = 1
 	}
 	var t C.Tensor
-	mustNil(C.RandNByShape(
-		(*C.int64_t)(unsafe.Pointer(&shape[0])),
-		C.int64_t(len(shape)), C.int(rg), &t))
+	mustNil(C.Empty((*C.int64_t)(unsafe.Pointer(&shape[0])), C.int64_t(len(shape)), C.int64_t(rg), &t))
+	setTensorFinalizer(&t)
+	return Tensor{&t}
+}
+
+// Zeros initialization, torch.nn.init.zeros_
+func Zeros(a Tensor) Tensor {
+	var t C.Tensor
+	mustNil(C.Zeros_(*a.T, &t))
+	setTensorFinalizer(&t)
+	return Tensor{&t}
+}
+
+// Uniform initialization, torch.nn.init.uniform_
+func Uniform(a Tensor) Tensor {
+	var t C.Tensor
+	mustNil(C.Uniform_(*a.T, &t))
+	setTensorFinalizer(&t)
+	return Tensor{&t}
+}
+
+// KaimingUniform initialization, torch.nn.init.kaiming_uniform_
+func KaimingUniform(input Tensor, a float64, fanMode string, nonLinearity string) Tensor {
+	var t C.Tensor
+	mustNil(C.KaimingUniform_(*input.T, C.double(a), C.CString(fanMode), C.CString(nonLinearity), &t))
 	setTensorFinalizer(&t)
 	return Tensor{&t}
 }

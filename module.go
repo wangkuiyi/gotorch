@@ -28,9 +28,9 @@ func Linear(in int, out int, bias bool) Module {
 		InFeatures:  in,
 		OutFeatures: out,
 	}
-	l.Weight = RandN(in, out, true)
+	l.Weight = RandN([]int{in, out}, true)
 	if bias {
-		l.Bias = RandN(out, 1, true)
+		l.Bias = RandN([]int{out, 1}, true)
 	}
 	return l
 }
