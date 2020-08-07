@@ -96,6 +96,38 @@ func (a *Tensor) Close() {
 	}
 }
 
+// Relu returns relu of the tensor
+func (a *Tensor) Relu() Tensor {
+	var t C.Tensor
+	mustNil(C.Relu(*a.T, &t))
+	setTensorFinalizer(&t)
+	return Tensor{&t}
+}
+
+// LeakyRelu returns leaky relu of the tensor according to negativeSlope
+func (a *Tensor) LeakyRelu(negativeSlope float64) Tensor {
+	var t C.Tensor
+	mustNil(C.LeakyRelu(*a.T, C.double(negativeSlope), &t))
+	setTensorFinalizer(&t)
+	return Tensor{&t}
+}
+
+// Tanh returns tanh of the current tensor
+func (a Tensor) Tanh() Tensor {
+	var t C.Tensor
+	mustNil(C.Tanh(*a.T, &t))
+	setTensorFinalizer(&t)
+	return Tensor{&t}
+}
+
+// Sigmoid returns sigmoid of the current tensor
+func (a Tensor) Sigmoid() Tensor {
+	var t C.Tensor
+	mustNil(C.Sigmoid(*a.T, &t))
+	setTensorFinalizer(&t)
+	return Tensor{&t}
+}
+
 // Backward compute the gradient of current tensor
 func (a Tensor) Backward() {
 	C.Tensor_Backward(*a.T)
@@ -114,6 +146,26 @@ func MM(a, b Tensor) Tensor {
 	mustNil(C.MM(*a.T, *b.T, &t))
 	setTensorFinalizer(&t)
 	return Tensor{&t}
+}
+
+// LeakyRelu returns leaky relu of the tensor according to negativeSlope
+func LeakyRelu(t Tensor, negativeSlope float64) Tensor {
+	return t.LeakyRelu(negativeSlope)
+}
+
+// Relu returns relu of the tensor
+func Relu(t Tensor) Tensor {
+	return t.Relu()
+}
+
+// Tanh returns tanh of the current tensor
+func Tanh(t Tensor) Tensor {
+	return t.Tanh()
+}
+
+// Sigmoid returns sigmoid of the current tensor
+func Sigmoid(t Tensor) Tensor {
+	return t.Sigmoid()
 }
 
 // Sum returns the sum of all elements in the input tensor

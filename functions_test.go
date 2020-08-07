@@ -33,3 +33,16 @@ func ExampleMM() {
 	_ = z
 	// Output:
 }
+
+func ExampleRelu() {
+	defer func() {
+		torch.GC()
+		torch.FinishGC()
+	}()
+
+	x := torch.RandN(10, 20, true)
+	r := torch.Relu(x)
+	r = torch.LeakyRelu(x, 0.01)
+	_ = r
+	// TODO(shendiaomo): more tests when other function wrapper available
+}
