@@ -69,7 +69,21 @@ func RandN(rows, cols int, requireGrad bool) Tensor {
 	if requireGrad {
 		rg = 1
 	}
-	t := C.RandN(C.int(rows), C.int(cols), C.int(rg))
+	var t C.Tensor
+	mustNil(C.RandN(C.int(rows), C.int(cols), C.int(rg), &t))
+	setTensorFinalizer(&t)
+	return Tensor{&t}
+}
+
+// RandNByShape return a tensor with given shape
+func RandNByShape(shape []int, requireGrad bool) Tensor {
+	rg := 0
+	if requireGrad {
+		rg = 1
+	}
+	var t C.Tensor
+	mustNil(C.RandNByShape((*C.int64_t)(unsafe.Pointer(&shape[0])), C.int64_t(len(shape)),
+		C.int(rg), &t))
 	setTensorFinalizer(&t)
 	return Tensor{&t}
 }
@@ -117,7 +131,8 @@ func MM(a, b Tensor) Tensor {
 
 // Sum returns the sum of all elements in the input tensor
 func Sum(a Tensor) Tensor {
-	t := C.Sum(*a.T)
+	var t C.Tensor
+	mustNil(C.Sum(*a.T, &t))
 	setTensorFinalizer(&t)
 	return Tensor{&t}
 }
@@ -125,11 +140,29 @@ func Sum(a Tensor) Tensor {
 // Conv2d does 2d-convolution
 func Conv2d(input Tensor, weight Tensor, bias Tensor, stride []int,
 	padding []int, dilation []int, groups int) Tensor {
+	var t C.Tensor
 	if bias.T == nil {
-		t := C.Conv2d(
+		mustNil(
+			C.Conv2d(
+				*input.T,
+				*weight.T,
+				nil,
+				(*C.int64_t)(unsafe.Pointer(&stride[0])),
+				C.int64_t(len(stride)),
+				(*C.int64_t)(unsafe.Pointer(&padding[0])),
+				C.int64_t(len(padding)),
+				(*C.int64_t)(unsafe.Pointer(&dilation[0])),
+				C.int64_t(len(dilation)),
+				C.int64_t(groups),
+				&t))
+		setTensorFinalizer(&t)
+		return Tensor{&t}
+	}
+	mustNil(
+		C.Conv2d(
 			*input.T,
 			*weight.T,
-			nil,
+			*bias.T,
 			(*C.int64_t)(unsafe.Pointer(&stride[0])),
 			C.int64_t(len(stride)),
 			(*C.int64_t)(unsafe.Pointer(&padding[0])),
@@ -137,22 +170,7 @@ func Conv2d(input Tensor, weight Tensor, bias Tensor, stride []int,
 			(*C.int64_t)(unsafe.Pointer(&dilation[0])),
 			C.int64_t(len(dilation)),
 			C.int64_t(groups),
-		)
-		setTensorFinalizer(&t)
-		return Tensor{&t}
-	}
-	t := C.Conv2d(
-		*input.T,
-		*weight.T,
-		*bias.T,
-		(*C.int64_t)(unsafe.Pointer(&stride[0])),
-		C.int64_t(len(stride)),
-		(*C.int64_t)(unsafe.Pointer(&padding[0])),
-		C.int64_t(len(padding)),
-		(*C.int64_t)(unsafe.Pointer(&dilation[0])),
-		C.int64_t(len(dilation)),
-		C.int64_t(groups),
-	)
+			&t))
 	setTensorFinalizer(&t)
 	return Tensor{&t}
 }
@@ -163,12 +181,12 @@ func ConvTranspose2d(
 	stride, padding, outputPadding []int,
 	groups int, dilation []int) Tensor {
 
-	var cbais C.Tensor
+	var cbais, t C.Tensor
 	if bias.T != nil {
 		cbais = *bias.T
 	}
 
-	t := C.ConvTranspose2d(
+	mustNil(C.ConvTranspose2d(
 		*input.T,
 		*weight.T,
 		cbais,
@@ -181,7 +199,7 @@ func ConvTranspose2d(
 		C.int64_t(groups),
 		(*C.int64_t)(unsafe.Pointer(&dilation[0])),
 		C.int64_t(len(dilation)),
-	)
+		&t))
 	setTensorFinalizer(&t)
 	return Tensor{&t}
 }

@@ -10,18 +10,21 @@ extern "C" {
 
 typedef void *Tensor;
 typedef void *Optimizer;
-Tensor RandN(int rows, int cols, int require_grad);
+char *RandN(int rows, int cols, int require_grad, Tensor *result);
+char *RandNByShape(int64_t *shape, int64_t shape_len, int require_grad,
+                   Tensor *result);
 char *MM(Tensor a, Tensor b, Tensor *result);
-Tensor Sum(Tensor a);
-Tensor Conv2d(Tensor input, Tensor weight, Tensor bias, int64_t *stride_data,
-              int64_t stride_len, int64_t *padding_data, int64_t padding_len,
-              int64_t *dilation_data, int64_t dilation_len, int64_t groups);
-Tensor ConvTranspose2d(Tensor input, Tensor weight, Tensor bias,
-                       int64_t *stride_data, int64_t stride_len,
-                       int64_t *padding_data, int64_t padding_len,
-                       int64_t *output_padding_data, int64_t output_padding_len,
-                       int64_t groups, int64_t *dilation_data,
-                       int64_t dilation_len);
+char *Sum(Tensor a, Tensor *result);
+char *Conv2d(Tensor input, Tensor weight, Tensor bias, int64_t *stride_data,
+             int64_t stride_len, int64_t *padding_data, int64_t padding_len,
+             int64_t *dilation_data, int64_t dilation_len, int64_t groups,
+             Tensor *result);
+char *ConvTranspose2d(Tensor input, Tensor weight, Tensor bias,
+                      int64_t *stride_data, int64_t stride_len,
+                      int64_t *padding_data, int64_t padding_len,
+                      int64_t *output_padding_data, int64_t output_padding_len,
+                      int64_t groups, int64_t *dilation_data,
+                      int64_t dilation_len, Tensor *result);
 
 const char *Tensor_String(Tensor a);
 void Tensor_Backward(Tensor a);
