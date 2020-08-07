@@ -1,6 +1,9 @@
 package gotorch_test
 
 import (
+	"testing"
+
+	"github.com/stretchr/testify/assert"
 	torch "github.com/wangkuiyi/gotorch"
 )
 
@@ -11,7 +14,7 @@ func ExampleTensor() {
 	// Output:
 }
 
-func ExampleTranspose2d() {
+func TestTranspose2d(t *testing.T) {
 	input := torch.RandN([]int{1, 1, 1}, false)
 	weight := torch.RandN([]int{1, 3, 3}, false)
 	var bias torch.Tensor
@@ -22,5 +25,6 @@ func ExampleTranspose2d() {
 	dilation := []int{1}
 	out := torch.ConvTranspose2d(input, weight, bias,
 		stride, padding, outputPadding, groups, dilation)
-	out.Print()
+	a := assert.New(t)
+	a.NotNil(out.T)
 }
