@@ -75,7 +75,7 @@ const char *Empty(int64_t *size, int64_t length, int64_t require_grad,
 
 const char *Zeros_(Tensor *tensor) {
   try {
-    torch::nn::init::zeros_(*static_cast<at::Tensor *>(*tensor));
+    torch::nn::init::zeros_(**tensor);
     return nullptr;
   } catch (const std::exception &e) {
     return exception_str(e);
@@ -84,7 +84,7 @@ const char *Zeros_(Tensor *tensor) {
 
 const char *Uniform_(Tensor *tensor, double low, double high) {
   try {
-    torch::nn::init::uniform_(*static_cast<at::Tensor *>(*tensor), low, high);
+    torch::nn::init::uniform_(**tensor, low, high);
     return nullptr;
   } catch (const std::exception &e) {
     return exception_str(e);
@@ -95,8 +95,7 @@ const char *KaimingUniform_(double a, const char *fan_mod,
                             const char *non_linearity, Tensor *tensor) {
   try {
     torch::nn::init::kaiming_uniform_(
-        *static_cast<at::Tensor *>(*tensor), a,
-        fan_mode_map[std::string(fan_mod)],
+        **tensor, a, fan_mode_map[std::string(fan_mod)],
         non_linearity_map[std::string(non_linearity)]);
     return nullptr;
   } catch (const std::exception &e) {
@@ -107,8 +106,7 @@ const char *KaimingUniform_(double a, const char *fan_mod,
 const char *CalculateFanInAndFanOut(Tensor tensor, int64_t *fan_in,
                                     int64_t *fan_out) {
   try {
-    const auto &res = torch::nn::init::_calculate_fan_in_and_fan_out(
-        *static_cast<at::Tensor *>(tensor));
+    const auto &res = torch::nn::init::_calculate_fan_in_and_fan_out(*tensor);
     *fan_in = std::get<0>(res);
     *fan_out = std::get<1>(res);
     return nullptr;
@@ -119,8 +117,7 @@ const char *CalculateFanInAndFanOut(Tensor tensor, int64_t *fan_in,
 
 const char *MM(Tensor a, Tensor b, Tensor *result) {
   try {
-    at::Tensor c =
-        at::mm(*static_cast<at::Tensor *>(a), *static_cast<at::Tensor *>(b));
+    at::Tensor c = at::mm(*a, *b);
     *result = new at::Tensor(c);
     return nullptr;
   } catch (const std::exception &e) {
@@ -130,7 +127,7 @@ const char *MM(Tensor a, Tensor b, Tensor *result) {
 
 const char *Sum(Tensor a, Tensor *result) {
   try {
-    *result = new at::Tensor(static_cast<at::Tensor *>(a)->sum());
+    *result = new at::Tensor(a->sum());
     return nullptr;
   } catch (const std::exception &e) {
     return exception_str(e);
@@ -143,12 +140,11 @@ const char *Conv2d(Tensor input, Tensor weight, Tensor bias,
                    int64_t *dilation_data, int64_t dilation_len, int64_t groups,
                    Tensor *result) {
   try {
-    auto output = at::conv2d(
-        *static_cast<at::Tensor *>(input), *static_cast<at::Tensor *>(weight),
-        (bias ? *static_cast<at::Tensor *>(bias) : at::Tensor()),
-        torch::IntArrayRef(stride_data, stride_len),
-        torch::IntArrayRef(padding_data, padding_len),
-        torch::IntArrayRef(dilation_data, dilation_len), groups);
+    auto output =
+        at::conv2d(*input, *weight, (bias ? *bias : at::Tensor()),
+                   torch::IntArrayRef(stride_data, stride_len),
+                   torch::IntArrayRef(padding_data, padding_len),
+                   torch::IntArrayRef(dilation_data, dilation_len), groups);
     *result = new at::Tensor(output);
     return nullptr;
   } catch (const std::exception &e) {
@@ -161,12 +157,11 @@ const char *BatchNorm(Tensor input, Tensor weight, const Tensor *bias,
                       int8_t training, double momentum, double eps,
                       int8_t cudnn_enabled, Tensor *result) {
   try {
-    auto output = at::batch_norm(
-        *static_cast<at::Tensor *>(input), *static_cast<at::Tensor *>(weight),
-        bias ? *static_cast<at::Tensor *>(*bias) : at::Tensor(),
-        running_mean ? *static_cast<at::Tensor *>(*running_mean) : at::Tensor(),
-        running_var ? *static_cast<at::Tensor *>(*running_var) : at::Tensor(),
-        training, momentum, eps, cudnn_enabled);
+    auto output =
+        at::batch_norm(*input, *weight, (bias ? **bias : at::Tensor()),
+                       (running_mean ? **running_mean : at::Tensor()),
+                       (running_var ? **running_var : at::Tensor()), training,
+                       momentum, eps, cudnn_enabled);
     *result = new at::Tensor(output);
     return nullptr;
   } catch (const std::exception &e) {
@@ -176,7 +171,7 @@ const char *BatchNorm(Tensor input, Tensor weight, const Tensor *bias,
 
 const char *Relu(Tensor a, Tensor *result) {
   try {
-    *result = new at::Tensor(static_cast<at::Tensor *>(a)->relu());
+    *result = new at::Tensor(a->relu());
     return nullptr;
   } catch (const std::exception &e) {
     return exception_str(e);
@@ -185,8 +180,7 @@ const char *Relu(Tensor a, Tensor *result) {
 
 const char *LeakyRelu(Tensor a, double negative_slope, Tensor *result) {
   try {
-    *result = new at::Tensor(
-        at::leaky_relu(*static_cast<at::Tensor *>(a), negative_slope));
+    *result = new at::Tensor(at::leaky_relu(*a, negative_slope));
     return nullptr;
   } catch (const std::exception &e) {
     return exception_str(e);
@@ -195,7 +189,7 @@ const char *LeakyRelu(Tensor a, double negative_slope, Tensor *result) {
 
 const char *Tanh(Tensor a, Tensor *result) {
   try {
-    *result = new at::Tensor(static_cast<at::Tensor *>(a)->tanh());
+    *result = new at::Tensor(a->tanh());
     return nullptr;
   } catch (const std::exception &e) {
     return exception_str(e);
@@ -204,7 +198,7 @@ const char *Tanh(Tensor a, Tensor *result) {
 
 const char *Sigmoid(Tensor a, Tensor *result) {
   try {
-    *result = new at::Tensor(static_cast<at::Tensor *>(a)->sigmoid());
+    *result = new at::Tensor(a->sigmoid());
     return nullptr;
   } catch (const std::exception &e) {
     return exception_str(e);
@@ -220,8 +214,7 @@ const char *ConvTranspose2d(Tensor input, Tensor weight, Tensor bias,
                             Tensor *result) {
   try {
     auto output = at::conv_transpose2d(
-        *static_cast<at::Tensor *>(input), *static_cast<at::Tensor *>(weight),
-        (bias ? *static_cast<at::Tensor *>(bias) : at::Tensor()),
+        *input, *weight, (bias ? *bias : at::Tensor()),
         torch::IntArrayRef(stride_data, stride_len),
         torch::IntArrayRef(padding_data, padding_len),
         torch::IntArrayRef(output_padding_data, output_padding_len), groups,
@@ -233,16 +226,14 @@ const char *ConvTranspose2d(Tensor input, Tensor weight, Tensor bias,
   }
 }
 
-void Tensor_Print(Tensor a) {
-  std::cout << *static_cast<at::Tensor *>(a) << std::endl;
-}
+void Tensor_Print(Tensor a) { std::cout << *a << std::endl; }
 
-void Tensor_Close(Tensor a) { delete static_cast<at::Tensor *>(a); }
+void Tensor_Close(Tensor a) { delete a; }
 
 // The caller must free the returned string by calling FreeString.
 const char *Tensor_String(Tensor a) {
   std::stringstream ss;
-  ss << *static_cast<at::Tensor *>(a);
+  ss << *a;
   std::string s = ss.str();
   char *r = new char[s.size() + 1];
   snprintf(r, s.size(), "%s", s.c_str());
@@ -255,11 +246,9 @@ void FreeString(const char *s) { delete[] s; }
 // Backward, Gradient
 ////////////////////////////////////////////////////////////////////////////////
 
-void Tensor_Backward(Tensor a) { static_cast<at::Tensor *>(a)->backward(); }
+void Tensor_Backward(Tensor a) { a->backward(); }
 
-Tensor Tensor_Grad(Tensor a) {
-  return new at::Tensor(static_cast<at::Tensor *>(a)->grad());
-}
+Tensor Tensor_Grad(Tensor a) { return new at::Tensor(a->grad()); }
 
 ////////////////////////////////////////////////////////////////////////////////
 // Optimizer
@@ -272,8 +261,7 @@ Optimizer SGD(double learning_rate, double momentum, double dampening,
                      .dampening(dampening)
                      .weight_decay(weight_decay)
                      .nesterov(nesterov);
-  return static_cast<torch::optim::Optimizer *>(
-      new torch::optim::SGD(std::vector<torch::Tensor>(), options));
+  return new torch::optim::SGD(std::vector<torch::Tensor>(), options);
 }
 
 Optimizer Adam(double learning_rate, double beta1, double beta2,
@@ -281,29 +269,19 @@ Optimizer Adam(double learning_rate, double beta1, double beta2,
   auto options = torch::optim::AdamOptions(learning_rate)
                      .betas(std::tuple<double, double>(beta1, beta2))
                      .weight_decay(weight_decay);
-  return static_cast<torch::optim::Optimizer *>(
-      new torch::optim::Adam(std::vector<torch::Tensor>(), options));
+  return new torch::optim::Adam(std::vector<torch::Tensor>(), options);
 }
 
-void Optimizer_ZeroGrad(Optimizer opt) {
-  static_cast<torch::optim::Optimizer *>(opt)->zero_grad();
-}
+void Optimizer_ZeroGrad(Optimizer opt) { opt->zero_grad(); }
 
-void Optimizer_Step(Optimizer opt) {
-  static_cast<torch::optim::Optimizer *>(opt)->step();
-}
+void Optimizer_Step(Optimizer opt) { opt->step(); }
 
 void Optimizer_AddParameters(Optimizer opt, Tensor *tensors, int64_t length) {
   for (int64_t i = 0; i < length; ++i)
-    static_cast<torch::optim::Optimizer *>(opt)
-        ->param_groups()[0]
-        .params()
-        .push_back(*(static_cast<torch::Tensor *>(tensors[i])));
+    opt->param_groups()[0].params().push_back(*tensors[i]);
 }
 
-void Optimizer_Close(Optimizer opt) {
-  delete static_cast<torch::optim::Optimizer *>(opt);
-}
+void Optimizer_Close(Optimizer opt) { delete opt; }
 
 ////////////////////////////////////////////////////////////////////////////////
 // Dataset, DataLoader, and Iterator

@@ -6,10 +6,13 @@
 
 #ifdef __cplusplus
 extern "C" {
-#endif
-
+typedef at::Tensor *Tensor;
+typedef torch::optim::Optimizer *Optimizer;
+#else
 typedef void *Tensor;
 typedef void *Optimizer;
+#endif
+
 // torch.randn
 const char *RandN(int64_t *size, int64_t length, int64_t require_grad,
                   Tensor *result);
