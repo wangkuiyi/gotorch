@@ -23,11 +23,6 @@ func ExampleMMException() {
 }
 
 func ExampleMM() {
-	defer func() {
-		torch.GC()
-		torch.FinishGC()
-	}()
-
 	x := torch.RandN([]int{10, 20}, true)
 	y := torch.RandN([]int{20, 30}, true)
 	z := torch.MM(x, y)
@@ -36,14 +31,18 @@ func ExampleMM() {
 }
 
 func ExampleRelu() {
-	defer func() {
-		torch.GC()
-		torch.FinishGC()
-	}()
-
 	x := torch.RandN([]int{10, 20}, true)
 	r := torch.Relu(x)
 	r = torch.LeakyRelu(x, 0.01)
 	_ = r
 	// TODO(shendiaomo): more tests when other function wrapper available
+	// Output:
+}
+
+func ExampleBatchNorm() {
+	input := torch.RandN([]int{10, 20}, true)
+	w := torch.RandN([]int{20}, true)
+	r := torch.BatchNorm(input, w, torch.Tensor{}, torch.Tensor{}, torch.Tensor{}, true, 0.1, 0.1, true)
+	_ = r
+	// Output:
 }

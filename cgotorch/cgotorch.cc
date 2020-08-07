@@ -146,6 +146,24 @@ const char *Conv2d(Tensor input, Tensor weight, Tensor bias,
   }
 }
 
+const char *BatchNorm(Tensor input, Tensor weight, const Tensor *bias,
+                      const Tensor *running_mean, const Tensor *running_var,
+                      int8_t training, double momentum, double eps,
+                      int8_t cudnn_enabled, Tensor *result) {
+  try {
+    auto output = at::batch_norm(
+        *static_cast<at::Tensor *>(input), *static_cast<at::Tensor *>(weight),
+        bias ? *static_cast<at::Tensor *>(*bias) : at::Tensor(),
+        running_mean ? *static_cast<at::Tensor *>(*running_mean) : at::Tensor(),
+        running_var ? *static_cast<at::Tensor *>(*running_var) : at::Tensor(),
+        training, momentum, eps, cudnn_enabled);
+    *result = new at::Tensor(output);
+    return nullptr;
+  } catch (const std::exception &e) {
+    return exception_str(e);
+  }
+}
+
 const char *Relu(Tensor a, Tensor *result) {
   try {
     *result = new at::Tensor(static_cast<at::Tensor *>(a)->relu());
