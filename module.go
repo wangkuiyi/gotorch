@@ -59,7 +59,7 @@ type conv2d struct {
 // TODO(qijun): only support zero padding mode
 // only support symmetry kernel/stride/padding/dilation
 func Conv2d(inChannels, outChannels, kernelSize, stride, padding, dilation,
-	groups int, bias bool, paddingMode string) {
+	groups int, bias bool, paddingMode string) Module {
 	c := &conv2d{
 		InChannels:  inChannels,
 		OutChannels: outChannels,
@@ -71,7 +71,7 @@ func Conv2d(inChannels, outChannels, kernelSize, stride, padding, dilation,
 		HasBias:     bias,
 		PaddingMode: "zeros",
 	}
-	c.Weight = Empty([]int{inChannels, outChannels / groups, kernelSize,
+	c.Weight = Empty([]int{outChannels, inChannels / groups, kernelSize,
 		kernelSize}, true)
 	KaimingUniform(&c.Weight, math.Sqrt(5.0), "fan_in", "leaky_relu")
 	if bias {
@@ -80,6 +80,7 @@ func Conv2d(inChannels, outChannels, kernelSize, stride, padding, dilation,
 		bound := 1.0 / math.Sqrt(float64(fanIn))
 		Uniform(&c.Bias, -bound, bound)
 	}
+	return c
 }
 
 // Forward method

@@ -85,3 +85,10 @@ func TestModule(t *testing.T) {
 	assert.Contains(t, hnNamedParams, "hierarchyNet.L1.L2.Weight")
 	assert.Contains(t, hnNamedParams, "hierarchyNet.L2.Weight")
 }
+
+func TestConv2d(t *testing.T) {
+	c := Conv2d(16, 33, 3, 2, 0, 1, 1, true, "zeros")
+	x := RandN([]int{20, 16, 50, 100}, false)
+	output := c.Forward(x)
+	assert.NotNil(t, output)
+}
