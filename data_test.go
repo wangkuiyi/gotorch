@@ -13,7 +13,7 @@ import (
 	torch "github.com/wangkuiyi/gotorch"
 )
 
-func TestExampleMNIST(t *testing.T) {
+func ExampleMNIST() {
 	if e := downloadMNIST(); e != nil {
 		log.Printf("Cannot find or download MNIST dataset: %v", e)
 	}
