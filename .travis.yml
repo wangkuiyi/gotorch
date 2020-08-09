@@ -5,7 +5,7 @@ language: go
 go:
   # We rely on github.com/stretchr/testify, which requires a recent Go version.
   - 1.14
-arch: arm64
+arch: arm
 os: linux
 dist: bionic
 compiler: clang
