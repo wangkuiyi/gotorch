@@ -3,13 +3,14 @@ package gotorch_test
 import (
 	"fmt"
 	"log"
-	"testing"
 
 	torch "github.com/wangkuiyi/gotorch"
+	nn "github.com/wangkuiyi/gotorch/nn"
+	F "github.com/wangkuiyi/gotorch/nn/functional"
 )
 
 type MultiLayerMNISTNet struct {
-	FC1, FC2, FC3 torch.Module
+	FC1, FC2, FC3 nn.Module
 }
 
 func (n *MultiLayerMNISTNet) Forward(x torch.Tensor) torch.Tensor {
@@ -22,15 +23,15 @@ func (n *MultiLayerMNISTNet) Forward(x torch.Tensor) torch.Tensor {
 	return x.LogSoftmax(1)
 }
 
-func NewMNISTNet() torch.Module {
+func NewMNISTNet() nn.Module {
 	return &MultiLayerMNISTNet{
-		FC1: torch.Linear(28*28, 512, false),
-		FC2: torch.Linear(512, 512, false),
-		FC3: torch.Linear(512, 10, false),
+		FC1: nn.Linear(28*28, 512, false),
+		FC2: nn.Linear(512, 512, false),
+		FC3: nn.Linear(512, 10, false),
 	}
 }
 
-func TestTrainMNIST(t *testing.T) {
+func ExampleTrainMNIST() {
 	if e := downloadMNIST(); e != nil {
 		log.Printf("Cannot find or download MNIST dataset: %v", e)
 	}
@@ -39,14 +40,14 @@ func TestTrainMNIST(t *testing.T) {
 	mnist := torch.NewMNIST(dataDir(), transforms)
 	trainLoader := torch.NewDataLoader(mnist, 64)
 	opt := torch.SGD(0.1, 0, 0, 0, false)
-	opt.AddParameters(torch.GetParameters(net))
+	opt.AddParameters(nn.GetParameters(net))
 	batchIdx := 0
 	for trainLoader.Scan() {
 		batch := trainLoader.Batch()
 		pred := net.Forward(batch.Data)
-		loss := torch.CrossEntropyLoss(pred, batch.Target)
-		loss.Backward()
+		loss := F.NllLoss(pred, batch.Target, torch.Tensor{nil}, -100, "mean")
 		opt.ZeroGrad()
+		loss.Backward()
 		batchIdx++
 		if batchIdx%100 == 0 {
 			fmt.Printf("batch: %d, Loss: %s", batchIdx, loss)

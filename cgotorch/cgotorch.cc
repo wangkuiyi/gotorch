@@ -152,16 +152,16 @@ const char *Conv2d(Tensor input, Tensor weight, Tensor bias,
   }
 }
 
-const char *BatchNorm(Tensor input, Tensor weight, const Tensor *bias,
-                      const Tensor *running_mean, const Tensor *running_var,
-                      int8_t training, double momentum, double eps,
-                      int8_t cudnn_enabled, Tensor *result) {
+const char *BatchNorm(Tensor input, Tensor weight, Tensor bias,
+                      Tensor running_mean, Tensor running_var, int8_t training,
+                      double momentum, double eps, int8_t cudnn_enabled,
+                      Tensor *result) {
   try {
-    auto output =
-        at::batch_norm(*input, *weight, (bias ? **bias : at::Tensor()),
-                       (running_mean ? **running_mean : at::Tensor()),
-                       (running_var ? **running_var : at::Tensor()), training,
-                       momentum, eps, cudnn_enabled);
+    auto output = at::batch_norm(*input, (weight ? *weight : at::Tensor()),
+                                 (bias ? *bias : at::Tensor()),
+                                 (running_mean ? *running_mean : at::Tensor()),
+                                 (running_var ? *running_var : at::Tensor()),
+                                 training, momentum, eps, cudnn_enabled);
     *result = new at::Tensor(output);
     return nullptr;
   } catch (const std::exception &e) {
@@ -205,7 +205,7 @@ const char *Sigmoid(Tensor a, Tensor *result) {
   }
 }
 
-const char *LogSoftmax(Tensor a, int dim, Tensor *result) {
+const char *LogSoftmax(Tensor a, int64_t dim, Tensor *result) {
   try {
     *result = new at::Tensor(a->log_softmax(dim));
     return nullptr;
@@ -243,20 +243,30 @@ const char *ConvTranspose2d(Tensor input, Tensor weight, Tensor bias,
   }
 }
 
-const char *NllLoss(const Tensor pred, const Tensor target, Tensor *result) {
+const char *NllLoss(Tensor input, Tensor target, Tensor weight,
+                    int64_t ignore_index, const char *reduction,
+                    Tensor *result) {
+  static std::unordered_map<std::string, torch::nn::NLLLossOptions::reduction_t>
+      reduce_map = {
+          {"none", torch::kNone},
+          {"mean", torch::kMean},
+          {"sum", torch::kSum},
+      };
   try {
-    *result =
-        new at::Tensor(at::nll_loss(*static_cast<const at::Tensor *>(pred),
-                                    *static_cast<const at::Tensor *>(target)));
+    auto output = torch::nn::functional::nll_loss(
+        *input, *target,
+        torch::nn::functional::NLLLossFuncOptions()
+            .weight((weight ? *weight : torch::Tensor()))
+            .ignore_index(ignore_index)
+            .reduction(reduce_map[std::string(reduction)]));
+    *result = new at::Tensor(output);
     return nullptr;
   } catch (const std::exception &e) {
     return exception_str(e);
   }
 }
 
-void Tensor_Print(Tensor a) {
-  std::cout << *static_cast<at::Tensor *>(a) << std::endl;
-}
+void Tensor_Print(Tensor a) { std::cout << *a << std::endl; }
 
 void Tensor_Close(Tensor a) { delete a; }
 

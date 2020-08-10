@@ -34,8 +34,9 @@ func NewMNIST(dataRoot string, transforms []Transform) *Dataset {
 	var dataset C.Dataset
 	cstr := C.CString(dataRoot)
 	defer C.free(unsafe.Pointer(cstr))
-	mustNil(C.Dataset_MNIST(cstr, &dataset))
+	MustNil(unsafe.Pointer(C.Dataset_MNIST(cstr, &dataset)))
 
+	// cache transforms on dataset
 	for _, v := range transforms {
 		switch t := v.(type) {
 		case *Normalize:
@@ -91,11 +92,11 @@ func NewBatch(iter C.Iterator) *Batch {
 	var data C.Tensor
 	var target C.Tensor
 	C.Iterator_Batch(iter, &data, &target)
-	setTensorFinalizer(&data)
-	setTensorFinalizer(&target)
+	SetTensorFinalizer((*unsafe.Pointer)(&data))
+	SetTensorFinalizer((*unsafe.Pointer)(&target))
 	return &Batch{
-		Data:   Tensor{&data},
-		Target: Tensor{&target},
+		Data:   Tensor{(*unsafe.Pointer)(&data)},
+		Target: Tensor{(*unsafe.Pointer)(&target)},
 	}
 }
 

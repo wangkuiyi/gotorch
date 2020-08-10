@@ -1,9 +1,10 @@
-package gotorch
+package nn
 
 import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	torch "github.com/wangkuiyi/gotorch"
 )
 
 type myNet struct {
@@ -20,28 +21,28 @@ func MyNet() Module {
 }
 
 // Forward executes the calculation
-func (n *myNet) Forward(x Tensor) Tensor {
+func (n *myNet) Forward(x torch.Tensor) torch.Tensor {
 	x = n.L1.Forward(x)
 	x = n.L2.Forward(x)
 	return x
 }
 
 type myNet2 struct {
-	Weight Tensor `gotorch:"buffer"`
+	Weight torch.Tensor `gotorch:"buffer"`
 	L1     Module
 }
 
 // MyNet2 returns a myNet2 instance
 func MyNet2() Module {
 	n := &myNet2{
-		Weight: RandN([]int{100, 200}, false),
+		Weight: torch.RandN([]int{100, 200}, false),
 		L1:     Linear(100, 200, false),
 	}
 	return n
 }
 
 // Forward executes the calculation
-func (n *myNet2) Forward(x Tensor) Tensor {
+func (n *myNet2) Forward(x torch.Tensor) torch.Tensor {
 	x = n.L1.Forward(x)
 	return x
 }
@@ -60,7 +61,7 @@ func HierarchyNet() Module {
 }
 
 // Forward executes the calculation
-func (n *hierarchyNet) Forward(x Tensor) Tensor {
+func (n *hierarchyNet) Forward(x torch.Tensor) torch.Tensor {
 	x = n.L1.Forward(x)
 	x = n.L2.Forward(x)
 	return x
@@ -88,7 +89,7 @@ func TestModule(t *testing.T) {
 
 func TestConv2d(t *testing.T) {
 	c := Conv2d(16, 33, 3, 2, 0, 1, 1, true, "zeros")
-	x := RandN([]int{20, 16, 50, 100}, false)
+	x := torch.RandN([]int{20, 16, 50, 100}, false)
 	output := c.Forward(x)
 	assert.NotNil(t, output)
 }
