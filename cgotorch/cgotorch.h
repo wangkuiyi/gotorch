@@ -53,6 +53,10 @@ const char *ConvTranspose2d(Tensor input, Tensor weight, Tensor bias,
                             int64_t *dilation_data, int64_t dilation_len,
                             Tensor *result);
 
+const char *NllLoss(Tensor input, Tensor target, Tensor weight,
+                    int64_t ignore_index, const char *reduction,
+                    Tensor *result);
+
 const char *Tensor_String(Tensor a);
 void Tensor_Backward(Tensor a);
 Tensor Tensor_Grad(Tensor a);

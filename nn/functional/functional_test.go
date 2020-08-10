@@ -18,14 +18,12 @@ func TestTranspose2d(t *testing.T) {
 	dilation := []int{1}
 	out := ConvTranspose2d(input, weight, bias,
 		stride, padding, outputPadding, groups, dilation)
-	a := assert.New(t)
-	a.NotNil(out.T)
+	assert.NotNil(t, out.T)
 }
 
-func ExampleBatchNorm() {
+func TestBatchNorm(t *testing.T) {
 	input := torch.RandN([]int{10, 20}, true)
 	w := torch.RandN([]int{20}, true)
 	r := BatchNorm(input, w, torch.Tensor{}, torch.Tensor{}, torch.Tensor{}, true, 0.1, 0.1, true)
-	_ = r
-	// Output:
+	assert.NotNil(t, r.T)
 }
