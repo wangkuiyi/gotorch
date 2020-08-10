@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	torch "github.com/wangkuiyi/gotorch"
 )
 
 func TestTranspose2d(t *testing.T) {
@@ -15,8 +16,16 @@ func TestTranspose2d(t *testing.T) {
 	outputPadding := []int{0}
 	groups := 1
 	dilation := []int{1}
-	out := torch.ConvTranspose2d(input, weight, bias,
+	out := ConvTranspose2d(input, weight, bias,
 		stride, padding, outputPadding, groups, dilation)
 	a := assert.New(t)
 	a.NotNil(out.T)
+}
+
+func ExampleBatchNorm() {
+	input := torch.RandN([]int{10, 20}, true)
+	w := torch.RandN([]int{20}, true)
+	r := BatchNorm(input, w, torch.Tensor{}, torch.Tensor{}, torch.Tensor{}, true, 0.1, 0.1, true)
+	_ = r
+	// Output:
 }

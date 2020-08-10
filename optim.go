@@ -39,7 +39,7 @@ func Adam(lr, beta1, beta2, weightDecay float64) Optimizer {
 func (opt Optimizer) AddParameters(tensors []Tensor) {
 	CT := []unsafe.Pointer{}
 	for _, t := range tensors {
-		CT = append(CT, t.T)
+		CT = append(CT, *t.T)
 	}
 	p := (*reflect.SliceHeader)(unsafe.Pointer(&CT)).Data
 	C.Optimizer_AddParameters(*opt.Opt, (*C.Tensor)(unsafe.Pointer(p)), C.int64_t(len(CT)))

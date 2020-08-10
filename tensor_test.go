@@ -5,6 +5,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	torch "github.com/wangkuiyi/gotorch"
+	"github.com/wangkuiyi/gotorch/nn/functional"
 )
 
 func ExampleTensor() {
@@ -23,7 +24,7 @@ func TestTranspose2d(t *testing.T) {
 	outputPadding := []int{0}
 	groups := 1
 	dilation := []int{1}
-	out := torch.ConvTranspose2d(input, weight, bias,
+	out := functional.ConvTranspose2d(input, weight, bias,
 		stride, padding, outputPadding, groups, dilation)
 	a := assert.New(t)
 	a.NotNil(out.T)

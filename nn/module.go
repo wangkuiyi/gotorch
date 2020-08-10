@@ -1,23 +1,25 @@
-package module
+package nn
 
 import (
 	"log"
 	"reflect"
+
+	torch "github.com/wangkuiyi/gotorch"
 )
 
 // Module interface
 type Module interface {
-	Forward(x Tensor) Tensor
+	Forward(x torch.Tensor) torch.Tensor
 }
 
 // GetNamedParameters returns parameters in the module recursively.
-func GetNamedParameters(m Module) map[string]Tensor {
-	r := make(map[string]Tensor)
+func GetNamedParameters(m Module) map[string]torch.Tensor {
+	r := make(map[string]torch.Tensor)
 	getNamedNonNilTensors(m, reflect.TypeOf(m).Elem().Name(), true, false, r)
 	return r
 }
 
-func getNamedNonNilTensors(m Module, prefix string, param, buffer bool, r map[string]Tensor) {
+func getNamedNonNilTensors(m Module, prefix string, param, buffer bool, r map[string]torch.Tensor) {
 	moduleType := reflect.TypeOf((*Module)(nil)).Elem()
 
 	sv := reflect.ValueOf(m).Elem() // Elem gets what the pointer points to.
@@ -41,9 +43,9 @@ func getNamedNonNilTensors(m Module, prefix string, param, buffer bool, r map[st
 // If field f is a parameter or buffer field and the value v is not a nil
 // tensor, insert v into map r with key is prefix+"."+f.Name.
 func recordNonNilTensor(f reflect.StructField, v reflect.Value,
-	prefix string, r map[string]Tensor, param, buffer bool) {
+	prefix string, r map[string]torch.Tensor, param, buffer bool) {
 
-	tensorType := reflect.TypeOf((*Tensor)(nil)).Elem()
+	tensorType := reflect.TypeOf((*torch.Tensor)(nil)).Elem()
 	if f.Type != tensorType {
 		return // Either parameter or buffer is of type Tensor.
 	}
@@ -61,7 +63,7 @@ func recordNonNilTensor(f reflect.StructField, v reflect.Value,
 			v.Type().Name(), f.Name)
 	}
 
-	fv := v.Interface().(Tensor)
+	fv := v.Interface().(torch.Tensor)
 	if fv.T == nil {
 		return // Don't record nil Tensor
 	}
@@ -70,8 +72,8 @@ func recordNonNilTensor(f reflect.StructField, v reflect.Value,
 }
 
 // GetParameters returns parameters
-func GetParameters(m Module) []Tensor {
-	result := make([]Tensor, 0)
+func GetParameters(m Module) []torch.Tensor {
+	result := make([]torch.Tensor, 0)
 	n := GetNamedParameters(m)
 	for _, v := range n {
 		result = append(result, v)
@@ -81,7 +83,7 @@ func GetParameters(m Module) []Tensor {
 
 // CloseModule closes the module
 func CloseModule(m Module) {
-	r := make(map[string]Tensor)
+	r := make(map[string]torch.Tensor)
 	getNamedNonNilTensors(m, reflect.TypeOf(m).Elem().Name(), true, true, r)
 	for _, t := range r {
 		t.Close()

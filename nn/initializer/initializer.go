@@ -1,0 +1,40 @@
+package initializer
+
+// #cgo CFLAGS: -I ${SRCDIR}/../../cgotorch
+// #cgo LDFLAGS: -L ${SRCDIR}/../../cgotorch -Wl,-rpath ${SRCDIR}/../../cgotorch -lcgotorch
+// #cgo LDFLAGS: -L ${SRCDIR}/../../cgotorch/libtorch/lib -Wl,-rpath ${SRCDIR}/../../cgotorch/libtorch/lib -lc10 -ltorch -ltorch_cpu
+// #include "../../cgotorch/cgotorch.h"
+import "C"
+
+import (
+	"unsafe"
+
+	torch "github.com/wangkuiyi/gotorch"
+)
+
+// Zeros initialization, torch.nn.init.zeros_
+func Zeros(a *torch.Tensor) {
+	torch.MustNil(unsafe.Pointer(C.Zeros_((*C.Tensor)(a.T))))
+}
+
+// Uniform initialization, torch.nn.init.uniform_
+func Uniform(a *torch.Tensor, low, high float64) {
+	torch.MustNil(unsafe.Pointer(C.Uniform_((*C.Tensor)(a.T), C.double(low), C.double(high))))
+}
+
+// KaimingUniform initialization, torch.nn.init.kaiming_uniform_
+func KaimingUniform(input *torch.Tensor, a float64, fanMode string,
+	nonLinearity string) {
+	torch.MustNil(unsafe.Pointer(C.KaimingUniform_(C.double(a), C.CString(fanMode),
+		C.CString(nonLinearity), (*C.Tensor)(input.T))))
+}
+
+// CalculateFanInAndFanOut torch.nn.init._calculate_fan_in_and_fan_out
+func CalculateFanInAndFanOut(input torch.Tensor) (int, int) {
+	var fanIn, fanOut int
+	torch.MustNil(unsafe.Pointer(C.CalculateFanInAndFanOut(
+		C.Tensor(*input.T),
+		(*C.int64_t)(unsafe.Pointer(&fanIn)),
+		(*C.int64_t)(unsafe.Pointer(&fanOut)))))
+	return fanIn, fanOut
+}

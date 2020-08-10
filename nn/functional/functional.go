@@ -12,24 +12,64 @@ import (
 	torch "github.com/wangkuiyi/gotorch"
 )
 
+// BatchNorm does batch nomalization for `input`
+func BatchNorm(input, weight, bias, runningMean, runningVar torch.Tensor,
+	training bool, momentum, eps float64, cudnnEnabled bool) torch.Tensor {
+	var cTraining, cCudnnEnabled C.int8_t
+	if training {
+		cTraining = 1
+	}
+	if cudnnEnabled {
+		cCudnnEnabled = 1
+
+	}
+	var cweight, cbias, cmean, cvar, t C.Tensor
+	if weight.T != nil {
+		cweight = C.Tensor(*weight.T)
+	}
+	if bias.T != nil {
+		cbias = C.Tensor(*bias.T)
+	}
+	if runningMean.T != nil {
+		cmean = C.Tensor(*runningMean.T)
+	}
+	if runningVar.T != nil {
+		cvar = C.Tensor(*runningVar.T)
+	}
+	torch.MustNil(
+		unsafe.Pointer(C.BatchNorm(
+			C.Tensor(*input.T),
+			cweight,
+			cbias,
+			cmean,
+			cvar,
+			cTraining,
+			C.double(momentum),
+			C.double(eps),
+			cCudnnEnabled,
+			&t)))
+	torch.SetTensorFinalizer((*unsafe.Pointer)(&t))
+	return torch.Tensor{(*unsafe.Pointer)(&t)}
+}
+
 // Conv2d does 2d-convolution
 func Conv2d(input, weight, bias torch.Tensor,
 	stride, padding, dilation []int, groups int) torch.Tensor {
 	var cbias, t C.Tensor
 	if bias.T != nil {
-		cbias = C.Tensor(bias.T)
+		cbias = C.Tensor(*bias.T)
 	}
 	torch.MustNil(unsafe.Pointer(C.Conv2d(
-		C.Tensor(input.T),
-		C.Tensor(weight.T),
+		C.Tensor(*input.T),
+		C.Tensor(*weight.T),
 		cbias,
 		(*C.int64_t)(unsafe.Pointer(&stride[0])), C.int64_t(len(stride)),
 		(*C.int64_t)(unsafe.Pointer(&padding[0])), C.int64_t(len(padding)),
 		(*C.int64_t)(unsafe.Pointer(&dilation[0])), C.int64_t(len(dilation)),
 		C.int64_t(groups),
 		&t)))
-	torch.SetTensorFinalizer(&t)
-	return Tensor{unsafe.Pointer(t)}
+	torch.SetTensorFinalizer((*unsafe.Pointer)(&t))
+	return torch.Tensor{(*unsafe.Pointer)(&t)}
 }
 
 // ConvTranspose2d does 2d-fractionally-strided convolution
@@ -40,12 +80,12 @@ func ConvTranspose2d(
 
 	var cbias, t C.Tensor
 	if bias.T != nil {
-		cbias = *bias.T
+		cbias = C.Tensor(*bias.T)
 	}
 
-	torch.MustNil(C.ConvTranspose2d(
-		*input.T,
-		*weight.T,
+	torch.MustNil(unsafe.Pointer(C.ConvTranspose2d(
+		C.Tensor(*input.T),
+		C.Tensor(*weight.T),
 		cbias,
 		(*C.int64_t)(unsafe.Pointer(&stride[0])),
 		C.int64_t(len(stride)),
@@ -56,7 +96,7 @@ func ConvTranspose2d(
 		C.int64_t(groups),
 		(*C.int64_t)(unsafe.Pointer(&dilation[0])),
 		C.int64_t(len(dilation)),
-		&t))
-	torch.SetTensorFinalizer(&t)
-	return torch.Tensor{&t}
+		&t)))
+	torch.SetTensorFinalizer((*unsafe.Pointer)(&t))
+	return torch.Tensor{(*unsafe.Pointer)(&t)}
 }

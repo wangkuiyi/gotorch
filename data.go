@@ -100,11 +100,11 @@ func NewBatch(iter C.Iterator) *Batch {
 	var data C.Tensor
 	var target C.Tensor
 	C.Iterator_Batch(iter, &data, &target)
-	SetTensorFinalizer(&data)
-	SetTensorFinalizer(&target)
+	SetTensorFinalizer((*unsafe.Pointer)(&data))
+	SetTensorFinalizer((*unsafe.Pointer)(&target))
 	return &Batch{
-		Data:   Tensor{unsafe.Pointer(data)},
-		Target: Tensor{unsafe.Pointer(target)},
+		Data:   Tensor{(*unsafe.Pointer)(&data)},
+		Target: Tensor{(*unsafe.Pointer)(&target)},
 	}
 }
 
