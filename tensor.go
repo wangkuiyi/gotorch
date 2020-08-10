@@ -168,6 +168,14 @@ func (a Tensor) Sigmoid() Tensor {
 	return Tensor{&t}
 }
 
+// LogSoftmax returns log softmax of the current tensor
+func (a Tensor) LogSoftmax(dim int) Tensor {
+	var t C.Tensor
+	mustNil(C.LogSoftmax(*a.T, C.int(dim), &t))
+	setTensorFinalizer(&t)
+	return Tensor{&t}
+}
+
 // Backward compute the gradient of current tensor
 func (a Tensor) Backward() {
 	C.Tensor_Backward(*a.T)
@@ -206,6 +214,11 @@ func Tanh(t Tensor) Tensor {
 // Sigmoid returns sigmoid of the current tensor
 func Sigmoid(t Tensor) Tensor {
 	return t.Sigmoid()
+}
+
+// LogSoftmax returns log softmax of the input tensor
+func LogSoftmax(t Tensor, dim int) Tensor {
+	return t.LogSoftmax(dim)
 }
 
 // Sum returns the sum of all elements in the input tensor
