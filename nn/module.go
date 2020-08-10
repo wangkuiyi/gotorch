@@ -7,9 +7,80 @@ import (
 	torch "github.com/wangkuiyi/gotorch"
 )
 
-// Module interface
-type Module interface {
-	Forward(x torch.Tensor) torch.Tensor
+// Dtype is the data type of scalars
+type Dtype int // TODO(shendiaomo): this is a placeholder to be defined later
+
+// DeviceType is the type of devices
+type DeviceType in // TODO(shendiaomo): this is a placeholder to be defined latert
+
+// DeviceIndex is the index of available devices
+type DeviceIndex = int16
+
+// Device represents a a compute device on which a tensor is located.
+type Device struct {
+	typ DeviceType
+	idx DeviceIndex
+}
+
+// IModule is the interface of `Module`s
+type IModule interface {
+	// Train enables "training" mode
+	Train(on bool)
+	// IsTraining returns true if the module is in training mode
+	IsTraining()
+	// To recursively casts all parameters to the given `dtype` and `device`.
+	To(device Device, dtype Dtype, nonBlocking bool)
+	// ZeroGrad recursively zeros out the `grad` value of each registered parameter.
+	ZeroGrad()
+	// String is for printing modules prettily
+	String() string
+}
+
+// Module contains default implementation of `Module`s
+type Module struct {
+	// Whether the module is in training mode.
+	isTraining bool
+
+	// The module's name (e.g. "LSTM").
+	name string
+
+	// The registered buffers of this `Module`.
+	buffers map[string]Tensor
+
+	// The registered (direct) submodules of this `Module`.
+	children map[string]IModule
+}
+
+// Forward returns the result of the forward pass of the modules
+func (m *Module) Forward(x Tensor) Tensor {
+	// TODO(shendiaomo): to be deleted, each container as `Sequential` etc.
+	// should use `reflect` to call `Forward` of submodules
+	return Tensor{}
+}
+
+// Train enables "training" mode
+func (m *Module) Train(on bool) {
+	m.isTraining = on
+}
+
+// IsTraining returns true if the module is in training mode
+func (m *Module) IsTraining() bool {
+	return m.isTraining
+}
+
+// To recursively casts all parameters to the given `dtype` and `device`.
+func (m *Module) To(device Device, dtype Dtype, nonBlocking bool) {
+	// TODO(shendiaomo): to be implemented
+}
+
+// ZeroGrad recursively zeros out the `grad` value of each registered parameter.
+func (m *Module) ZeroGrad() {
+	// TODO(shendiaomo): to be implemented
+}
+
+// String is for printing modules prettily
+func (m *Module) String() string {
+	// TODO(shendiaomo): to be implemented
 }
 
 // GetNamedParameters returns parameters in the module recursively.
