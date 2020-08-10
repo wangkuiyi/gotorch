@@ -1,4 +1,4 @@
-package gotorch
+package module
 
 import (
 	"testing"

@@ -1,90 +1,13 @@
-package gotorch
+package module
 
-// #cgo CFLAGS: -I ${SRCDIR}/cgotorch
-// #cgo LDFLAGS: -L ${SRCDIR}/cgotorch -Wl,-rpath ${SRCDIR}/cgotorch -lcgotorch
-// #cgo LDFLAGS: -L ${SRCDIR}/cgotorch/libtorch/lib -Wl,-rpath ${SRCDIR}/cgotorch/libtorch/lib -lc10 -ltorch -ltorch_cpu
-// #include "cgotorch.h"
-import "C"
 import (
 	"log"
-	"math"
 	"reflect"
 )
 
 // Module interface
 type Module interface {
 	Forward(x Tensor) Tensor
-}
-
-type linear struct {
-	InFeatures  int
-	OutFeatures int
-	Weight      Tensor
-	Bias        Tensor
-}
-
-// Linear creates a linear instance
-func Linear(in int, out int, bias bool) Module {
-	l := &linear{
-		InFeatures:  in,
-		OutFeatures: out,
-	}
-	l.Weight = RandN([]int{in, out}, true)
-	if bias {
-		l.Bias = RandN([]int{out, 1}, true)
-	}
-	return l
-}
-
-// Forward method
-func (l *linear) Forward(x Tensor) Tensor {
-	return MM(x, l.Weight)
-}
-
-type conv2d struct {
-	InChannels  int
-	OutChannels int
-	KernelSize  int
-	Stride      int
-	Padding     int
-	Dilation    int
-	Groups      int
-	PaddingMode string
-	Weight      Tensor
-	Bias        Tensor
-}
-
-// Conv2d does conv2d computaion. torch.conv2d
-// TODO(qijun): only support zero padding mode
-// only support symmetry kernel/stride/padding/dilation
-func Conv2d(inChannels, outChannels, kernelSize, stride, padding, dilation,
-	groups int, bias bool, paddingMode string) Module {
-	c := &conv2d{
-		InChannels:  inChannels,
-		OutChannels: outChannels,
-		KernelSize:  kernelSize,
-		Stride:      stride,
-		Padding:     padding,
-		Dilation:    dilation,
-		Groups:      groups,
-		PaddingMode: "zeros",
-	}
-	c.Weight = Empty([]int{outChannels, inChannels / groups, kernelSize,
-		kernelSize}, true)
-	KaimingUniform(&c.Weight, math.Sqrt(5.0), "fan_in", "leaky_relu")
-	if bias {
-		c.Bias = Empty([]int{outChannels}, true)
-		fanIn, _ := CalculateFanInAndFanOut(c.Weight)
-		bound := 1.0 / math.Sqrt(float64(fanIn))
-		Uniform(&c.Bias, -bound, bound)
-	}
-	return c
-}
-
-// Forward method
-func (c *conv2d) Forward(x Tensor) Tensor {
-	return FConv2d(x, c.Weight, c.Bias, []int{c.Stride, c.Stride},
-		[]int{c.Padding, c.Padding}, []int{c.Dilation, c.Dilation}, c.Groups)
 }
 
 // GetNamedParameters returns parameters in the module recursively.

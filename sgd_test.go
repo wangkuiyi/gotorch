@@ -4,10 +4,11 @@ import (
 	"fmt"
 
 	torch "github.com/wangkuiyi/gotorch"
+	module "github.com/wangkuiyi/gotorch/nn/module"
 )
 
 type myNet struct {
-	L1, L2 torch.Module
+	L1, L2 module.Module
 }
 
 // MyNet returns a MyNet instance
