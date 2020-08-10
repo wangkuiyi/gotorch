@@ -44,7 +44,7 @@ const char *Relu(Tensor a, Tensor *result);
 const char *LeakyRelu(Tensor a, double negative_slope, Tensor *result);
 const char *Tanh(Tensor a, Tensor *result);
 const char *Sigmoid(Tensor a, Tensor *result);
-const char *LogSoftmax(Tensor a, int dim, Tensor *result);
+const char *LogSoftmax(Tensor a, int64_t dim, Tensor *result);
 const char *ConvTranspose2d(Tensor input, Tensor weight, Tensor bias,
                             int64_t *stride_data, int64_t stride_len,
                             int64_t *padding_data, int64_t padding_len,

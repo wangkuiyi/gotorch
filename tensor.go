@@ -148,9 +148,9 @@ func (a Tensor) Sigmoid() Tensor {
 // LogSoftmax returns log softmax of the current tensor
 func (a Tensor) LogSoftmax(dim int) Tensor {
 	var t C.Tensor
-	mustNil(C.LogSoftmax(*a.T, C.int(dim), &t))
-	setTensorFinalizer(&t)
-	return Tensor{&t}
+	MustNil(unsafe.Pointer(C.LogSoftmax(C.Tensor(*a.T), C.int64_t(dim), &t)))
+	SetTensorFinalizer((*unsafe.Pointer)(&t))
+	return Tensor{(*unsafe.Pointer)(&t)}
 }
 
 // Backward compute the gradient of current tensor

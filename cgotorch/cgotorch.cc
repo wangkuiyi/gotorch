@@ -205,7 +205,7 @@ const char *Sigmoid(Tensor a, Tensor *result) {
   }
 }
 
-const char *LogSoftmax(Tensor a, int dim, Tensor *result) {
+const char *LogSoftmax(Tensor a, int64_t dim, Tensor *result) {
   try {
     *result = new at::Tensor(a->log_softmax(dim));
     return nullptr;
