@@ -8,9 +8,13 @@
 extern "C" {
 typedef at::Tensor *Tensor;
 typedef torch::optim::Optimizer *Optimizer;
+typedef torch::data::datasets::MNIST *MNIST;
+typedef torch::data::transforms::Normalize<> *Normalize;
 #else
 typedef void *Tensor;
 typedef void *Optimizer;
+typedef void *MNIST;
+typedef void *Normalize;
 #endif
 
 // torch.randn
@@ -74,19 +78,18 @@ void Optimizer_Close(Optimizer opt);
 // loss APIs
 const char *NllLoss(const Tensor pred, const Tensor target, Tensor *result);
 
-// transform APIs
-typedef void *Transform;
-Transform Normalize(double mean, double stddev);
-Transform Stack();
+typedef struct DatasetMNIST {
+  MNIST p;
+  Normalize normalize;
+  double mean, stddev;
+} Dataset;
 
-// dataset APIs
-typedef void *Dataset;
-const char *MNIST(const char *data_root, Dataset *dataset);
+const char *Dataset_MNIST(const char *data_root, Dataset *dataset);
 void MNIST_Close(Dataset d);
 
-// Add transform on dataset
-void Dataset_Normalize(Dataset dataset, Transform transform);
-void Dataset_Stack(Dataset dataset, Transform transform);
+// cache normalize transform on dataset
+void Dataset_Normalize(Dataset *dataset, double mean, double stddev);
+// void Dataset_Stack(Dataset* dataset, Transform transform);
 
 typedef void *Iterator;
 typedef void *DataLoader;
