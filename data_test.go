@@ -2,6 +2,7 @@ package gotorch_test
 
 import (
 	"compress/gzip"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -13,19 +14,60 @@ import (
 	torch "github.com/wangkuiyi/gotorch"
 )
 
+type MultiLayerMNISTNet struct {
+	FC1, FC2, FC3 torch.Module
+}
+
+func NewMNIST() torch.Module {
+	return &MultiLayerMNISTNet{
+		FC1: torch.Linear(28*28, 512, false),
+		FC2: torch.Linear(512, 512, false),
+		FC3: torch.Linear(512, 10, false),
+	}
+}
+
+func (n *MultiLayerMNISTNet) Forward(x torch.Tensor) torch.Tensor {
+	x = torch.View(x, []int{-1, 28 * 28})
+	x = n.FC1.Forward(x)
+	x = torch.Relu(x)
+	x = n.FC2.Forward(x)
+	x = torch.Relu(x)
+	x = n.FC3.Forward(x)
+	return x.Softmax()
+}
+
 func ExampleMNIST() {
 	if e := downloadMNIST(); e != nil {
 		log.Printf("Cannot find or download MNIST dataset: %v", e)
 	}
+	mnist := NewMNIST()
 
 	dataset := torch.NewMNIST(dataDir())
 	dataset.AddTransforms([]torch.Transform{
 		torch.NewNormalize(0.1307, 0.3081),
 		torch.NewStack(),
 	})
-	trainLoader := torch.NewDataLoader(dataset, 8)
+	trainLoader := torch.NewDataLoader(dataset, 2)
+	opt := torch.SGD(0.1, 0, 0, 0, false)
+	opt.AddParameters(torch.GetParameters(mnist))
+	batchIdx := 0
 	for trainLoader.Scan() {
-		_ = trainLoader.Batch()
+		batch := trainLoader.Batch()
+		fmt.Println(batch.Data)
+		pred := mnist.Forward(batch.Data)
+		fmt.Println(pred)
+		fmt.Println(batch.Target)
+		break
+		loss := torch.CrossEntropyLoss(pred, batch.Target)
+		fmt.Println(loss)
+		break
+		loss.Backward()
+		opt.ZeroGrad()
+		fmt.Println(loss)
+		batchIdx++
+		if batchIdx == 10 {
+			break
+		}
 	}
 	trainLoader.Close()
 	dataset.Close()

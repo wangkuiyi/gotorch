@@ -205,6 +205,25 @@ const char *Sigmoid(Tensor a, Tensor *result) {
   }
 }
 
+const char *Softmax(Tensor a, Tensor *result) {
+  try {
+    *result = new at::Tensor(a->log_softmax(/*dim=*/1));
+    return nullptr;
+  } catch (const std::exception &e) {
+    return exception_str(e);
+  }
+}
+
+const char *View(Tensor a, Tensor *result, int64_t *size, int64_t size_len) {
+  try {
+    *result = new at::Tensor(
+        static_cast<at::Tensor *>(a)->view(torch::IntArrayRef(size, size_len)));
+    return nullptr;
+  } catch (const std::exception &e) {
+    return exception_str(e);
+  }
+}
+
 const char *ConvTranspose2d(Tensor input, Tensor weight, Tensor bias,
                             int64_t *stride_data, int64_t stride_len,
                             int64_t *padding_data, int64_t padding_len,
@@ -226,7 +245,21 @@ const char *ConvTranspose2d(Tensor input, Tensor weight, Tensor bias,
   }
 }
 
-void Tensor_Print(Tensor a) { std::cout << *a << std::endl; }
+const char *NllLoss(const Tensor pred, const Tensor target, Tensor *result) {
+  try {
+    std::cout << *static_cast<const at::Tensor *>(pred) << std::endl;
+    *result =
+        new at::Tensor(at::nll_loss(*static_cast<const at::Tensor *>(pred),
+                                    *static_cast<const at::Tensor *>(target)));
+    return nullptr;
+  } catch (const std::exception &e) {
+    return exception_str(e);
+  }
+}
+
+void Tensor_Print(Tensor a) {
+  std::cout << *static_cast<at::Tensor *>(a) << std::endl;
+}
 
 void Tensor_Close(Tensor a) { delete a; }
 
@@ -289,8 +322,12 @@ void Optimizer_Close(Optimizer opt) { delete opt; }
 
 const char *MNIST(const char *data_root, Dataset *dataset) {
   try {
-    *dataset = new torch::data::datasets::MNIST(std::string(data_root));
-    return nullptr;
+    *dataset = new torch::data::datasets::MNIST(std::string(data_root))
+        // *dataset = new torch::data::datasets::MNIST(std::string(data_root));
+        // *dataset = static_cast<torch::data::datasets::MNIST *>(*dataset)
+        //               ->map(torch::data::transforms::Normalize<>(0.1307,
+        //               0.3081)) .dataset();
+        return nullptr;
   } catch (const std::exception &e) {
     return exception_str(e);
   }
@@ -311,8 +348,8 @@ void Dataset_Normalize(Dataset dataset, Transform transform) {
       *(static_cast<torch::data::transforms::Normalize<> *>(transform)));
 }
 
-void Dataset_Stack(Dataset dataset, Transform transform) {
-  static_cast<torch::data::datasets::MNIST *>(dataset)->map(
+void Dataset_Stack(Dataset *dataset, Transform transform) {
+  static_cast<torch::data::datasets::MNIST *>(*dataset)->map(
       *(static_cast<torch::data::transforms::Stack<> *>(transform)));
 }
 

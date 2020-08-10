@@ -164,3 +164,11 @@ func CloseModule(m Module) {
 		t.Close()
 	}
 }
+
+// CrossEntropyLoss outputs the los
+func CrossEntropyLoss(pred, target Tensor) Tensor {
+	var result C.Tensor
+	mustNil(C.NllLoss(*pred.T, *target.T, &result))
+	setTensorFinalizer(&result)
+	return Tensor{&result}
+}

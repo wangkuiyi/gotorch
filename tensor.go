@@ -168,6 +168,14 @@ func (a Tensor) Sigmoid() Tensor {
 	return Tensor{&t}
 }
 
+// Softmax returns softmax of Tensor
+func (a Tensor) Softmax() Tensor {
+	var t C.Tensor
+	mustNil(C.Softmax(*a.T, &t))
+	setTensorFinalizer(&t)
+	return Tensor{&t}
+}
+
 // Backward compute the gradient of current tensor
 func (a Tensor) Backward() {
 	C.Tensor_Backward(*a.T)
@@ -285,6 +293,14 @@ func BatchNorm(input, weight, bias, runningMean, runningVar Tensor,
 			C.double(eps),
 			cCudnnEnabled,
 			&t))
+	setTensorFinalizer(&t)
+	return Tensor{&t}
+}
+
+// View function
+func View(a Tensor, shape []int) Tensor {
+	var t C.Tensor
+	mustNil(C.View(*a.T, &t, (*C.int64_t)(unsafe.Pointer(&shape[0])), C.int64_t(len(shape))))
 	setTensorFinalizer(&t)
 	return Tensor{&t}
 }

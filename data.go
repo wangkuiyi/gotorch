@@ -60,7 +60,7 @@ func (d *Dataset) AddTransforms(transforms []Transform) {
 		case *Normalize:
 			C.Dataset_Normalize(d.T, (C.Transform)(trans.(*Normalize).T))
 		case *Stack:
-			C.Dataset_Stack(d.T, (C.Transform)(trans.(*Stack).T))
+			C.Dataset_Stack(&d.T, (C.Transform)(trans.(*Stack).T))
 		default:
 			panic(fmt.Sprintf("unsupposed transform type: %T", v))
 		}
