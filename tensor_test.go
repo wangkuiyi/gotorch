@@ -28,3 +28,12 @@ func TestTranspose2d(t *testing.T) {
 	a := assert.New(t)
 	a.NotNil(out.T)
 }
+
+func TestSoftmax(t *testing.T) {
+	a := assert.new(t)
+	x := torch.RandN([]int{1, 6}, false)
+	out := x.Softmax(1)
+	// TODO(yancey1989): convert torchTensro as Go slice, that we can
+	// check the value.
+	a.NotNil(out.T)
+}
