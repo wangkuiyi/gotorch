@@ -100,3 +100,21 @@ func ConvTranspose2d(
 	torch.SetTensorFinalizer((*unsafe.Pointer)(&t))
 	return torch.Tensor{(*unsafe.Pointer)(&t)}
 }
+
+// NllLoss torch.nn.functional.nll_loss
+func NllLoss(input, target, weight torch.Tensor, ignoreIndex int,
+	reduction string) torch.Tensor {
+	var cweight, t C.Tensor
+	if weight.T != nil {
+		cweight = C.Tensor(*weight.T)
+	}
+	torch.MustNil(unsafe.Pointer(C.NllLoss(
+		C.Tensor(*input.T),
+		C.Tensor(*target.T),
+		cweight,
+		C.int64_t(ignoreIndex),
+		C.CString(reduction),
+		&t)))
+	torch.SetTensorFinalizer((*unsafe.Pointer)(&t))
+	return torch.Tensor{(*unsafe.Pointer)(&t)}
+}
