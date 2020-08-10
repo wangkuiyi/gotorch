@@ -36,15 +36,15 @@ const char *Conv2d(Tensor input, Tensor weight, Tensor bias,
                    int64_t *padding_data, int64_t padding_len,
                    int64_t *dilation_data, int64_t dilation_len, int64_t groups,
                    Tensor *result);
-const char *BatchNorm(Tensor input, Tensor weight, const Tensor *bias,
-                      const Tensor *running_mean, const Tensor *running_var,
-                      int8_t training, double momentum, double eps,
-                      int8_t cudnn_enabled, Tensor *result);
+const char *BatchNorm(Tensor input, Tensor weight, Tensor bias,
+                      Tensor running_mean, Tensor running_var, int8_t training,
+                      double momentum, double eps, int8_t cudnn_enabled,
+                      Tensor *result);
 const char *Relu(Tensor a, Tensor *result);
 const char *LeakyRelu(Tensor a, double negative_slope, Tensor *result);
 const char *Tanh(Tensor a, Tensor *result);
 const char *Sigmoid(Tensor a, Tensor *result);
-const char *LogSoftmax(Tensor a, int dim, Tensor *result);
+const char *LogSoftmax(Tensor a, int64_t dim, Tensor *result);
 const char *ConvTranspose2d(Tensor input, Tensor weight, Tensor bias,
                             int64_t *stride_data, int64_t stride_len,
                             int64_t *padding_data, int64_t padding_len,

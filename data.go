@@ -34,7 +34,7 @@ func NewMNIST(dataRoot string) *Dataset {
 	var dataset C.Dataset
 	cstr := C.CString(dataRoot)
 	defer C.free(unsafe.Pointer(cstr))
-	mustNil(C.MNIST(cstr, &dataset))
+	MustNil(unsafe.Pointer(C.MNIST(cstr, &dataset)))
 	return &Dataset{dataset}
 }
 
@@ -100,11 +100,11 @@ func NewBatch(iter C.Iterator) *Batch {
 	var data C.Tensor
 	var target C.Tensor
 	C.Iterator_Batch(iter, &data, &target)
-	setTensorFinalizer(&data)
-	setTensorFinalizer(&target)
+	SetTensorFinalizer((*unsafe.Pointer)(&data))
+	SetTensorFinalizer((*unsafe.Pointer)(&target))
 	return &Batch{
-		Data:   Tensor{&data},
-		Target: Tensor{&target},
+		Data:   Tensor{(*unsafe.Pointer)(&data)},
+		Target: Tensor{(*unsafe.Pointer)(&target)},
 	}
 }
 

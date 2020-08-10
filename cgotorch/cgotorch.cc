@@ -152,16 +152,16 @@ const char *Conv2d(Tensor input, Tensor weight, Tensor bias,
   }
 }
 
-const char *BatchNorm(Tensor input, Tensor weight, const Tensor *bias,
-                      const Tensor *running_mean, const Tensor *running_var,
-                      int8_t training, double momentum, double eps,
-                      int8_t cudnn_enabled, Tensor *result) {
+const char *BatchNorm(Tensor input, Tensor weight, Tensor bias,
+                      Tensor running_mean, Tensor running_var, int8_t training,
+                      double momentum, double eps, int8_t cudnn_enabled,
+                      Tensor *result) {
   try {
-    auto output =
-        at::batch_norm(*input, *weight, (bias ? **bias : at::Tensor()),
-                       (running_mean ? **running_mean : at::Tensor()),
-                       (running_var ? **running_var : at::Tensor()), training,
-                       momentum, eps, cudnn_enabled);
+    auto output = at::batch_norm(*input, (weight ? *weight : at::Tensor()),
+                                 (bias ? *bias : at::Tensor()),
+                                 (running_mean ? *running_mean : at::Tensor()),
+                                 (running_var ? *running_var : at::Tensor()),
+                                 training, momentum, eps, cudnn_enabled);
     *result = new at::Tensor(output);
     return nullptr;
   } catch (const std::exception &e) {
@@ -205,7 +205,7 @@ const char *Sigmoid(Tensor a, Tensor *result) {
   }
 }
 
-const char *LogSoftmax(Tensor a, int dim, Tensor *result) {
+const char *LogSoftmax(Tensor a, int64_t dim, Tensor *result) {
   try {
     *result = new at::Tensor(a->log_softmax(dim));
     return nullptr;
