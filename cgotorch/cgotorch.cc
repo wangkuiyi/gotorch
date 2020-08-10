@@ -205,19 +205,9 @@ const char *Sigmoid(Tensor a, Tensor *result) {
   }
 }
 
-const char *Softmax(Tensor a, Tensor *result) {
+const char *LogSoftmax(Tensor a, int dim, Tensor *result) {
   try {
-    *result = new at::Tensor(a->log_softmax(/*dim=*/1));
-    return nullptr;
-  } catch (const std::exception &e) {
-    return exception_str(e);
-  }
-}
-
-const char *View(Tensor a, Tensor *result, int64_t *size, int64_t size_len) {
-  try {
-    *result = new at::Tensor(
-        static_cast<at::Tensor *>(a)->view(torch::IntArrayRef(size, size_len)));
+    *result = new at::Tensor(a->log_softmax(dim));
     return nullptr;
   } catch (const std::exception &e) {
     return exception_str(e);
