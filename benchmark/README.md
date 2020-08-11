@@ -16,6 +16,14 @@ time python benchmark/mnist.py
 
 Both programs use only CPU but no GPU.
 
+Because the GoTorch version uses libtorch 1.6.0, please make sure you have
+PyTorch 1.6.0 installed for the PyTorch version.  Also, both GoTorch and PyTorch
+versions use the data loader from torchvision.
+
+```bash
+python3 -m pip install torch==1.6.0 torchvision
+```
+
 On a Late 2014 MacBook Pro runninng macOS 10.15.5, it seems that the throughtput
 of the GoTorch program is about **3 times** of the PyTorch version.  The measure
 of throughput doesn't include model instantiaation, data preparation, but only
