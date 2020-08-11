@@ -73,48 +73,6 @@ const char *Empty(int64_t *size, int64_t length, int64_t require_grad,
   }
 }
 
-const char *Zeros_(Tensor *tensor) {
-  try {
-    torch::nn::init::zeros_(**tensor);
-    return nullptr;
-  } catch (const std::exception &e) {
-    return exception_str(e);
-  }
-}
-
-const char *Uniform_(Tensor *tensor, double low, double high) {
-  try {
-    torch::nn::init::uniform_(**tensor, low, high);
-    return nullptr;
-  } catch (const std::exception &e) {
-    return exception_str(e);
-  }
-}
-
-const char *KaimingUniform_(double a, const char *fan_mod,
-                            const char *non_linearity, Tensor *tensor) {
-  try {
-    torch::nn::init::kaiming_uniform_(
-        **tensor, a, fan_mode_map[std::string(fan_mod)],
-        non_linearity_map[std::string(non_linearity)]);
-    return nullptr;
-  } catch (const std::exception &e) {
-    return exception_str(e);
-  }
-}
-
-const char *CalculateFanInAndFanOut(Tensor tensor, int64_t *fan_in,
-                                    int64_t *fan_out) {
-  try {
-    const auto &res = torch::nn::init::_calculate_fan_in_and_fan_out(*tensor);
-    *fan_in = std::get<0>(res);
-    *fan_out = std::get<1>(res);
-    return nullptr;
-  } catch (const std::exception &e) {
-    return exception_str(e);
-  }
-}
-
 const char *MM(Tensor a, Tensor b, Tensor *result) {
   try {
     at::Tensor c = at::mm(*a, *b);
@@ -128,41 +86,6 @@ const char *MM(Tensor a, Tensor b, Tensor *result) {
 const char *Sum(Tensor a, Tensor *result) {
   try {
     *result = new at::Tensor(a->sum());
-    return nullptr;
-  } catch (const std::exception &e) {
-    return exception_str(e);
-  }
-}
-
-const char *Conv2d(Tensor input, Tensor weight, Tensor bias,
-                   int64_t *stride_data, int64_t stride_len,
-                   int64_t *padding_data, int64_t padding_len,
-                   int64_t *dilation_data, int64_t dilation_len, int64_t groups,
-                   Tensor *result) {
-  try {
-    auto output =
-        at::conv2d(*input, *weight, (bias ? *bias : at::Tensor()),
-                   torch::IntArrayRef(stride_data, stride_len),
-                   torch::IntArrayRef(padding_data, padding_len),
-                   torch::IntArrayRef(dilation_data, dilation_len), groups);
-    *result = new at::Tensor(output);
-    return nullptr;
-  } catch (const std::exception &e) {
-    return exception_str(e);
-  }
-}
-
-const char *BatchNorm(Tensor input, Tensor weight, Tensor bias,
-                      Tensor running_mean, Tensor running_var, int8_t training,
-                      double momentum, double eps, int8_t cudnn_enabled,
-                      Tensor *result) {
-  try {
-    auto output = at::batch_norm(*input, (weight ? *weight : at::Tensor()),
-                                 (bias ? *bias : at::Tensor()),
-                                 (running_mean ? *running_mean : at::Tensor()),
-                                 (running_var ? *running_var : at::Tensor()),
-                                 training, momentum, eps, cudnn_enabled);
-    *result = new at::Tensor(output);
     return nullptr;
   } catch (const std::exception &e) {
     return exception_str(e);
@@ -214,6 +137,117 @@ const char *LogSoftmax(Tensor a, int64_t dim, Tensor *result) {
   }
 }
 
+void Tensor_Print(Tensor a) { std::cout << *a << std::endl; }
+
+void Tensor_Close(Tensor a) { delete a; }
+
+// The caller must free the returned string by calling FreeString.
+const char *Tensor_String(Tensor a) {
+  std::stringstream ss;
+  ss << *a;
+  std::string s = ss.str();
+  char *r = new char[s.size() + 1];
+  snprintf(r, s.size(), "%s", s.c_str());
+  return r;
+}
+
+void FreeString(const char *s) { delete[] s; }
+
+// Backward, Gradient
+void Tensor_Backward(Tensor a) { a->backward(); }
+Tensor Tensor_Grad(Tensor a) { return new at::Tensor(a->grad()); }
+
+////////////////////////////////////////////////////////////////////////////////
+// torch.nn.init
+////////////////////////////////////////////////////////////////////////////////
+
+const char *Zeros_(Tensor *tensor) {
+  try {
+    torch::nn::init::zeros_(**tensor);
+    return nullptr;
+  } catch (const std::exception &e) {
+    return exception_str(e);
+  }
+}
+
+const char *Uniform_(Tensor *tensor, double low, double high) {
+  try {
+    torch::nn::init::uniform_(**tensor, low, high);
+    return nullptr;
+  } catch (const std::exception &e) {
+    return exception_str(e);
+  }
+}
+
+const char *KaimingUniform_(double a, const char *fan_mod,
+                            const char *non_linearity, Tensor *tensor) {
+  try {
+    torch::nn::init::kaiming_uniform_(
+        **tensor, a, fan_mode_map[std::string(fan_mod)],
+        non_linearity_map[std::string(non_linearity)]);
+    return nullptr;
+  } catch (const std::exception &e) {
+    return exception_str(e);
+  }
+}
+
+const char *CalculateFanInAndFanOut(Tensor tensor, int64_t *fan_in,
+                                    int64_t *fan_out) {
+  try {
+    const auto &res = torch::nn::init::_calculate_fan_in_and_fan_out(*tensor);
+    *fan_in = std::get<0>(res);
+    *fan_out = std::get<1>(res);
+    return nullptr;
+  } catch (const std::exception &e) {
+    return exception_str(e);
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// torch.nn.functional
+///////////////////////////////////////////////////////////////////////////////
+
+const char *BatchNorm(Tensor input, Tensor weight, Tensor bias,
+                      Tensor running_mean, Tensor running_var, int8_t training,
+                      double momentum, double eps, Tensor *result) {
+  try {
+    auto output = torch::nn::functional::batch_norm(
+        *input, (running_mean ? *running_mean : at::Tensor()),
+        (running_var ? *running_var : at::Tensor()),
+        torch::nn::functional::BatchNormFuncOptions()
+            .weight(weight ? *weight : at::Tensor())
+            .bias(bias ? *bias : at::Tensor())
+            .training(training)
+            .momentum(momentum)
+            .eps(eps));
+    *result = new at::Tensor(output);
+    return nullptr;
+  } catch (const std::exception &e) {
+    return exception_str(e);
+  }
+}
+
+const char *Conv2d(Tensor input, Tensor weight, Tensor bias,
+                   int64_t *stride_data, int64_t stride_len,
+                   int64_t *padding_data, int64_t padding_len,
+                   int64_t *dilation_data, int64_t dilation_len, int64_t groups,
+                   Tensor *result) {
+  try {
+    auto output = torch::nn::functional::conv2d(
+        *input, *weight,
+        torch::nn::functional::Conv2dFuncOptions()
+            .bias(bias ? *bias : at::Tensor())
+            .stride(torch::IntArrayRef(stride_data, stride_len))
+            .padding(torch::IntArrayRef(padding_data, padding_len))
+            .dilation(torch::IntArrayRef(dilation_data, dilation_len))
+            .groups(groups));
+    *result = new at::Tensor(output);
+    return nullptr;
+  } catch (const std::exception &e) {
+    return exception_str(e);
+  }
+}
+
 const char *ConvTranspose2d(Tensor input, Tensor weight, Tensor bias,
                             int64_t *stride_data, int64_t stride_len,
                             int64_t *padding_data, int64_t padding_len,
@@ -222,12 +256,16 @@ const char *ConvTranspose2d(Tensor input, Tensor weight, Tensor bias,
                             int64_t *dilation_data, int64_t dilation_len,
                             Tensor *result) {
   try {
-    auto output = at::conv_transpose2d(
-        *input, *weight, (bias ? *bias : at::Tensor()),
-        torch::IntArrayRef(stride_data, stride_len),
-        torch::IntArrayRef(padding_data, padding_len),
-        torch::IntArrayRef(output_padding_data, output_padding_len), groups,
-        torch::IntArrayRef(dilation_data, dilation_len));
+    auto output = torch::nn::functional::conv_transpose2d(
+        *input, *weight,
+        torch::nn::functional::ConvTranspose2dFuncOptions()
+            .bias(bias ? *bias : at::Tensor())
+            .stride(torch::IntArrayRef(stride_data, stride_len))
+            .padding(torch::IntArrayRef(padding_data, padding_len))
+            .output_padding(
+                torch::IntArrayRef(output_padding_data, output_padding_len))
+            .groups(groups)
+            .dilation(torch::IntArrayRef(dilation_data, dilation_len)));
     *result = new at::Tensor(output);
     return nullptr;
   } catch (const std::exception &e) {
@@ -258,32 +296,8 @@ const char *NllLoss(Tensor input, Tensor target, Tensor weight,
   }
 }
 
-void Tensor_Print(Tensor a) { std::cout << *a << std::endl; }
-
-void Tensor_Close(Tensor a) { delete a; }
-
-// The caller must free the returned string by calling FreeString.
-const char *Tensor_String(Tensor a) {
-  std::stringstream ss;
-  ss << *a;
-  std::string s = ss.str();
-  char *r = new char[s.size() + 1];
-  snprintf(r, s.size(), "%s", s.c_str());
-  return r;
-}
-
-void FreeString(const char *s) { delete[] s; }
-
 ////////////////////////////////////////////////////////////////////////////////
-// Backward, Gradient
-////////////////////////////////////////////////////////////////////////////////
-
-void Tensor_Backward(Tensor a) { a->backward(); }
-
-Tensor Tensor_Grad(Tensor a) { return new at::Tensor(a->grad()); }
-
-////////////////////////////////////////////////////////////////////////////////
-// Optimizer
+// Optimizer torch.optim
 ////////////////////////////////////////////////////////////////////////////////
 
 Optimizer SGD(double learning_rate, double momentum, double dampening,
@@ -316,7 +330,7 @@ void Optimizer_AddParameters(Optimizer opt, Tensor *tensors, int64_t length) {
 void Optimizer_Close(Optimizer opt) { delete opt; }
 
 ////////////////////////////////////////////////////////////////////////////////
-// Dataset, DataLoader, and Iterator
+//  Dataset, DataLoader, and Iterator torch.utils.data
 ////////////////////////////////////////////////////////////////////////////////
 
 const char *MNIST(const char *data_root, Dataset *dataset) {
