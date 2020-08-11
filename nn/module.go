@@ -1,6 +1,7 @@
 package nn
 
 import (
+	"fmt"
 	"log"
 	"reflect"
 
@@ -27,7 +28,7 @@ type IModule interface {
 	// Train enables "training" mode
 	Train(on bool)
 	// IsTraining returns true if the module is in training mode
-	IsTraining()
+	IsTraining() bool
 	// To recursively casts all parameters to the given `dtype` and `device`.
 	To(device Device, dtype Dtype, nonBlocking bool)
 	// ZeroGrad recursively zeros out the `grad` value of each registered parameter.
@@ -40,15 +41,8 @@ type IModule interface {
 type Module struct {
 	// Whether the module is in training mode.
 	isTraining bool
-
 	// The module's name (e.g. "LSTM").
 	name string
-
-	// The registered buffers of this `Module`.
-	buffers map[string]torch.Tensor
-
-	// The registered (direct) submodules of this `Module`.
-	children map[string]IModule
 }
 
 // Train enables "training" mode
@@ -74,29 +68,38 @@ func (m *Module) ZeroGrad() {
 // String is for printing modules prettily
 func (m *Module) String() string {
 	// TODO(shendiaomo): to be implemented
+	return m.name
 }
 
 // GetNamedParameters returns parameters in the module recursively.
-func GetNamedParameters(m Module) map[string]torch.Tensor {
+func GetNamedParameters(m IModule) map[string]torch.Tensor {
 	r := make(map[string]torch.Tensor)
 	getNamedNonNilTensors(m, reflect.TypeOf(m).Elem().Name(), true, false, r)
 	return r
 }
 
-func getNamedNonNilTensors(m Module, prefix string, param, buffer bool, r map[string]torch.Tensor) {
-	moduleType := reflect.TypeOf((*Module)(nil)).Elem()
-
+func getNamedNonNilTensors(m IModule, prefix string, param, buffer bool, r map[string]torch.Tensor) {
+	moduleType := reflect.TypeOf((*IModule)(nil)).Elem()
 	sv := reflect.ValueOf(m).Elem() // Elem gets what the pointer points to.
 	for i := 0; i < sv.NumField(); i++ {
 		f := sv.Type().Field(i)
 		v := sv.Field(i)
 
-		if f.Type.Implements(moduleType) {
+		if v.Kind() == reflect.Slice || v.Kind() == reflect.Array {
+			for j := 0; j < v.Len(); j++ {
+				if !v.Index(j).CanInterface() {
+					log.Fatalf("GoTorch requires exporting Module field %s.%s",
+						sv.Type().Name(), f.Name)
+				}
+				getNamedNonNilTensors(v.Index(j).Interface().(IModule),
+					fmt.Sprintf("%s.%s[%d]", prefix, f.Name, j), param, buffer, r)
+			}
+		} else if f.Type.Implements(moduleType) {
 			if !v.CanInterface() {
 				log.Fatalf("GoTorch requires exporting Module field %s.%s",
 					sv.Type().Name(), f.Name)
 			}
-			getNamedNonNilTensors(v.Interface().(Module),
+			getNamedNonNilTensors(v.Interface().(IModule),
 				prefix+"."+f.Name, param, buffer, r)
 		} else {
 			recordNonNilTensor(f, v, prefix, r, param, buffer)
@@ -135,8 +138,8 @@ func recordNonNilTensor(f reflect.StructField, v reflect.Value,
 	r[prefix+"."+f.Name] = fv
 }
 
-// GetParameters returns parameters
-func GetParameters(m Module) []torch.Tensor {
+// GetParameters returns trainable parameters to an optimizer
+func GetParameters(m IModule) []torch.Tensor {
 	result := make([]torch.Tensor, 0)
 	n := GetNamedParameters(m)
 	for _, v := range n {
@@ -146,7 +149,7 @@ func GetParameters(m Module) []torch.Tensor {
 }
 
 // CloseModule closes the module
-func CloseModule(m Module) {
+func CloseModule(m IModule) {
 	r := make(map[string]torch.Tensor)
 	getNamedNonNilTensors(m, reflect.TypeOf(m).Elem().Name(), true, true, r)
 	for _, t := range r {

@@ -8,7 +8,9 @@ import (
 	"github.com/wangkuiyi/gotorch/nn/initializer"
 )
 
-type conv2d struct {
+// Conv2d applies convolution over a 2D input.
+type Conv2d struct {
+	Module
 	InChannels  int64
 	OutChannels int64
 	KernelSize  int64
@@ -21,12 +23,13 @@ type conv2d struct {
 	Bias        torch.Tensor
 }
 
-// Conv2d does conv2d computaion. torch.conv2d
+// NewConv2d creates a `Conv2d` instance
 // TODO(qijun): only support zero padding mode
 // only support symmetry kernel/stride/padding/dilation
-func Conv2d(inChannels, outChannels, kernelSize, stride, padding, dilation,
-	groups int64, bias bool, paddingMode string) Module {
-	c := &conv2d{
+func NewConv2d(inChannels, outChannels, kernelSize, stride, padding, dilation,
+	groups int64, bias bool, paddingMode string) *Conv2d {
+	c := &Conv2d{
+		Module:      Module{isTraining: true},
 		InChannels:  inChannels,
 		OutChannels: outChannels,
 		KernelSize:  kernelSize,
@@ -49,7 +52,7 @@ func Conv2d(inChannels, outChannels, kernelSize, stride, padding, dilation,
 }
 
 // Forward method
-func (c *conv2d) Forward(x torch.Tensor) torch.Tensor {
+func (c *Conv2d) Forward(x torch.Tensor) torch.Tensor {
 	return functional.Conv2d(x, c.Weight, c.Bias, []int64{c.Stride, c.Stride},
 		[]int64{c.Padding, c.Padding}, []int64{c.Dilation, c.Dilation}, c.Groups)
 }

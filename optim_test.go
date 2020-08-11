@@ -8,14 +8,15 @@ import (
 )
 
 type myNet struct {
-	L1, L2 nn.Module
+	nn.Module
+	L1, L2 *nn.Linear
 }
 
 // MyNet returns a MyNet instance
-func MyNet() nn.Module {
+func newMyNet() *myNet {
 	n := &myNet{
-		L1: nn.Linear(100, 200, false),
-		L2: nn.Linear(200, 10, false),
+		L1: nn.NewLinear(100, 200, false),
+		L2: nn.NewLinear(200, 10, false),
 	}
 	return n
 }
@@ -28,7 +29,7 @@ func (n *myNet) Forward(x torch.Tensor) torch.Tensor {
 }
 
 func ExampleSGD() {
-	net := MyNet()
+	net := newMyNet()
 	np := nn.GetNamedParameters(net)
 	fmt.Println(len(np))
 
