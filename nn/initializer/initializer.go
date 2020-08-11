@@ -30,8 +30,8 @@ func KaimingUniform(input *torch.Tensor, a float64, fanMode string,
 }
 
 // CalculateFanInAndFanOut torch.nn.init._calculate_fan_in_and_fan_out
-func CalculateFanInAndFanOut(input torch.Tensor) (int, int) {
-	var fanIn, fanOut int
+func CalculateFanInAndFanOut(input torch.Tensor) (int64, int64) {
+	var fanIn, fanOut int64
 	torch.MustNil(unsafe.Pointer(C.CalculateFanInAndFanOut(
 		C.Tensor(*input.T),
 		(*C.int64_t)(unsafe.Pointer(&fanIn)),
