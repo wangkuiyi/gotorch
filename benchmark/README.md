@@ -24,10 +24,9 @@ versions use the data loader from torchvision.
 python3 -m pip install torch==1.6.0 torchvision
 ```
 
-On a Late 2014 MacBook Pro runninng macOS 10.15.5, it seems that the throughtput
-of the GoTorch program is about **3 times** of the PyTorch version.  The measure
-of throughput doesn't include model instantiaation, data preparation, but only
-the train loop.
+On a Late 2014 iMac runninng macOS 10.15.5, the throughtput of the GoTorch
+program is about **3 times** of the PyTorch version.  The measure of throughput
+doesn't include model instantiaation, data preparation, but only the train loop.
 
 Consider the tatal running time, the GoTorch version takes **43 seconds**, but
 the PyTorch version takes about **4 minutes**.

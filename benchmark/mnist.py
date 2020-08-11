@@ -54,6 +54,7 @@ def main():
             loss = F.nll_loss(output, target)
             loss.backward()
             optimizer.step()
+
     throughput = len(dataset) * epochs * 1.0 / (time.time() - start)
     print("The throughput: {} samples/sec".format(throughput))
 

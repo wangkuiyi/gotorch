@@ -13,6 +13,14 @@ type MLPMNISTNet struct {
 	FC1, FC2, FC3 nn.Module
 }
 
+func NewMNISTNet() nn.Module {
+	return &MLPMNISTNet{
+		FC1: nn.Linear(28*28, 512, false),
+		FC2: nn.Linear(512, 512, false),
+		FC3: nn.Linear(512, 10, false),
+	}
+}
+
 func (n *MLPMNISTNet) Forward(x torch.Tensor) torch.Tensor {
 	x = torch.View(x, []int64{-1, 28 * 28})
 	x = n.FC1.Forward(x)
@@ -23,14 +31,6 @@ func (n *MLPMNISTNet) Forward(x torch.Tensor) torch.Tensor {
 	return x.LogSoftmax(1)
 }
 
-func NewMNISTNet() nn.Module {
-	return &MLPMNISTNet{
-		FC1: nn.Linear(28*28, 512, false),
-		FC2: nn.Linear(512, 512, false),
-		FC3: nn.Linear(512, 10, false),
-	}
-}
-
 func ExampleTrainMNIST() {
 	if e := downloadMNIST(); e != nil {
 		log.Printf("Cannot find or download MNIST dataset: %v", e)
@@ -39,11 +39,10 @@ func ExampleTrainMNIST() {
 	mnist := torch.NewMNIST(dataDir(), transforms)
 
 	net := NewMNISTNet()
-	opt := torch.SGD(0.1, 0.5, 0, 0, false)
+	opt := torch.SGD(0.01, 0.5, 0, 0, false)
 	opt.AddParameters(nn.GetParameters(net))
 
 	epochs := 5
-	batchIdx := 0
 	startTime := time.Now()
 	for i := 0; i < epochs; i++ {
 		trainLoader := torch.NewDataLoader(mnist, 64)
@@ -54,12 +53,11 @@ func ExampleTrainMNIST() {
 			loss := F.NllLoss(pred, batch.Target, torch.Tensor{}, -100, "mean")
 			loss.Backward()
 			opt.Step()
-			batchIdx++
 		}
 		trainLoader.Close()
 	}
-	log.Printf("Throughput: %f samples/sec",
-		float64(60000*epochs)/float64(time.Since(startTime).Seconds()))
+	throughput := float64(60000*epochs) / float64(time.Since(startTime).Seconds())
+	log.Printf("Throughput: %f samples/sec", throughput)
 
 	mnist.Close()
 	torch.FinishGC()
