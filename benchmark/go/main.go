@@ -44,7 +44,7 @@ func train() {
 	mnist := torch.NewMNIST(dataDir(), transforms)
 	opt := torch.SGD(0.01, 0.5, 0, 0, false)
 	opt.AddParameters(nn.GetParameters(net))
-	epochs := 10
+	epochs := 5
 	// TODO(yancey1989): port dataset size API
 	totalSamples := 60000
 	totalThroughput := 0

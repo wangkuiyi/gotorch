@@ -8,13 +8,13 @@
 #include <vector>
 
 // Where to find the MNIST dataset.
-const char* kDataRoot = "/root/.cache/mnist";
+const char* kDataRoot = "/Users/yancey/.cache/mnist";
 
 // The batch size for training.
 const int64_t kTrainBatchSize = 64;
 
 // The number of epochs to train.
-const int64_t kNumberOfEpochs = 10;
+const int64_t kNumberOfEpochs = 5;
 
 struct Net : torch::nn::Module {
   Net() : fc1(28 * 28, 512), fc2(512, 512), fc3(512, 10) {
@@ -82,11 +82,11 @@ auto main() -> int {
     }
     float duration =
         static_cast<float>((clock() - begin_time) / CLOCKS_PER_SEC);
-    int throughput = static_cast<int>((train_dataset_size * 1.0 / duration));
+    int throughput = (train_dataset_size * 1.0 / duration);
     total_throughtput += throughput;
     std::printf("End Train Epoch: %ld, Throughput: %d sampels/sec\n", epoch,
                 throughput);
   }
-  std::printf("The average throughtput: %ld\n",
+  std::printf("The average throughtput: %ld sampels/sec\n",
               total_throughtput / kNumberOfEpochs);
 }

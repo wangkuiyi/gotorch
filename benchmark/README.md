@@ -1,28 +1,37 @@
 # Benchmark on Different Front Language of Torch
 
-## Prepare the Benchmarking Environment
+The following table compared the execution time of MNIST training on different Torch front language.
 
-Build a Docker image as the benchmark environment:
+| Front Language | Execution Time |
+| -- | -- |
+| C++(LibTorch) | |
+| Go(GoTorch) | 321.89s user 604.86s system 642% cpu 2:24.13 total|
+| Python(PyTorch) | |
+
+You can run the command the reproduce this experiment on your host:
+
+PyTorch:
 
 ``` bash
-docker build -t gotorch:benchmark .
+$ time python ./python/mnist.py
+The Average Throughput: 3319 samples/sec
+python3 python/mnist.py  533.10s user 9.24s system 573% cpu 1:34.55 total
 ```
 
-Start a Docker container to setup your benchmark environment, you can use `--cpus` argument to limit
-the CPU cores:
+GoTorch:
 
 ``` bash
-docker run --cpus=2 --rm -it -v $PWD/..:/go/src/github.com/wangkuiyi/gotorch -w /go/src/github.com/wangkuiyi/gotorch gotorch:benchmark bash
+$ time go run ./go
+The average throughout: 7833 samples/sec
+go run ./go  120.85s user 241.99s system 842% cpu 43.058 total
+
 ```
 
-## Compare the Throughput
+LibTorch:
 
-Throughput is a measure of the performance of a Deep Learning engine. The Torch community provides
-C++ and Python as the front language, this project tried to provide Go+ as the front language of Torch.
-This section would compare the throughput on these front language.
-
-| Front language | Throughput (1*CPUs)|Throughput (2*CPUs)|Throughput (4*CPUs)
-| -- | -- | -- | -- |
-| C++(LibTorch) || 3999 (samples/sec)| |
-| Go(GoTorch) ||4697 (samples/sec)||
-| Python(PyTorch) || 3728 (samples/sec)||
+``` bash
+$ cd cpp
+$ make && time ./mnist
+The average throughtput: 2422 samples/sec
+./mnist  126.53s user 1.71s system 562% cpu 22.802 total
+```

@@ -33,7 +33,7 @@ def main():
         transforms.Normalize((0.1307,), (0.3081,))
         ])
 
-    dataset = datasets.MNIST('/root/.cache/mnist', train=True, download=True,
+    dataset = datasets.MNIST('~/.cache/mnist', train=True, download=True,
                        transform=transform)
 
     train_loader = torch.utils.data.DataLoader(dataset, batch_size=64)
@@ -42,7 +42,7 @@ def main():
     model.train()
     optimizer = optim.SGD(model.parameters(), lr=0.01, momentum=0.5)
 
-    epochs = 10
+    epochs = 5
     total_throughput = 0
     for epoch in range(1, epochs + 1):
         start = time.time()
