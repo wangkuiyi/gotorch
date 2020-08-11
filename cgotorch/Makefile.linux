@@ -1,9 +1,9 @@
 all : libcgotorch.so
 
-libtorch-shared-with-deps-1.5.1%2Bcpu.zip :
-	curl -LsO 'https://download.pytorch.org/libtorch/cpu/libtorch-shared-with-deps-1.5.1%2Bcpu.zip'
+libtorch-shared-with-deps-1.6.0%2Bcpu.zip :
+	curl -LsO 'https://download.pytorch.org/libtorch/cpu/libtorch-shared-with-deps-1.6.0%2Bcpu.zip'
 
-linux/libtorch : libtorch-shared-with-deps-1.5.1%2Bcpu.zip
+linux/libtorch : libtorch-shared-with-deps-1.6.0%2Bcpu.zip
 	unzip -qq -o $< -d linux
 
 libcgotorch.so : cgotorch.cc cgotorch.h linux/libtorch
