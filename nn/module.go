@@ -45,17 +45,10 @@ type Module struct {
 	name string
 
 	// The registered buffers of this `Module`.
-	buffers map[string]Tensor
+	buffers map[string]torch.Tensor
 
 	// The registered (direct) submodules of this `Module`.
 	children map[string]IModule
-}
-
-// Forward returns the result of the forward pass of the modules
-func (m *Module) Forward(x Tensor) Tensor {
-	// TODO(shendiaomo): to be deleted, each container as `Sequential` etc.
-	// should use `reflect` to call `Forward` of submodules
-	return Tensor{}
 }
 
 // Train enables "training" mode
