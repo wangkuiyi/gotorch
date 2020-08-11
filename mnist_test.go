@@ -8,14 +8,13 @@ import (
 	F "github.com/wangkuiyi/gotorch/nn/functional"
 )
 
-type MultiLayerMNISTNet struct {
+type MLPMNISTNet struct {
 	FC1, FC2, FC3 nn.Module
 }
 
-func (n *MultiLayerMNISTNet) Forward(x torch.Tensor) torch.Tensor {
+func (n *MLPMNISTNet) Forward(x torch.Tensor) torch.Tensor {
 	x = torch.View(x, []int{-1, 28 * 28})
 	x = n.FC1.Forward(x)
-	//x = torch.Relu(x)
 	x = torch.Tanh(x)
 	x = n.FC2.Forward(x)
 	x = torch.Tanh(x)
@@ -24,7 +23,7 @@ func (n *MultiLayerMNISTNet) Forward(x torch.Tensor) torch.Tensor {
 }
 
 func NewMNISTNet() nn.Module {
-	return &MultiLayerMNISTNet{
+	return &MLPMNISTNet{
 		FC1: nn.Linear(28*28, 512, false),
 		FC2: nn.Linear(512, 512, false),
 		FC3: nn.Linear(512, 10, false),
@@ -48,7 +47,7 @@ func ExampleTrainMNIST() {
 			batch := trainLoader.Batch()
 			opt.ZeroGrad()
 			pred := net.Forward(batch.Data)
-			loss := F.NllLoss(pred, batch.Target, torch.Tensor{nil}, -100, "mean")
+			loss := F.NllLoss(pred, batch.Target, torch.Tensor{}, -100, "mean")
 			loss.Backward()
 			opt.Step()
 			batchIdx++
