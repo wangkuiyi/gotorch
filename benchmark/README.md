@@ -21,8 +21,8 @@ of the GoTorch program is about **3 times** of the PyTorch version.  The measure
 of throughput doesn't include model instantiaation, data preparation, but only
 the train loop.
 
-Consider the tatal running time, the GoTorch version takes 43 seconds, but the
-PyTorch version takes 4 minutes.
+Consider the tatal running time, the GoTorch version takes **43 seconds**, but
+the PyTorch version takes about **4 minutes**.
 
 A typical run outputs the following:
 
