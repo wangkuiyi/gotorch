@@ -75,8 +75,8 @@ func Conv2d(input, weight, bias torch.Tensor,
 // ConvTranspose2d does 2d-fractionally-strided convolution
 func ConvTranspose2d(
 	input, weight, bias torch.Tensor,
-	stride, padding, outputPadding []int,
-	groups int, dilation []int) torch.Tensor {
+	stride, padding, outputPadding []int64,
+	groups int64, dilation []int64) torch.Tensor {
 
 	var cbias, t C.Tensor
 	if bias.T != nil {

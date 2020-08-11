@@ -146,7 +146,7 @@ func (a Tensor) Sigmoid() Tensor {
 }
 
 // LogSoftmax returns log softmax of the current tensor
-func (a Tensor) LogSoftmax(dim int) Tensor {
+func (a Tensor) LogSoftmax(dim int64) Tensor {
 	var t C.Tensor
 	MustNil(unsafe.Pointer(C.LogSoftmax(C.Tensor(*a.T), C.int64_t(dim), &t)))
 	SetTensorFinalizer((*unsafe.Pointer)(&t))
@@ -194,7 +194,7 @@ func Sigmoid(t Tensor) Tensor {
 }
 
 // LogSoftmax returns log softmax of the input tensor
-func LogSoftmax(t Tensor, dim int) Tensor {
+func LogSoftmax(t Tensor, dim int64) Tensor {
 	return t.LogSoftmax(dim)
 }
 
