@@ -22,7 +22,7 @@ C++ and Python as the front language, this project tried to provide Go+ as the f
 This section would compare the throughput on these front language.
 
 | Front language | Throughput (1*CPUs)|Throughput (2*CPUs)|Throughput (4*CPUs)
-| -- | -- | -- |
+| -- | -- | -- | -- |
 | C++(LibTorch) || 3999 (samples/sec)| |
 | Go(GoTorch) ||4697 (samples/sec)||
 | Python(PyTorch) || 3728 (samples/sec)||
