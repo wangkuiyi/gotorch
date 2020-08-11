@@ -24,7 +24,7 @@ const char *BatchNorm(Tensor input, Tensor weight, Tensor bias,
     *result = new at::Tensor(output);
     return nullptr;
   } catch (const std::exception &e) {
-    return exception_str(e);
+    return exception_str(e.what());
   }
 }
 
@@ -45,7 +45,7 @@ const char *Conv2d(Tensor input, Tensor weight, Tensor bias,
     *result = new at::Tensor(output);
     return nullptr;
   } catch (const std::exception &e) {
-    return exception_str(e);
+    return exception_str(e.what());
   }
 }
 
@@ -70,7 +70,7 @@ const char *ConvTranspose2d(Tensor input, Tensor weight, Tensor bias,
     *result = new at::Tensor(output);
     return nullptr;
   } catch (const std::exception &e) {
-    return exception_str(e);
+    return exception_str(e.what());
   }
 }
 
@@ -93,6 +93,6 @@ const char *NllLoss(Tensor input, Tensor target, Tensor weight,
     *result = new at::Tensor(output);
     return nullptr;
   } catch (const std::exception &e) {
-    return exception_str(e);
+    return exception_str(e.what());
   }
 }

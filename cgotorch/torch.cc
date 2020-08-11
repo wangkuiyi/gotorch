@@ -14,10 +14,10 @@
 // Helper functions
 ////////////////////////////////////////////////////////////////////////////////
 
-const char *exception_str(const std::exception &e) {
-  auto len = strlen(e.what());
+const char *exception_str(const char *e) {
+  auto len = strlen(e);
   auto r = new char[len + 1];
-  snprintf(r, len, "%s", e.what());
+  snprintf(r, len, "%s", e);
   return r;
 }
 
@@ -34,7 +34,7 @@ const char *RandN(int64_t *size, int64_t length, int64_t require_grad,
     *result = new at::Tensor(t);
     return nullptr;
   } catch (const std::exception &e) {
-    return exception_str(e);
+    return exception_str(e.what());
   }
 }
 
@@ -47,7 +47,7 @@ const char *Empty(int64_t *size, int64_t length, int64_t require_grad,
     *result = new at::Tensor(t);
     return nullptr;
   } catch (const std::exception &e) {
-    return exception_str(e);
+    return exception_str(e.what());
   }
 }
 
@@ -57,7 +57,7 @@ const char *MM(Tensor a, Tensor b, Tensor *result) {
     *result = new at::Tensor(c);
     return nullptr;
   } catch (const std::exception &e) {
-    return exception_str(e);
+    return exception_str(e.what());
   }
 }
 
@@ -66,7 +66,7 @@ const char *Sum(Tensor a, Tensor *result) {
     *result = new at::Tensor(a->sum());
     return nullptr;
   } catch (const std::exception &e) {
-    return exception_str(e);
+    return exception_str(e.what());
   }
 }
 
@@ -75,7 +75,7 @@ const char *Relu(Tensor a, Tensor *result) {
     *result = new at::Tensor(a->relu());
     return nullptr;
   } catch (const std::exception &e) {
-    return exception_str(e);
+    return exception_str(e.what());
   }
 }
 
@@ -84,7 +84,7 @@ const char *LeakyRelu(Tensor a, double negative_slope, Tensor *result) {
     *result = new at::Tensor(at::leaky_relu(*a, negative_slope));
     return nullptr;
   } catch (const std::exception &e) {
-    return exception_str(e);
+    return exception_str(e.what());
   }
 }
 
@@ -93,7 +93,7 @@ const char *Tanh(Tensor a, Tensor *result) {
     *result = new at::Tensor(a->tanh());
     return nullptr;
   } catch (const std::exception &e) {
-    return exception_str(e);
+    return exception_str(e.what());
   }
 }
 
@@ -102,7 +102,7 @@ const char *Sigmoid(Tensor a, Tensor *result) {
     *result = new at::Tensor(a->sigmoid());
     return nullptr;
   } catch (const std::exception &e) {
-    return exception_str(e);
+    return exception_str(e.what());
   }
 }
 
@@ -111,7 +111,7 @@ const char *View(Tensor a, Tensor *result, int64_t *size, int64_t size_len) {
     *result = new at::Tensor(a->view(torch::IntArrayRef(size, size_len)));
     return nullptr;
   } catch (const std::exception &e) {
-    return exception_str(e);
+    return exception_str(e.what());
   }
 }
 
@@ -120,7 +120,7 @@ const char *LogSoftmax(Tensor a, int64_t dim, Tensor *result) {
     *result = new at::Tensor(a->log_softmax(dim));
     return nullptr;
   } catch (const std::exception &e) {
-    return exception_str(e);
+    return exception_str(e.what());
   }
 }
 
@@ -153,7 +153,7 @@ const char *Dataset_MNIST(const char *data_root, Dataset *dataset) {
     dataset->p = new torch::data::datasets::MNIST(std::string(data_root));
     return nullptr;
   } catch (const std::exception &e) {
-    return exception_str(e);
+    return exception_str(e.what());
   }
 }
 

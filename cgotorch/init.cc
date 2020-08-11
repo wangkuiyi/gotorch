@@ -32,7 +32,7 @@ const char *Zeros_(Tensor *tensor) {
     torch::nn::init::zeros_(**tensor);
     return nullptr;
   } catch (const std::exception &e) {
-    return exception_str(e);
+    return exception_str(e.what());
   }
 }
 
@@ -41,7 +41,7 @@ const char *Uniform_(Tensor *tensor, double low, double high) {
     torch::nn::init::uniform_(**tensor, low, high);
     return nullptr;
   } catch (const std::exception &e) {
-    return exception_str(e);
+    return exception_str(e.what());
   }
 }
 
@@ -53,7 +53,7 @@ const char *KaimingUniform_(double a, const char *fan_mod,
         non_linearity_map[std::string(non_linearity)]);
     return nullptr;
   } catch (const std::exception &e) {
-    return exception_str(e);
+    return exception_str(e.what());
   }
 }
 
@@ -65,6 +65,6 @@ const char *CalculateFanInAndFanOut(Tensor tensor, int64_t *fan_in,
     *fan_out = std::get<1>(res);
     return nullptr;
   } catch (const std::exception &e) {
-    return exception_str(e);
+    return exception_str(e.what());
   }
 }
