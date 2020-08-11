@@ -11,10 +11,10 @@ import (
 type Dtype int // TODO(shendiaomo): this is a placeholder to be defined later
 
 // DeviceType is the type of devices
-type DeviceType in // TODO(shendiaomo): this is a placeholder to be defined latert
+type DeviceType int // TODO(shendiaomo): this is a placeholder to be defined latert
 
 // DeviceIndex is the index of available devices
-type DeviceIndex = int16
+type DeviceIndex int16
 
 // Device represents a a compute device on which a tensor is located.
 type Device struct {
