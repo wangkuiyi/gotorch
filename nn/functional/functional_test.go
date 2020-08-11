@@ -14,7 +14,7 @@ func TestTranspose2d(t *testing.T) {
 	stride := []int64{1}
 	padding := []int64{0}
 	outputPadding := []int64{0}
-	groups := 1
+	groups := int64(1)
 	dilation := []int64{1}
 	out := ConvTranspose2d(input, weight, bias,
 		stride, padding, outputPadding, groups, dilation)
