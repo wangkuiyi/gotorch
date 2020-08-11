@@ -80,7 +80,6 @@ const char *Conv2d(Tensor input, Tensor weight, Tensor bias,
                    int64_t *dilation_data, int64_t dilation_len, int64_t groups,
                    Tensor *result);
 
-const char *View(Tensor a, Tensor *result, int64_t *size, int64_t size_len);
 const char *ConvTranspose2d(Tensor input, Tensor weight, Tensor bias,
                             int64_t *stride_data, int64_t stride_len,
                             int64_t *padding_data, int64_t padding_len,
