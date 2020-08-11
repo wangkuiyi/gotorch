@@ -5,11 +5,11 @@ import (
 )
 
 func ExampleBackward() {
-	b := torch.RandN([]int{4, 1}, true)
+	b := torch.RandN([]int64{4, 1}, true)
 	opt := torch.SGD(0.1, 0, 0, 0, false)
 	opt.AddParameters([]torch.Tensor{b})
 
-	a := torch.RandN([]int{3, 4}, false)
+	a := torch.RandN([]int64{3, 4}, false)
 	c := torch.MM(a, b)
 	d := torch.Sum(c)
 

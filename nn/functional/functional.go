@@ -54,7 +54,7 @@ func BatchNorm(input, weight, bias, runningMean, runningVar torch.Tensor,
 
 // Conv2d does 2d-convolution
 func Conv2d(input, weight, bias torch.Tensor,
-	stride, padding, dilation []int, groups int) torch.Tensor {
+	stride, padding, dilation []int64, groups int64) torch.Tensor {
 	var cbias, t C.Tensor
 	if bias.T != nil {
 		cbias = C.Tensor(*bias.T)
@@ -75,8 +75,8 @@ func Conv2d(input, weight, bias torch.Tensor,
 // ConvTranspose2d does 2d-fractionally-strided convolution
 func ConvTranspose2d(
 	input, weight, bias torch.Tensor,
-	stride, padding, outputPadding []int,
-	groups int, dilation []int) torch.Tensor {
+	stride, padding, outputPadding []int64,
+	groups int64, dilation []int64) torch.Tensor {
 
 	var cbias, t C.Tensor
 	if bias.T != nil {
@@ -102,7 +102,7 @@ func ConvTranspose2d(
 }
 
 // NllLoss torch.nn.functional.nll_loss
-func NllLoss(input, target, weight torch.Tensor, ignoreIndex int,
+func NllLoss(input, target, weight torch.Tensor, ignoreIndex int64,
 	reduction string) torch.Tensor {
 	var cweight, t C.Tensor
 	if weight.T != nil {

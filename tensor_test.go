@@ -8,7 +8,7 @@ import (
 )
 
 func ExampleTensor() {
-	t := torch.RandN([]int{10, 100}, false)
+	t := torch.RandN([]int64{10, 100}, false)
 	t.Close()
 	t.Close()
 	// Output:
@@ -16,7 +16,7 @@ func ExampleTensor() {
 
 func TestLogSoftmax(t *testing.T) {
 	a := assert.New(t)
-	x := torch.RandN([]int{1, 6}, false)
+	x := torch.RandN([]int64{1, 6}, false)
 	out := x.LogSoftmax(1)
 	// TODO(yancey1989): convert torchTensro as Go slice, that we can
 	// check the value.
