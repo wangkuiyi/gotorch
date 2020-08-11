@@ -257,7 +257,6 @@ const char *Conv2d(Tensor input, Tensor weight, Tensor bias,
   }
 }
 
-
 const char *ConvTranspose2d(Tensor input, Tensor weight, Tensor bias,
                             int64_t *stride_data, int64_t stride_len,
                             int64_t *padding_data, int64_t padding_len,
