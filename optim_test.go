@@ -37,7 +37,7 @@ func ExampleSGD() {
 
 	for i := 0; i < 100; i++ {
 		torch.GC()
-		data := torch.RandN([]int{32, 100}, false)
+		data := torch.RandN([]int64{32, 100}, false)
 		pre := net.Forward(data)
 		loss := torch.Sum(pre)
 

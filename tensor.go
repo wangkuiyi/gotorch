@@ -66,7 +66,7 @@ type Tensor struct {
 }
 
 // RandN returns a tensor filled with standard normal distribution, torch.randn
-func RandN(shape []int, requireGrad bool) Tensor {
+func RandN(shape []int64, requireGrad bool) Tensor {
 	rg := 0
 	if requireGrad {
 		rg = 1
@@ -79,7 +79,7 @@ func RandN(shape []int, requireGrad bool) Tensor {
 }
 
 // Empty returns a tensor filled with random number, torch.empty
-func Empty(shape []int, requireGrad bool) Tensor {
+func Empty(shape []int64, requireGrad bool) Tensor {
 	rg := 0
 	if requireGrad {
 		rg = 1
@@ -207,7 +207,7 @@ func Sum(a Tensor) Tensor {
 }
 
 // View returns a new Tensor with the same data but of a different shape
-func View(a Tensor, shape []int) Tensor {
+func View(a Tensor, shape []int64) Tensor {
 	var t C.Tensor
 	MustNil(unsafe.Pointer(C.View(C.Tensor(*a.T), &t, (*C.int64_t)(unsafe.Pointer(&shape[0])), C.int64_t(len(shape)))))
 	SetTensorFinalizer((*unsafe.Pointer)(&t))
