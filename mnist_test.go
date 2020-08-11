@@ -56,7 +56,7 @@ func ExampleTrainMNIST() {
 		}
 		trainLoader.Close()
 	}
-	throughput := float64(60000*epochs) / float64(time.Since(startTime).Seconds())
+	throughput := float64(60000*epochs) / time.Since(startTime).Seconds()
 	log.Printf("Throughput: %f samples/sec", throughput)
 
 	mnist.Close()
