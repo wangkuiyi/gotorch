@@ -214,6 +214,14 @@ const char *LogSoftmax(Tensor a, int64_t dim, Tensor *result) {
   }
 }
 
+const char *View(Tensor a, Tensor *result, int64_t *size, int64_t size_len) {
+  try {
+    *result = new at::Tensor(a->view(torch::IntArrayRef(size, size_len)));
+    return nullptr;
+  } catch (const std::exception &e) {
+    return exception_str(e);
+  }
+}
 const char *ConvTranspose2d(Tensor input, Tensor weight, Tensor bias,
                             int64_t *stride_data, int64_t stride_len,
                             int64_t *padding_data, int64_t padding_len,
@@ -319,44 +327,34 @@ void Optimizer_Close(Optimizer opt) { delete opt; }
 // Dataset, DataLoader, and Iterator
 ////////////////////////////////////////////////////////////////////////////////
 
-const char *MNIST(const char *data_root, Dataset *dataset) {
+const char *Dataset_MNIST(const char *data_root, Dataset *dataset) {
   try {
-    *dataset = new torch::data::datasets::MNIST(std::string(data_root));
+    dataset->p = new torch::data::datasets::MNIST(std::string(data_root));
     return nullptr;
   } catch (const std::exception &e) {
     return exception_str(e);
   }
 }
 
-void MNIST_Close(Dataset d) {
-  delete static_cast<torch::data::datasets::MNIST *>(d);
+void MNIST_Close(Dataset d) { delete d.p; }
+
+void Dataset_Normalize(Dataset *dataset, double mean, double stddev) {
+  dataset->normalize = new torch::data::transforms::Normalize<>(mean, stddev);
 }
 
-Transform Normalize(double mean, double stddev) {
-  return new torch::data::transforms::Normalize<>(mean, stddev);
-}
-
-Transform Stack() { return new torch::data::transforms::Stack<>(); }
-
-void Dataset_Normalize(Dataset dataset, Transform transform) {
-  static_cast<torch::data::datasets::MNIST *>(dataset)->map(
-      *(static_cast<torch::data::transforms::Normalize<> *>(transform)));
-}
-
-void Dataset_Stack(Dataset dataset, Transform transform) {
-  static_cast<torch::data::datasets::MNIST *>(dataset)->map(
-      *(static_cast<torch::data::transforms::Stack<> *>(transform)));
-}
-
+using TypeMapDataset = torch::data::datasets::MapDataset<
+    torch::data::datasets::MapDataset<torch::data::datasets::MNIST,
+                                      torch::data::transforms::Normalize<>>,
+    torch::data::transforms::Stack<torch::data::Example<>>>;
 using TypeDataLoader =
-    torch::data::StatelessDataLoader<torch::data::datasets::MNIST,
+    torch::data::StatelessDataLoader<TypeMapDataset,
                                      torch::data::samplers::SequentialSampler>;
 
 using TypeIterator = torch::data::Iterator<TypeDataLoader::BatchType>;
-
 DataLoader MakeDataLoader(Dataset dataset, int64_t batchsize) {
-  auto p = torch::data::make_data_loader(
-      *(static_cast<torch::data::datasets::MNIST *>(dataset)), batchsize);
+  auto map_dataset = dataset.p->map(*dataset.normalize)
+                         .map(torch::data::transforms::Stack<>());
+  auto p = torch::data::make_data_loader(map_dataset, batchsize);
   return p.release();
 }
 
@@ -366,8 +364,8 @@ Iterator Loader_Begin(DataLoader loader) {
 
 void Iterator_Batch(Iterator iter, Tensor *data, Tensor *target) {
   auto i = *static_cast<TypeIterator *>(iter);
-  *data = new at::Tensor(i->data()->data);
-  *target = new at::Tensor(i->data()->target);
+  *data = new at::Tensor(i->data);
+  *target = new at::Tensor(i->target);
 }
 
 bool Loader_Next(DataLoader loader, Iterator iter) {

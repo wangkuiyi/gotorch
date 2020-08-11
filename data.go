@@ -21,7 +21,7 @@ type Transform interface{}
 
 // Normalize transform struct
 type Normalize struct {
-	T unsafe.Pointer
+	mean, stddev float64
 }
 
 // Stack transform struct
@@ -30,11 +30,22 @@ type Stack struct {
 }
 
 // NewMNIST returns MNIST dataset
-func NewMNIST(dataRoot string) *Dataset {
+func NewMNIST(dataRoot string, transforms []Transform) *Dataset {
 	var dataset C.Dataset
 	cstr := C.CString(dataRoot)
 	defer C.free(unsafe.Pointer(cstr))
-	MustNil(unsafe.Pointer(C.MNIST(cstr, &dataset)))
+	MustNil(unsafe.Pointer(C.Dataset_MNIST(cstr, &dataset)))
+
+	// cache transforms on dataset
+	for _, v := range transforms {
+		switch t := v.(type) {
+		case *Normalize:
+			C.Dataset_Normalize(&dataset, C.double(v.(*Normalize).mean), C.double(v.(*Normalize).stddev))
+		default:
+			panic(fmt.Sprintf("unsupposed transform type: %T", t))
+		}
+	}
+
 	return &Dataset{dataset}
 }
 
@@ -45,26 +56,7 @@ func (d *Dataset) Close() {
 
 // NewNormalize returns normalize transformer
 func NewNormalize(mean float64, stddev float64) *Normalize {
-	return &Normalize{unsafe.Pointer(C.Normalize(C.double(mean), C.double(stddev)))}
-}
-
-// NewStack returns Stack tranformer
-func NewStack() *Stack {
-	return &Stack{unsafe.Pointer(C.Stack())}
-}
-
-// AddTransforms adds a slice of Transform
-func (d *Dataset) AddTransforms(transforms []Transform) {
-	for _, trans := range transforms {
-		switch v := trans.(type) {
-		case *Normalize:
-			C.Dataset_Normalize(d.T, (C.Transform)(trans.(*Normalize).T))
-		case *Stack:
-			C.Dataset_Stack(d.T, (C.Transform)(trans.(*Stack).T))
-		default:
-			panic(fmt.Sprintf("unsupposed transform type: %T", v))
-		}
-	}
+	return &Normalize{mean, stddev}
 }
 
 // DataLoader struct

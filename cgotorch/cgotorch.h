@@ -8,9 +8,13 @@
 extern "C" {
 typedef at::Tensor *Tensor;
 typedef torch::optim::Optimizer *Optimizer;
+typedef torch::data::datasets::MNIST *MNIST;
+typedef torch::data::transforms::Normalize<> *Normalize;
 #else
 typedef void *Tensor;
 typedef void *Optimizer;
+typedef void *MNIST;
+typedef void *Normalize;
 #endif
 
 // torch.randn
@@ -44,6 +48,7 @@ const char *Relu(Tensor a, Tensor *result);
 const char *LeakyRelu(Tensor a, double negative_slope, Tensor *result);
 const char *Tanh(Tensor a, Tensor *result);
 const char *Sigmoid(Tensor a, Tensor *result);
+const char *View(Tensor a, Tensor *result, int64_t *size, int64_t size_len);
 const char *LogSoftmax(Tensor a, int64_t dim, Tensor *result);
 const char *ConvTranspose2d(Tensor input, Tensor weight, Tensor bias,
                             int64_t *stride_data, int64_t stride_len,
@@ -74,19 +79,18 @@ void Optimizer_Step(Optimizer opt);
 void Optimizer_AddParameters(Optimizer opt, Tensor *tensors, int64_t length);
 void Optimizer_Close(Optimizer opt);
 
-// transform APIs
-typedef void *Transform;
-Transform Normalize(double mean, double stddev);
-Transform Stack();
+typedef struct DatasetMNIST {
+  MNIST p;
+  Normalize normalize;
+  double mean, stddev;
+} Dataset;
 
-// dataset APIs
-typedef void *Dataset;
-const char *MNIST(const char *data_root, Dataset *dataset);
+const char *Dataset_MNIST(const char *data_root, Dataset *dataset);
 void MNIST_Close(Dataset d);
 
-// Add transform on dataset
-void Dataset_Normalize(Dataset dataset, Transform transform);
-void Dataset_Stack(Dataset dataset, Transform transform);
+// cache normalize transform on dataset
+void Dataset_Normalize(Dataset *dataset, double mean, double stddev);
+// void Dataset_Stack(Dataset* dataset, Transform transform);
 
 typedef void *Iterator;
 typedef void *DataLoader;
