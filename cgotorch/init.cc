@@ -7,7 +7,6 @@
 // FIXME(shendiaomo): including cgotorch.h before torch/torch.h will fail
 #include "cgotorch/cgotorch.h"
 
-
 std::unordered_map<std::string, torch::nn::init::FanModeType> fan_mode_map = {
     {"fan_in", torch::kFanIn},
     {"fan_out", torch::kFanOut},
