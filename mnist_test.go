@@ -2,6 +2,7 @@ package gotorch_test
 
 import (
 	"log"
+	"time"
 
 	torch "github.com/wangkuiyi/gotorch"
 	nn "github.com/wangkuiyi/gotorch/nn"
@@ -34,13 +35,16 @@ func ExampleTrainMNIST() {
 	if e := downloadMNIST(); e != nil {
 		log.Printf("Cannot find or download MNIST dataset: %v", e)
 	}
-	net := NewMNISTNet()
 	transforms := []torch.Transform{torch.NewNormalize(0.1307, 0.3081)}
 	mnist := torch.NewMNIST(dataDir(), transforms)
+
+	net := NewMNISTNet()
 	opt := torch.SGD(0.1, 0.5, 0, 0, false)
 	opt.AddParameters(nn.GetParameters(net))
-	epochs := 4
+
+	epochs := 5
 	batchIdx := 0
+	startTime := time.Now()
 	for i := 0; i < epochs; i++ {
 		trainLoader := torch.NewDataLoader(mnist, 64)
 		for trainLoader.Scan() {
@@ -54,6 +58,9 @@ func ExampleTrainMNIST() {
 		}
 		trainLoader.Close()
 	}
+	log.Printf("Throughput: %f samples/sec",
+		float64(60000*epochs)/float64(time.Since(startTime).Seconds()))
+
 	mnist.Close()
 	torch.FinishGC()
 	// Output:
