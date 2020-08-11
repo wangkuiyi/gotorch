@@ -13,24 +13,24 @@ import (
 )
 
 // BatchNorm does batch nomalization for `input`
-func BatchNorm(input, weight, bias, runningMean, runningVar torch.Tensor,
+func BatchNorm(input, runningMean, runningVar, weight, bias torch.Tensor,
 	training bool, momentum, eps float64) torch.Tensor {
 	var cTraining C.int8_t
 	if training {
 		cTraining = 1
 	}
 	var cweight, cbias, cmean, cvar, t C.Tensor
-	if weight.T != nil {
-		cweight = C.Tensor(*weight.T)
-	}
-	if bias.T != nil {
-		cbias = C.Tensor(*bias.T)
-	}
 	if runningMean.T != nil {
 		cmean = C.Tensor(*runningMean.T)
 	}
 	if runningVar.T != nil {
 		cvar = C.Tensor(*runningVar.T)
+	}
+	if weight.T != nil {
+		cweight = C.Tensor(*weight.T)
+	}
+	if bias.T != nil {
+		cbias = C.Tensor(*bias.T)
 	}
 	torch.MustNil(
 		unsafe.Pointer(C.BatchNorm(

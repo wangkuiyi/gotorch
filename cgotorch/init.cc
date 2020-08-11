@@ -36,6 +36,15 @@ const char *Zeros_(Tensor *tensor) {
   }
 }
 
+const char *Ones_(Tensor *tensor) {
+  try {
+    torch::nn::init::ones_(**tensor);
+    return nullptr;
+  } catch (const std::exception &e) {
+    return exception_str(e.what());
+  }
+}
+
 const char *Uniform_(Tensor *tensor, double low, double high) {
   try {
     torch::nn::init::uniform_(**tensor, low, high);

@@ -18,7 +18,7 @@ func TestLogSoftmax(t *testing.T) {
 	a := assert.New(t)
 	x := torch.RandN([]int64{1, 6}, false)
 	out := x.LogSoftmax(1)
-	// TODO(yancey1989): convert torchTensro as Go slice, that we can
+	// TODO(yancey1989): convert torchTensor as Go slice, that we can
 	// check the value.
 	a.NotNil(out.T)
 }

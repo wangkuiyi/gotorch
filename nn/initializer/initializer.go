@@ -17,6 +17,11 @@ func Zeros(a *torch.Tensor) {
 	torch.MustNil(unsafe.Pointer(C.Zeros_((*C.Tensor)(a.T))))
 }
 
+// Ones initialization, torch.nn.init.ones_
+func Ones(a *torch.Tensor) {
+	torch.MustNil(unsafe.Pointer(C.Ones_((*C.Tensor)(a.T))))
+}
+
 // Uniform initialization, torch.nn.init.uniform_
 func Uniform(a *torch.Tensor, low, high float64) {
 	torch.MustNil(unsafe.Pointer(C.Uniform_((*C.Tensor)(a.T), C.double(low), C.double(high))))

@@ -39,7 +39,7 @@ func ExampleTrainMNIST() {
 	mnist := torch.NewMNIST(dataDir(), transforms)
 	opt := torch.SGD(0.1, 0.5, 0, 0, false)
 	opt.AddParameters(nn.GetParameters(net))
-	epochs := 4
+	epochs := 2
 	batchIdx := 0
 	for i := 0; i < epochs; i++ {
 		trainLoader := torch.NewDataLoader(mnist, 64)

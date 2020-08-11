@@ -38,14 +38,20 @@ func Conv2d(inChannels, outChannels, kernelSize, stride, padding, dilation,
 	}
 	c.Weight = torch.Empty([]int64{outChannels, inChannels / groups, kernelSize,
 		kernelSize}, true)
-	initializer.KaimingUniform(&c.Weight, math.Sqrt(5.0), "fan_in", "leaky_relu")
 	if bias {
 		c.Bias = torch.Empty([]int64{outChannels}, true)
+	}
+	c.ResetParameters()
+	return c
+}
+
+func (c *conv2d) ResetParameters() {
+	initializer.KaimingUniform(&c.Weight, math.Sqrt(5.0), "fan_in", "leaky_relu")
+	if c.Bias.T != nil {
 		fanIn, _ := initializer.CalculateFanInAndFanOut(c.Weight)
 		bound := 1.0 / math.Sqrt(float64(fanIn))
 		initializer.Uniform(&c.Bias, -bound, bound)
 	}
-	return c
 }
 
 // Forward method
