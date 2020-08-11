@@ -1,7 +1,6 @@
 package gotorch_test
 
 import (
-	"fmt"
 	"log"
 
 	torch "github.com/wangkuiyi/gotorch"
@@ -16,9 +15,10 @@ type MultiLayerMNISTNet struct {
 func (n *MultiLayerMNISTNet) Forward(x torch.Tensor) torch.Tensor {
 	x = torch.View(x, []int{-1, 28 * 28})
 	x = n.FC1.Forward(x)
-	x = torch.Relu(x)
+	//x = torch.Relu(x)
+	x = torch.Tanh(x)
 	x = n.FC2.Forward(x)
-	x = torch.Relu(x)
+	x = torch.Tanh(x)
 	x = n.FC3.Forward(x)
 	return x.LogSoftmax(1)
 }
@@ -38,22 +38,24 @@ func ExampleTrainMNIST() {
 	net := NewMNISTNet()
 	transforms := []torch.Transform{torch.NewNormalize(0.1307, 0.3081)}
 	mnist := torch.NewMNIST(dataDir(), transforms)
-	trainLoader := torch.NewDataLoader(mnist, 64)
-	opt := torch.SGD(0.1, 0, 0, 0, false)
+	opt := torch.SGD(0.1, 0.5, 0, 0, false)
 	opt.AddParameters(nn.GetParameters(net))
+	epochs := 4
 	batchIdx := 0
-	for trainLoader.Scan() {
-		batch := trainLoader.Batch()
-		pred := net.Forward(batch.Data)
-		loss := F.NllLoss(pred, batch.Target, torch.Tensor{nil}, -100, "mean")
-		opt.ZeroGrad()
-		loss.Backward()
-		batchIdx++
-		if batchIdx%100 == 0 {
-			fmt.Printf("batch: %d, Loss: %s", batchIdx, loss)
+	for i := 0; i < epochs; i++ {
+		trainLoader := torch.NewDataLoader(mnist, 64)
+		for trainLoader.Scan() {
+			batch := trainLoader.Batch()
+			opt.ZeroGrad()
+			pred := net.Forward(batch.Data)
+			loss := F.NllLoss(pred, batch.Target, torch.Tensor{nil}, -100, "mean")
+			loss.Backward()
+			opt.Step()
+			batchIdx++
 		}
+		trainLoader.Close()
 	}
-	trainLoader.Close()
 	mnist.Close()
 	torch.FinishGC()
+	// Output:
 }
