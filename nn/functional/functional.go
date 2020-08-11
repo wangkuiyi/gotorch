@@ -14,14 +14,10 @@ import (
 
 // BatchNorm does batch nomalization for `input`
 func BatchNorm(input, weight, bias, runningMean, runningVar torch.Tensor,
-	training bool, momentum, eps float64, cudnnEnabled bool) torch.Tensor {
-	var cTraining, cCudnnEnabled C.int8_t
+	training bool, momentum, eps float64) torch.Tensor {
+	var cTraining C.int8_t
 	if training {
 		cTraining = 1
-	}
-	if cudnnEnabled {
-		cCudnnEnabled = 1
-
 	}
 	var cweight, cbias, cmean, cvar, t C.Tensor
 	if weight.T != nil {
@@ -46,7 +42,6 @@ func BatchNorm(input, weight, bias, runningMean, runningVar torch.Tensor,
 			cTraining,
 			C.double(momentum),
 			C.double(eps),
-			cCudnnEnabled,
 			&t)))
 	torch.SetTensorFinalizer((*unsafe.Pointer)(&t))
 	return torch.Tensor{(*unsafe.Pointer)(&t)}
