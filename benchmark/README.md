@@ -21,7 +21,7 @@ the following command:
 make -C benchmark && time ./benchmark/mnist
 ```
 
-Both programs use only CPU but no GPU.
+All programs use only CPU but no GPU.
 
 Because the GoTorch version uses libtorch 1.6.0, please make sure you have
 PyTorch 1.6.0 installed for the PyTorch version.  Also, both GoTorch and PyTorch
