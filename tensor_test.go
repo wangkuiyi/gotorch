@@ -37,3 +37,10 @@ func TestDetach(t *testing.T) {
 	initializer.Zeros(&y)
 	assert.Equal(t, float32(0.0), x.Item())
 }
+
+func TestMean(t *testing.T) {
+	x := torch.RandN([]int64{2, 3}, true)
+	y := x.Mean()
+	z := y.Item()
+	assert.NotNil(t, z)
+}
