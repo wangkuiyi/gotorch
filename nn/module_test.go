@@ -8,15 +8,16 @@ import (
 )
 
 type myNet struct {
-	L1, L2 Module
+	Module
+	L1, L2 *Linear
 }
 
-// MyNet returns a myNet instance
-func MyNet() Module {
+func newMyNet() *myNet {
 	n := &myNet{
-		L1: Linear(100, 200, false),
-		L2: Linear(200, 10, false),
+		L1: NewLinear(100, 200, false),
+		L2: NewLinear(200, 10, false),
 	}
+	n.Init(n)
 	return n
 }
 
@@ -28,16 +29,17 @@ func (n *myNet) Forward(x torch.Tensor) torch.Tensor {
 }
 
 type myNet2 struct {
+	Module
 	Weight torch.Tensor `gotorch:"buffer"`
-	L1     Module
+	L1     *Linear
 }
 
-// MyNet2 returns a myNet2 instance
-func MyNet2() Module {
+func newMyNet2() *myNet2 {
 	n := &myNet2{
 		Weight: torch.RandN([]int64{100, 200}, false),
-		L1:     Linear(100, 200, false),
+		L1:     NewLinear(100, 200, false),
 	}
+	n.Init(n)
 	return n
 }
 
@@ -48,15 +50,17 @@ func (n *myNet2) Forward(x torch.Tensor) torch.Tensor {
 }
 
 type hierarchyNet struct {
-	L1, L2 Module
+	Module
+	L1 *myNet
+	L2 *Linear
 }
 
-// HierarchyNet returns a hierarchyNet instance
-func HierarchyNet() Module {
+func newHierarchyNet() *hierarchyNet {
 	n := &hierarchyNet{
-		L1: MyNet(),
-		L2: Linear(200, 10, false),
+		L1: newMyNet(),
+		L2: NewLinear(200, 10, false),
 	}
+	n.Init(n)
 	return n
 }
 
@@ -68,19 +72,20 @@ func (n *hierarchyNet) Forward(x torch.Tensor) torch.Tensor {
 }
 
 func TestModule(t *testing.T) {
-	n := MyNet()
-	namedParams := GetNamedParameters(n)
+	n := newMyNet()
+	n.ZeroGrad()
+	namedParams := n.NamedParameters()
 	assert.Equal(t, 2, len(namedParams))
 	assert.Contains(t, namedParams, "myNet.L1.Weight")
 	assert.Contains(t, namedParams, "myNet.L2.Weight")
 
-	n2 := MyNet2()
-	namedParams2 := GetNamedParameters(n2)
+	n2 := newMyNet2()
+	namedParams2 := n2.NamedParameters()
 	assert.Equal(t, 1, len(namedParams2))
 	assert.Contains(t, namedParams2, "myNet2.L1.Weight")
 
-	hn := HierarchyNet()
-	hnNamedParams := GetNamedParameters(hn)
+	hn := newHierarchyNet()
+	hnNamedParams := hn.NamedParameters()
 	assert.Equal(t, 3, len(hnNamedParams))
 	assert.Contains(t, hnNamedParams, "hierarchyNet.L1.L1.Weight")
 	assert.Contains(t, hnNamedParams, "hierarchyNet.L1.L2.Weight")
@@ -88,7 +93,7 @@ func TestModule(t *testing.T) {
 }
 
 func TestConv2d(t *testing.T) {
-	c := Conv2d(16, 33, 3, 2, 0, 1, 1, true, "zeros")
+	c := NewConv2d(16, 33, 3, 2, 0, 1, 1, true, "zeros")
 	x := torch.RandN([]int64{20, 16, 50, 100}, false)
 	output := c.Forward(x)
 	assert.NotNil(t, output)

@@ -1,11 +1,12 @@
 // Copyright 2020, GoTorch Authors
+#include "torch/torch.h"
+
 #include <iostream>
 #include <sstream>
 #include <string>
 #include <vector>
 
 #include "torch/script.h"
-#include "torch/torch.h"
 
 // FIXME(shendiaomo): including cgotorch.h before torch/torch.h will fail
 #include "cgotorch/cgotorch.h"
