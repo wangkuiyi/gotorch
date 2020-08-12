@@ -41,6 +41,7 @@ struct Net : torch::nn::Module {
 
 auto main() -> int {
   torch::manual_seed(1);
+  std::string homedir = getenv("HOME");
 
   torch::DeviceType device_type = torch::kCPU;
   torch::Device device(torch::kCPU);
@@ -49,11 +50,10 @@ auto main() -> int {
   model.to(device);
 
   auto train_dataset =
-      torch::data::datasets::MNIST(kDataRoot)
+      torch::data::datasets::MNIST(homedir + "/.cache/mnist")
           .map(torch::data::transforms::Normalize<>(0.1307, 0.3081))
           .map(torch::data::transforms::Stack<>());
   const size_t train_dataset_size = train_dataset.size().value();
-  std::cout << train_dataset_size << std::endl;
   auto train_loader =
       torch::data::make_data_loader<torch::data::samplers::SequentialSampler>(
           std::move(train_dataset), kTrainBatchSize);
@@ -62,36 +62,24 @@ auto main() -> int {
                               torch::optim::SGDOptions(0.01).momentum(0.5));
 
   model.train();
-  float loss_value = 0.0;
-  int total_throughtput = 0;
+  std::chrono::high_resolution_clock::time_point start_time =
+      std::chrono::high_resolution_clock::now();
   for (size_t epoch = 0; epoch < kNumberOfEpochs; ++epoch) {
-    std::chrono::high_resolution_clock::time_point start_time =
-        std::chrono::high_resolution_clock::now();
-    size_t batch_idx = 0;
     for (auto& batch : *train_loader) {
       auto data = batch.data.to(device), targets = batch.target.to(device);
       optimizer.zero_grad();
       auto output = model.forward(data);
       auto loss = torch::nll_loss(output, targets);
-      loss_value = loss.template item<float>();
       loss.backward();
       optimizer.step();
-      if (batch_idx % 200 == 0) {
-        std::printf("Train Epoch: %ld, Batch: %zu, Loss: %.4f\n", epoch,
-                    batch_idx, loss_value);
-      }
-      batch_idx++;
     }
-    std::chrono::high_resolution_clock::time_point end_time =
-        std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double> time_span =
-        std::chrono::duration_cast<std::chrono::duration<double>>(end_time -
-                                                                  start_time);
-    int throughput = (train_dataset_size * 1.0 / time_span.count());
-    total_throughtput += throughput;
-    std::printf("End Train Epoch: %ld, Throughput: %d sampels/sec\n", epoch,
-                throughput);
   }
-  std::printf("The average throughtput: %ld sampels/sec\n",
-              total_throughtput / kNumberOfEpochs);
+  std::chrono::high_resolution_clock::time_point end_time =
+      std::chrono::high_resolution_clock::now();
+  std::chrono::duration<double> time_span =
+      std::chrono::duration_cast<std::chrono::duration<double>>(end_time -
+                                                                start_time);
+  float throughput =
+      train_dataset_size * kNumberOfEpochs * 1.0 / time_span.count();
+  std::printf("The throughput: %.6f samples/sec\n", throughput);
 }

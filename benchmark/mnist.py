@@ -1,12 +1,13 @@
 from __future__ import print_function
-import argparse
+from torchvision import datasets, transforms
+import os
+import pathlib
+import time
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
-from torchvision import datasets, transforms
-from torch.optim.lr_scheduler import StepLR
-import time
+
 
 class Net(nn.Module):
     def __init__(self):
@@ -31,10 +32,11 @@ def main():
     transform = transforms.Compose([
         transforms.ToTensor(),
         transforms.Normalize((0.1307,), (0.3081,))
-        ])
+    ])
 
-    dataset = datasets.MNIST('~/.cache/mnist', train=True, download=True,
-                       transform=transform)
+    cache_dir = os.path.join(str(pathlib.Path.home()), ".cache/mnist")
+    dataset = datasets.MNIST(cache_dir, train=True, download=True,
+                             transform=transform)
 
     train_loader = torch.utils.data.DataLoader(dataset, batch_size=64)
 
@@ -42,10 +44,9 @@ def main():
     model.train()
     optimizer = optim.SGD(model.parameters(), lr=0.01, momentum=0.5)
 
+    start = time.time()
     epochs = 5
-    total_throughput = 0
-    for epoch in range(1, epochs + 1):
-        start = time.time()
+    for epoch in range(epochs):
         for batch_idx, (data, target) in enumerate(train_loader):
             data, target = data.to(device), target.to(device)
             optimizer.zero_grad()
@@ -53,16 +54,9 @@ def main():
             loss = F.nll_loss(output, target)
             loss.backward()
             optimizer.step()
-            if batch_idx % 200 == 0:
-                print("Train Epoch: {}, BatchIdx: {}, Loss: {:.6f}".format(
-                    epoch, batch_idx, loss.item()))
-        duration = time.time() - start
-        throughput = len(dataset) * 1.0 / duration
-        total_throughput += throughput
-        print("End Epoch: {}, Throughput: {} samples/sec".format(
-            epoch, throughput))
-    print("The Average Throughput: {} samples.sec".format(
-        total_throughput / epochs))
+
+    throughput = len(dataset) * epochs * 1.0 / (time.time() - start)
+    print("The throughput: {} samples/sec".format(throughput))
 
 
 if __name__ == '__main__':
