@@ -92,6 +92,14 @@ func Empty(shape []int64, requireGrad bool) Tensor {
 	return Tensor{(*unsafe.Pointer)(&t)}
 }
 
+// Detach tensor.detach
+func (a *Tensor) Detach() Tensor {
+	var t C.Tensor
+	MustNil(unsafe.Pointer(C.Tensor_Detach(C.Tensor(*a.T), &t)))
+	SetTensorFinalizer((*unsafe.Pointer)(&t))
+	return Tensor{(*unsafe.Pointer)(&t)}
+}
+
 // String returns the Tensor as a string
 func (a Tensor) String() string {
 	s := C.Tensor_String(C.Tensor(*a.T))
@@ -153,6 +161,30 @@ func (a Tensor) LogSoftmax(dim int64) Tensor {
 	return Tensor{(*unsafe.Pointer)(&t)}
 }
 
+// Squeeze tensor.squeeze
+func (a Tensor) Squeeze(dim ...int64) Tensor {
+	var t C.Tensor
+	switch len(dim) {
+	case 0:
+		MustNil(unsafe.Pointer(C.Squeeze(C.Tensor(*a.T), &t)))
+		SetTensorFinalizer((*unsafe.Pointer)(&t))
+		return Tensor{(*unsafe.Pointer)(&t)}
+	case 1:
+		MustNil(unsafe.Pointer(C.SqueezeWithDim(C.Tensor(*a.T), C.int64_t(dim[0]), &t)))
+		SetTensorFinalizer((*unsafe.Pointer)(&t))
+		return Tensor{(*unsafe.Pointer)(&t)}
+	default:
+		panic("Squeeze only accepts 0-1 dim as input")
+	}
+}
+
+// Item torch.item
+func (a Tensor) Item() float32 {
+	var t float32
+	MustNil(unsafe.Pointer(C.Item(C.Tensor(*a.T), (*C.float)(&t))))
+	return t
+}
+
 // Backward compute the gradient of current tensor
 func (a Tensor) Backward() {
 	C.Tensor_Backward(C.Tensor(*a.T))
@@ -196,6 +228,18 @@ func Sigmoid(t Tensor) Tensor {
 // LogSoftmax returns log softmax of the input tensor
 func LogSoftmax(t Tensor, dim int64) Tensor {
 	return t.LogSoftmax(dim)
+}
+
+// Squeeze torch.squeeze
+func Squeeze(t Tensor, dim ...int64) Tensor {
+	switch len(dim) {
+	case 0:
+		return t.Squeeze()
+	case 1:
+		return t.Squeeze(dim[0])
+	default:
+		panic("Squeeze only accepts 0-1 dim as input")
+	}
 }
 
 // Sum returns the sum of all elements in the input tensor
