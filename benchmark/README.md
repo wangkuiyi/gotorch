@@ -14,7 +14,14 @@ structure, and dataset, type the following command:
 time python benchmark/mnist.py
 ```
 
-Both programs use only CPU but no GPU.
+To run the Go version of MNIST training with the same parameters above, type
+the following command:
+
+```bash
+make -C benchmark && time ./benchmark/mnist
+```
+
+All programs use only CPU but no GPU.
 
 Because the GoTorch version uses libtorch 1.6.0, please make sure you have
 PyTorch 1.6.0 installed for the PyTorch version.  Also, both GoTorch and PyTorch
@@ -24,29 +31,29 @@ versions use the data loader from torchvision.
 python3 -m pip install torch==1.6.0 torchvision
 ```
 
-On a Late 2014 iMac runninng macOS 10.15.5, the throughtput of the GoTorch
-program is about **3 times** of the PyTorch version.  The measure of throughput
-doesn't include model instantiaation, data preparation, but only the train loop.
+On a Late 2018 MacBook Pro runninng macOS 10.15.5, the throughput of the GoTorch
+program is about **2 times** of the PyTorch version and **0.5 times** of the
+LibTorch version.  The measure of throughput
+doesn't include model instantiation, data preparation, but only the train loop.
 
-Consider the tatal running time, the GoTorch version takes **43 seconds**, but
-the PyTorch version takes about **4 minutes**.
+Consider the total running time, the GoTorch version takes **34 seconds**, but
+the PyTorch version takes about **71 seconds**, LibTorch version takes only
+**14 seconds**.
 
 A typical run outputs the following:
 
-```
-yi@WangYis-iMac:~/go/src/github.com/wangkuiyi/gotorch (benchmark)*$ time python benchmark/mnist.py
-The throughput: 4177.628869040359 samples/sec
+```bash
+~/go/src/github.com/wangkuiyi/gotorch $ /usr/bin/time python benchmark/mnist.py
+The throughput: 4236.326723046286 samples/sec
+       71.80 real       417.61 user         4.68 sys
 
-real    1m22.022s
-user    3m59.016s
-sys 0m11.934s
-
-yi@WangYis-iMac:~/go/src/github.com/wangkuiyi/gotorch (benchmark)*$ time go test -run TrainMNIST
-2020/08/11 09:40:21 Throughput: 13129.192544 samples/sec
+~/go/src/github.com/wangkuiyi/gotorch $ /usr/bin/time go test -run TrainMNIST
+2020/08/12 10:52:31 Throughput: 9282.386087 samples/sec
 PASS
-ok      github.com/wangkuiyi/gotorch    23.755s
+ok  	github.com/wangkuiyi/gotorch	33.026s
+       34.27 real        97.30 user       263.18 sys
 
-real    0m24.871s
-user    0m43.235s
-sys 0m37.307s
+~/go/src/github.com/wangkuiyi/gotorch $ make -C benchmark && /usr/bin/time ./benchmark/mnist
+The throughput: 21426.107422 samples/sec
+       14.37 real        83.01 user         0.64 sys
 ```
