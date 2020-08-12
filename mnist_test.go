@@ -24,7 +24,7 @@ func NewMNISTNet() *MLPMNISTNet {
 	return r
 }
 
-func (n MLPMNISTNet) Forward(x torch.Tensor) torch.Tensor {
+func (n *MLPMNISTNet) Forward(x torch.Tensor) torch.Tensor {
 	x = torch.View(x, []int64{-1, 28 * 28})
 	x = n.FC1.Forward(x)
 	x = torch.Tanh(x)
@@ -51,7 +51,6 @@ func ExampleTrainMNIST() {
 	startTime := time.Now()
 	var lastLoss float32
 	for epoch := 0; epoch < epochs; epoch++ {
-		batchIdx := 0
 		trainLoader := torch.NewDataLoader(mnist, 64)
 		for trainLoader.Scan() {
 			batch := trainLoader.Batch()
@@ -60,7 +59,6 @@ func ExampleTrainMNIST() {
 			loss := F.NllLoss(pred, batch.Target, torch.Tensor{}, -100, "mean")
 			loss.Backward()
 			opt.Step()
-			batchIdx++
 			lastLoss = loss.Item()
 		}
 		log.Printf("Epoch: %d, Loss: %.4f", epoch, lastLoss)

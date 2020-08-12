@@ -34,7 +34,7 @@ func NewLinear(in, out int64, bias bool) *Linear {
 	return l
 }
 
-// Forward method
+// Forward does a linear transformation to the `input` tensor.
 func (l *Linear) Forward(x torch.Tensor) torch.Tensor {
 	return F.Linear(x, l.Weight, l.Bias)
 }
