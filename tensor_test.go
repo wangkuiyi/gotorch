@@ -5,6 +5,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	torch "github.com/wangkuiyi/gotorch"
+	"github.com/wangkuiyi/gotorch/initializer"
 )
 
 func ExampleTensor() {
@@ -28,5 +29,6 @@ func TestDetach(t *testing.T) {
 	x := torch.RandN([]int64{1, 6}, true)
 	y := x.Detach()
 	assert.NotNil(t, y.T)
+	initializer.Zeros(&y)
 	torch.FinishGC()
 }
