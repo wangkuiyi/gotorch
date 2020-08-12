@@ -30,6 +30,9 @@ const char *exception_str(const char *e);
 // torch.randn
 const char *RandN(int64_t *size, int64_t length, int64_t require_grad,
                   Tensor *result);
+// torch.rand
+const char *Rand(int64_t *size, int64_t length, int64_t require_grad,
+                 Tensor *result);
 // torch.empty
 const char *Empty(int64_t *size, int64_t length, int64_t require_grad,
                   Tensor *result);
@@ -92,6 +95,9 @@ const char *ConvTranspose2d(Tensor input, Tensor weight, Tensor bias,
                             int64_t output_padding_len, int64_t groups,
                             int64_t *dilation_data, int64_t dilation_len,
                             Tensor *result);
+
+const char *BinaryCrossEntropy(Tensor input, Tensor target, Tensor weight,
+                               const char *reduction, Tensor *result);
 
 const char *NllLoss(Tensor input, Tensor target, Tensor weight,
                     int64_t ignore_index, const char *reduction,

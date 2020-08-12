@@ -78,6 +78,19 @@ func RandN(shape []int64, requireGrad bool) Tensor {
 	return Tensor{(*unsafe.Pointer)(&t)}
 }
 
+// Rand torch.rand
+func Rand(shape []int64, requireGrad bool) Tensor {
+	rg := 0
+	if requireGrad {
+		rg = 1
+	}
+	var t C.Tensor
+	MustNil(unsafe.Pointer(C.Rand((*C.int64_t)(unsafe.Pointer(&shape[0])),
+		C.int64_t(len(shape)), C.int64_t(rg), &t)))
+	SetTensorFinalizer((*unsafe.Pointer)(&t))
+	return Tensor{(*unsafe.Pointer)(&t)}
+}
+
 // Empty returns a tensor filled with random number, torch.empty
 func Empty(shape []int64, requireGrad bool) Tensor {
 	rg := 0
@@ -148,7 +161,7 @@ func (a Tensor) Tanh() Tensor {
 // Sigmoid returns sigmoid of the current tensor
 func (a Tensor) Sigmoid() Tensor {
 	var t C.Tensor
-	MustNil(unsafe.Pointer(C.Tanh(C.Tensor(*a.T), &t)))
+	MustNil(unsafe.Pointer(C.Sigmoid(C.Tensor(*a.T), &t)))
 	SetTensorFinalizer((*unsafe.Pointer)(&t))
 	return Tensor{(*unsafe.Pointer)(&t)}
 }

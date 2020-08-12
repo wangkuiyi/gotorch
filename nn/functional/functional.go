@@ -113,3 +113,20 @@ func NllLoss(input, target, weight torch.Tensor, ignoreIndex int64,
 	torch.SetTensorFinalizer((*unsafe.Pointer)(&t))
 	return torch.Tensor{(*unsafe.Pointer)(&t)}
 }
+
+// BinaryCrossEntropy torch.nn.functional.binary_cross_entropy
+func BinaryCrossEntropy(input, target, weight torch.Tensor,
+	reduction string) torch.Tensor {
+	var cweight, t C.Tensor
+	if weight.T != nil {
+		cweight = C.Tensor(*weight.T)
+	}
+	torch.MustNil(unsafe.Pointer(C.BinaryCrossEntropy(
+		C.Tensor(*input.T),
+		C.Tensor(*target.T),
+		cweight,
+		C.CString(reduction),
+		&t)))
+	torch.SetTensorFinalizer((*unsafe.Pointer)(&t))
+	return torch.Tensor{(*unsafe.Pointer)(&t)}
+}
