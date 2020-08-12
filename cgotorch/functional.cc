@@ -117,3 +117,13 @@ const char *NllLoss(Tensor input, Tensor target, Tensor weight,
     return exception_str(e.what());
   }
 }
+
+const char *Linear(Tensor input, Tensor weight, Tensor bias, Tensor *result) {
+  try {
+    auto out = torch::linear(*input, *weight, (bias ? *bias : torch::Tensor()));
+    *result = new at::Tensor(out);
+    return nullptr;
+  } catch (const std::exception &e) {
+    return exception_str(e.what());
+  }
+}

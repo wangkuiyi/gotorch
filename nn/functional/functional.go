@@ -130,3 +130,17 @@ func BinaryCrossEntropy(input, target, weight torch.Tensor,
 	torch.SetTensorFinalizer((*unsafe.Pointer)(&t))
 	return torch.Tensor{(*unsafe.Pointer)(&t)}
 }
+
+// Linear ports torch.nn.functional.linear
+func Linear(input, weight, bias torch.Tensor) torch.Tensor {
+	var t C.Tensor
+	var cBias C.Tensor
+	if bias.T != nil {
+		cBias = C.Tensor(*bias.T)
+	}
+	torch.MustNil(unsafe.Pointer(C.Linear(
+		C.Tensor(*input.T),
+		C.Tensor(*weight.T), cBias, &t)))
+	torch.SetTensorFinalizer((*unsafe.Pointer)(&t))
+	return torch.Tensor{(*unsafe.Pointer)(&t)}
+}

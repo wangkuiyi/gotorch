@@ -7,6 +7,7 @@ import (
 	torch "github.com/wangkuiyi/gotorch"
 	nn "github.com/wangkuiyi/gotorch/nn"
 	F "github.com/wangkuiyi/gotorch/nn/functional"
+	"github.com/wangkuiyi/gotorch/nn/initializer"
 )
 
 type MLPMNISTNet struct {
@@ -23,7 +24,7 @@ func NewMNISTNet() *MLPMNISTNet {
 	return r
 }
 
-func (n *MLPMNISTNet) Forward(x torch.Tensor) torch.Tensor {
+func (n MLPMNISTNet) Forward(x torch.Tensor) torch.Tensor {
 	x = torch.View(x, []int64{-1, 28 * 28})
 	x = n.FC1.Forward(x)
 	x = torch.Tanh(x)
@@ -37,6 +38,7 @@ func ExampleTrainMNIST() {
 	if e := downloadMNIST(); e != nil {
 		log.Printf("Cannot find or download MNIST dataset: %v", e)
 	}
+	initializer.ManualSeed(1)
 	transforms := []torch.Transform{torch.NewNormalize(0.1307, 0.3081)}
 	mnist := torch.NewMNIST(dataDir(), transforms)
 
@@ -47,7 +49,9 @@ func ExampleTrainMNIST() {
 
 	epochs := 5
 	startTime := time.Now()
-	for i := 0; i < epochs; i++ {
+	var finalLoss float32
+	for epoch := 0; epoch < epochs; epoch++ {
+		batchIdx := 0
 		trainLoader := torch.NewDataLoader(mnist, 64)
 		for trainLoader.Scan() {
 			batch := trainLoader.Batch()
@@ -56,7 +60,10 @@ func ExampleTrainMNIST() {
 			loss := F.NllLoss(pred, batch.Target, torch.Tensor{}, -100, "mean")
 			loss.Backward()
 			opt.Step()
+			batchIdx++
+			finalLoss = loss.Item()
 		}
+		log.Printf("Epoch: %d, Loss: %.4f", epoch, finalLoss)
 		trainLoader.Close()
 	}
 	throughput := float64(60000*epochs) / time.Since(startTime).Seconds()

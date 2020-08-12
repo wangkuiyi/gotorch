@@ -1,6 +1,12 @@
 package nn
 
-import torch "github.com/wangkuiyi/gotorch"
+import (
+	"math"
+
+	torch "github.com/wangkuiyi/gotorch"
+	F "github.com/wangkuiyi/gotorch/nn/functional"
+	initializer "github.com/wangkuiyi/gotorch/nn/initializer"
+)
 
 // Linear applies a linear transformation with optional bias.
 type Linear struct {
@@ -18,15 +24,26 @@ func NewLinear(in, out int64, bias bool) *Linear {
 		InFeatures:  in,
 		OutFeatures: out,
 	}
-	l.Weight = torch.RandN([]int64{in, out}, true)
+	l.Weight = torch.Empty([]int64{out, in}, true)
+
 	if bias {
-		l.Bias = torch.RandN([]int64{out, 1}, true)
+		l.Bias = torch.Empty([]int64{out, 1}, true)
 	}
 	l.Init(l)
+	l.resetParameters()
 	return l
 }
 
-// Forward does a linear transformation to the `input` tensor.
-func (l *Linear) Forward(x torch.Tensor) torch.Tensor {
-	return torch.MM(x, l.Weight)
+// Forward method
+func (l *linear) Forward(x torch.Tensor) torch.Tensor {
+	return F.Linear(x, l.Weight, l.Bias)
+}
+
+func (l *linear) resetParameters() {
+	initializer.KaimingUniform(&l.Weight, math.Sqrt(5.0), "fan_in", "leaky_relu")
+	if l.Bias.T != nil {
+		fanIn, _ := initializer.CalculateFanInAndFanOut(l.Weight)
+		bound := 1.0 / math.Sqrt(float64(fanIn))
+		initializer.Uniform(&l.Bias, -bound, bound)
+	}
 }
