@@ -24,6 +24,14 @@ func TestLogSoftmax(t *testing.T) {
 	a.NotNil(out.T)
 }
 
+func TestSqueeze(t *testing.T) {
+	x := torch.RandN([]int64{2, 1, 2, 1, 2}, false)
+	y := torch.Squeeze(x)
+	assert.NotNil(t, y.T)
+	z := torch.Squeeze(x, 1)
+	assert.NotNil(t, z.T)
+}
+
 func TestItem(t *testing.T) {
 	x := torch.RandN([]int64{1}, false)
 	r := x.Item()

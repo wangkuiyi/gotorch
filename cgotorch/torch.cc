@@ -1,11 +1,12 @@
 // Copyright 2020, GoTorch Authors
+#include "torch/torch.h"
+
 #include <iostream>
 #include <sstream>
 #include <string>
 #include <vector>
 
 #include "torch/script.h"
-#include "torch/torch.h"
 
 // FIXME(shendiaomo): including cgotorch.h before torch/torch.h will fail
 #include "cgotorch/cgotorch.h"
@@ -118,6 +119,24 @@ const char *View(Tensor a, Tensor *result, int64_t *size, int64_t size_len) {
 const char *LogSoftmax(Tensor a, int64_t dim, Tensor *result) {
   try {
     *result = new at::Tensor(a->log_softmax(dim));
+    return nullptr;
+  } catch (const std::exception &e) {
+    return exception_str(e.what());
+  }
+}
+
+const char *Squeeze(Tensor a, Tensor *result) {
+  try {
+    *result = new at::Tensor(a->squeeze());
+    return nullptr;
+  } catch (const std::exception &e) {
+    return exception_str(e.what());
+  }
+}
+
+const char *SqueezeWithDim(Tensor a, int64_t dim, Tensor *result) {
+  try {
+    *result = new at::Tensor(a->squeeze(dim));
     return nullptr;
   } catch (const std::exception &e) {
     return exception_str(e.what());
