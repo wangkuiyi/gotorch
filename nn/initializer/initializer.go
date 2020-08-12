@@ -12,6 +12,11 @@ import (
 	torch "github.com/wangkuiyi/gotorch"
 )
 
+// ManualSeed set the random seed
+func ManualSeed(seed int64) {
+	C.ManualSeed(C.int64_t(seed))
+}
+
 // Zeros initialization, torch.nn.init.zeros_
 func Zeros(a *torch.Tensor) {
 	torch.MustNil(unsafe.Pointer(C.Zeros_((*C.Tensor)(a.T))))
