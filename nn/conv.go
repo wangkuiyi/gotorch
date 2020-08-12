@@ -21,7 +21,7 @@ type conv2d struct {
 	Bias        torch.Tensor
 }
 
-// Conv2d does conv2d computaion. torch.nn.functional.conv2d
+// Conv2d does conv2d computaion. torch.nn.conv2d
 // TODO(qijun): only support zero padding mode
 // only support symmetry kernel/stride/padding/dilation
 func Conv2d(inChannels, outChannels, kernelSize, stride, padding, dilation,
@@ -68,7 +68,7 @@ type convTranspose2d struct {
 	Bias        torch.Tensor
 }
 
-// ConvTranspose2d torch.nn.functional.conv_transpose2d
+// ConvTranspose2d torch.nn.conv_transpose2d
 // TODO(qijun): only support zero padding mode
 // only support symmetry kernel/stride/padding/dilation
 // not support output_size when forwarding
