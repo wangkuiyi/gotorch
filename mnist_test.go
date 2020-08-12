@@ -49,7 +49,7 @@ func ExampleTrainMNIST() {
 
 	epochs := 5
 	startTime := time.Now()
-	var finalLoss float32
+	var lastLoss float32
 	for epoch := 0; epoch < epochs; epoch++ {
 		batchIdx := 0
 		trainLoader := torch.NewDataLoader(mnist, 64)
@@ -61,9 +61,9 @@ func ExampleTrainMNIST() {
 			loss.Backward()
 			opt.Step()
 			batchIdx++
-			finalLoss = loss.Item()
+			lastLoss = loss.Item()
 		}
-		log.Printf("Epoch: %d, Loss: %.4f", epoch, finalLoss)
+		log.Printf("Epoch: %d, Loss: %.4f", epoch, lastLoss)
 		trainLoader.Close()
 	}
 	throughput := float64(60000*epochs) / time.Since(startTime).Seconds()
