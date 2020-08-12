@@ -68,3 +68,5 @@ const char *CalculateFanInAndFanOut(Tensor tensor, int64_t *fan_in,
     return exception_str(e.what());
   }
 }
+
+void ManualSeed(int64_t seed) { torch::manual_seed(seed); }
