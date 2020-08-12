@@ -22,3 +22,9 @@ func TestLogSoftmax(t *testing.T) {
 	// check the value.
 	a.NotNil(out.T)
 }
+
+func TestItem(t *testing.T) {
+	x := torch.RandN([]int64{1}, false)
+	r := x.Item()
+	assert.NotNil(t, r)
+}

@@ -153,6 +153,13 @@ func (a Tensor) LogSoftmax(dim int64) Tensor {
 	return Tensor{(*unsafe.Pointer)(&t)}
 }
 
+// Item torch.item
+func (a Tensor) Item() float32 {
+	var t float32
+	MustNil(unsafe.Pointer(C.Item(C.Tensor(*a.T), (*C.float)(&t))))
+	return t
+}
+
 // Backward compute the gradient of current tensor
 func (a Tensor) Backward() {
 	C.Tensor_Backward(C.Tensor(*a.T))
