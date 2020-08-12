@@ -42,7 +42,7 @@ the PyTorch version takes about **71 seconds**, LibTorch version takes only
 
 A typical run outputs the following:
 
-``` bash
+```bash
 ~/go/src/github.com/wangkuiyi/gotorch $ /usr/bin/time python benchmark/mnist.py
 The throughput: 4236.326723046286 samples/sec
        71.80 real       417.61 user         4.68 sys
