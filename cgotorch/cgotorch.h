@@ -43,6 +43,7 @@ const char *Sigmoid(Tensor a, Tensor *result);
 const char *View(Tensor a, Tensor *result, int64_t *size, int64_t size_len);
 const char *LogSoftmax(Tensor a, int64_t dim, Tensor *result);
 
+const char *Tensor_Detach(Tensor a, Tensor *result);
 const char *Tensor_String(Tensor a);
 void Tensor_Print(Tensor a);
 void Tensor_Close(Tensor a);

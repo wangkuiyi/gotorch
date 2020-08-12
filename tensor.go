@@ -92,6 +92,14 @@ func Empty(shape []int64, requireGrad bool) Tensor {
 	return Tensor{(*unsafe.Pointer)(&t)}
 }
 
+// Detach tensor.detach
+func (a *Tensor) Detach() Tensor {
+	var t C.Tensor
+	MustNil(unsafe.Pointer(C.Tensor_Detach(C.Tensor(*a.T), &t)))
+	SetTensorFinalizer((*unsafe.Pointer)(&t))
+	return Tensor{(*unsafe.Pointer)(&t)}
+}
+
 // String returns the Tensor as a string
 func (a Tensor) String() string {
 	s := C.Tensor_String(C.Tensor(*a.T))
