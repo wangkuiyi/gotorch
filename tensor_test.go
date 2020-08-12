@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	torch "github.com/wangkuiyi/gotorch"
-	"github.com/wangkuiyi/gotorch/initializer"
+	"github.com/wangkuiyi/gotorch/nn/initializer"
 )
 
 func ExampleTensor() {
@@ -31,9 +31,9 @@ func TestItem(t *testing.T) {
 }
 
 func TestDetach(t *testing.T) {
-	x := torch.RandN([]int64{1, 6}, true)
+	x := torch.RandN([]int64{1}, true)
 	y := x.Detach()
 	assert.NotNil(t, y.T)
 	initializer.Zeros(&y)
-	assert.Equal(t, 0.0, x.Item())
+	assert.Equal(t, float32(0.0), x.Item())
 }
