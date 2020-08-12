@@ -124,6 +124,24 @@ const char *LogSoftmax(Tensor a, int64_t dim, Tensor *result) {
   }
 }
 
+const char *Squeeze(Tensor a, Tensor *result) {
+  try {
+    *result = new at::Tensor(a->squeeze());
+    return nullptr;
+  } catch (const std::exception &e) {
+    return exception_str(e.what());
+  }
+}
+
+const char *SqueezeWithDim(Tensor a, int64_t dim, Tensor *result) {
+  try {
+    *result = new at::Tensor(a->squeeze(dim));
+    return nullptr;
+  } catch (const std::exception &e) {
+    return exception_str(e.what());
+  }
+}
+
 const char *Tensor_Detach(Tensor a, Tensor *result) {
   try {
     *result = new at::Tensor(a->detach());
