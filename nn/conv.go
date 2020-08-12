@@ -48,6 +48,7 @@ func NewConv2d(inChannels, outChannels, kernelSize, stride, padding, dilation,
 		bound := 1.0 / math.Sqrt(float64(fanIn))
 		initializer.Uniform(&c.Bias, -bound, bound)
 	}
+	c.Init(c)
 	return c
 }
 

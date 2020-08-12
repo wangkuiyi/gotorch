@@ -22,6 +22,7 @@ func NewLinear(in, out int64, bias bool) *Linear {
 	if bias {
 		l.Bias = torch.RandN([]int64{out, 1}, true)
 	}
+	l.Init(l)
 	return l
 }
 

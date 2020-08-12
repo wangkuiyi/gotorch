@@ -13,7 +13,9 @@ type Sequential struct {
 
 // NewSequential returns a new `Sequential` instance.
 func NewSequential(modules ...IModule) *Sequential {
-	return &Sequential{Module: Module{isTraining: true}, Modules: modules}
+	r := &Sequential{Module: Module{isTraining: true}, Modules: modules}
+	r.Init(r)
+	return r
 }
 
 // Forward feeds `inputs` to the first module and then chains outputs to inputs, returning the last output.
@@ -55,7 +57,9 @@ type Functional struct {
 
 // NewFunctional returns a new `Functional` instance.
 func NewFunctional(f func(torch.Tensor) torch.Tensor) *Functional {
-	return &Functional{Module: Module{isTraining: true}, function: f}
+	r := &Functional{Module: Module{isTraining: true}, function: f}
+	r.Init(r)
+	return r
 }
 
 // Forward feeds the `input` tensor to the underlying function.

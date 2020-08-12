@@ -15,11 +15,12 @@ type MLPMNISTNet struct {
 }
 
 func NewMNISTNet() *MLPMNISTNet {
-	return &MLPMNISTNet{
+	r := &MLPMNISTNet{
 		FC1: nn.NewLinear(28*28, 512, false),
 		FC2: nn.NewLinear(512, 512, false),
-		FC3: nn.NewLinear(512, 10, false),
-	}
+		FC3: nn.NewLinear(512, 10, false)}
+	r.Init(r)
+	return r
 }
 
 func (n *MLPMNISTNet) Forward(x torch.Tensor) torch.Tensor {
@@ -40,8 +41,9 @@ func ExampleTrainMNIST() {
 	mnist := torch.NewMNIST(dataDir(), transforms)
 
 	net := NewMNISTNet()
+	net.ZeroGrad()
 	opt := torch.SGD(0.01, 0.5, 0, 0, false)
-	opt.AddParameters(nn.GetParameters(net))
+	opt.AddParameters(net.Parameters())
 
 	epochs := 5
 	startTime := time.Now()
@@ -85,10 +87,12 @@ func ExampleTrainMNISTSequential() {
 		nn.NewLinear(512, 512, false),
 		nn.NewFunctional(torch.Tanh),
 		nn.NewLinear(512, 10, false))}
+	net.Init(net)
+	net.ZeroGrad()
 	transforms := []torch.Transform{torch.NewNormalize(0.1307, 0.3081)}
 	mnist := torch.NewMNIST(dataDir(), transforms)
 	opt := torch.SGD(0.1, 0.5, 0, 0, false)
-	opt.AddParameters(nn.GetParameters(net))
+	opt.AddParameters(net.Parameters())
 	epochs := 4
 	startTime := time.Now()
 	for i := 0; i < epochs; i++ {
