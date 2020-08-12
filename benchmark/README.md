@@ -1,6 +1,6 @@
 # Benchmarking: GoTorch v.s. PyTorch v.s. C++ libtorch
 
-## Build And Run Benchmarks
+## Benchmarks
 
 To run the GoTorch version of MNIST training for five epochs, type the following
 command.  You need to follow the development
@@ -32,7 +32,7 @@ week.
 
 All the above programs directly or indirectly use libtorch 1.6.0.
 
-## Measuring the Throughput
+## Measures
 
 We compare the three benchmark programs by **throughput** -- the number of
 images that the training loop consumes per second.  By doing so, we exclude
@@ -57,6 +57,8 @@ ok  	github.com/wangkuiyi/gotorch	33.026s
 The throughput: 21426.107422 samples/sec
        14.37 real        83.01 user         0.64 sys
 ```
+
+## Observations
 
 We have the following observations on the throughput:
 
