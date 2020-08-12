@@ -35,11 +35,11 @@ func NewLinear(in, out int64, bias bool) *Linear {
 }
 
 // Forward method
-func (l *linear) Forward(x torch.Tensor) torch.Tensor {
+func (l *Linear) Forward(x torch.Tensor) torch.Tensor {
 	return F.Linear(x, l.Weight, l.Bias)
 }
 
-func (l *linear) resetParameters() {
+func (l *Linear) resetParameters() {
 	initializer.KaimingUniform(&l.Weight, math.Sqrt(5.0), "fan_in", "leaky_relu")
 	if l.Bias.T != nil {
 		fanIn, _ := initializer.CalculateFanInAndFanOut(l.Weight)
