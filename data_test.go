@@ -18,11 +18,7 @@ func ExampleMNIST() {
 		log.Printf("Cannot find or download MNIST dataset: %v", e)
 	}
 
-	dataset := torch.NewMNIST(dataDir())
-	dataset.AddTransforms([]torch.Transform{
-		torch.NewNormalize(0.1307, 0.3081),
-		torch.NewStack(),
-	})
+	dataset := torch.NewMNIST(dataDir(), []torch.Transform{torch.NewNormalize(0.1307, 0.3081)})
 	trainLoader := torch.NewDataLoader(dataset, 8)
 	for trainLoader.Scan() {
 		_ = trainLoader.Batch()
@@ -39,7 +35,7 @@ func TestPanicMNIST(t *testing.T) {
 			t.Errorf("TestPanicMNIST should have paniced")
 		}
 	}()
-	torch.NewMNIST("nonexist")
+	torch.NewMNIST("nonexist", []torch.Transform{})
 }
 
 const (

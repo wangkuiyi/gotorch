@@ -66,7 +66,7 @@ type Tensor struct {
 }
 
 // RandN returns a tensor filled with standard normal distribution, torch.randn
-func RandN(shape []int, requireGrad bool) Tensor {
+func RandN(shape []int64, requireGrad bool) Tensor {
 	rg := 0
 	if requireGrad {
 		rg = 1
@@ -79,7 +79,7 @@ func RandN(shape []int, requireGrad bool) Tensor {
 }
 
 // Empty returns a tensor filled with random number, torch.empty
-func Empty(shape []int, requireGrad bool) Tensor {
+func Empty(shape []int64, requireGrad bool) Tensor {
 	rg := 0
 	if requireGrad {
 		rg = 1
@@ -146,7 +146,7 @@ func (a Tensor) Sigmoid() Tensor {
 }
 
 // LogSoftmax returns log softmax of the current tensor
-func (a Tensor) LogSoftmax(dim int) Tensor {
+func (a Tensor) LogSoftmax(dim int64) Tensor {
 	var t C.Tensor
 	MustNil(unsafe.Pointer(C.LogSoftmax(C.Tensor(*a.T), C.int64_t(dim), &t)))
 	SetTensorFinalizer((*unsafe.Pointer)(&t))
@@ -194,7 +194,7 @@ func Sigmoid(t Tensor) Tensor {
 }
 
 // LogSoftmax returns log softmax of the input tensor
-func LogSoftmax(t Tensor, dim int) Tensor {
+func LogSoftmax(t Tensor, dim int64) Tensor {
 	return t.LogSoftmax(dim)
 }
 
@@ -202,6 +202,14 @@ func LogSoftmax(t Tensor, dim int) Tensor {
 func Sum(a Tensor) Tensor {
 	var t C.Tensor
 	MustNil(unsafe.Pointer(C.Sum(C.Tensor(*a.T), &t)))
+	SetTensorFinalizer((*unsafe.Pointer)(&t))
+	return Tensor{(*unsafe.Pointer)(&t)}
+}
+
+// View returns a new Tensor with the same data but of a different shape
+func View(a Tensor, shape []int64) Tensor {
+	var t C.Tensor
+	MustNil(unsafe.Pointer(C.View(C.Tensor(*a.T), &t, (*C.int64_t)(unsafe.Pointer(&shape[0])), C.int64_t(len(shape)))))
 	SetTensorFinalizer((*unsafe.Pointer)(&t))
 	return Tensor{(*unsafe.Pointer)(&t)}
 }

@@ -3,21 +3,21 @@ package nn
 import torch "github.com/wangkuiyi/gotorch"
 
 type linear struct {
-	InFeatures  int
-	OutFeatures int
+	InFeatures  int64
+	OutFeatures int64
 	Weight      torch.Tensor
 	Bias        torch.Tensor
 }
 
 // Linear creates a linear instance
-func Linear(in int, out int, bias bool) Module {
+func Linear(in, out int64, bias bool) Module {
 	l := &linear{
 		InFeatures:  in,
 		OutFeatures: out,
 	}
-	l.Weight = torch.RandN([]int{in, out}, true)
+	l.Weight = torch.RandN([]int64{in, out}, true)
 	if bias {
-		l.Bias = torch.RandN([]int{out, 1}, true)
+		l.Bias = torch.RandN([]int64{out, 1}, true)
 	}
 	return l
 }
