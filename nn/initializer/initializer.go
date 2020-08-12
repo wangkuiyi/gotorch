@@ -13,8 +13,8 @@ import (
 )
 
 // ManualSeed set the random seed
-func ManualSeed(seed int) {
-	C.ManualSeed(C.int(seed))
+func ManualSeed(seed int64) {
+	C.ManualSeed(C.int64_t(seed))
 }
 
 // Zeros initialization, torch.nn.init.zeros_

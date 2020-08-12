@@ -69,4 +69,4 @@ const char *CalculateFanInAndFanOut(Tensor tensor, int64_t *fan_in,
   }
 }
 
-void ManualSeed(int seed) { torch::manual_seed(seed); }
+void ManualSeed(int64_t seed) { torch::manual_seed(seed); }
