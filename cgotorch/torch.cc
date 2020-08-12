@@ -124,6 +124,15 @@ const char *LogSoftmax(Tensor a, int64_t dim, Tensor *result) {
   }
 }
 
+const char *Item(Tensor a, float *result) {
+  try {
+    *result = a->item<float>();
+    return nullptr;
+  } catch (const std::exception &e) {
+    return exception_str(e.what());
+  }
+}
+
 void Tensor_Print(Tensor a) { std::cout << *a << std::endl; }
 
 void Tensor_Close(Tensor a) { delete a; }
