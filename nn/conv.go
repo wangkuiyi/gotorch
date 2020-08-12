@@ -58,7 +58,9 @@ func (c *Conv2d) Forward(x torch.Tensor) torch.Tensor {
 		[]int64{c.Padding, c.Padding}, []int64{c.Dilation, c.Dilation}, c.Groups)
 }
 
-type convTranspose2d struct {
+// ConvTranspose2dModule corresponds to torch.nn.ConvTranspose2d
+type ConvTranspose2dModule struct {
+	Module
 	InChannels  int64
 	OutChannels int64
 	KernelSize  int64
@@ -77,8 +79,8 @@ type convTranspose2d struct {
 // only support symmetry kernel/stride/padding/dilation
 // not support output_size when forwarding
 func ConvTranspose2d(inChannels, outChannels, kernelSize, stride, padding,
-	outPadding, groups int64, bias bool, dilation int64, paddingMode string) Module {
-	c := &convTranspose2d{
+	outPadding, groups int64, bias bool, dilation int64, paddingMode string) *ConvTranspose2dModule {
+	c := &ConvTranspose2dModule{
 		InChannels:  inChannels,
 		OutChannels: outChannels,
 		KernelSize:  kernelSize,
@@ -95,11 +97,12 @@ func ConvTranspose2d(inChannels, outChannels, kernelSize, stride, padding,
 		c.Bias = torch.Empty([]int64{outChannels}, true)
 	}
 	c.ResetParameters()
+	c.Init(c)
 	return c
 }
 
 // ResetParameters method
-func (c *convTranspose2d) ResetParameters() {
+func (c *ConvTranspose2dModule) ResetParameters() {
 	initializer.KaimingUniform(&c.Weight, math.Sqrt(5.0), "fan_in", "leaky_relu")
 	if c.Bias.T != nil {
 		fanIn, _ := initializer.CalculateFanInAndFanOut(c.Weight)
@@ -109,7 +112,7 @@ func (c *convTranspose2d) ResetParameters() {
 }
 
 // Forward method
-func (c *convTranspose2d) Forward(x torch.Tensor) torch.Tensor {
+func (c *ConvTranspose2dModule) Forward(x torch.Tensor) torch.Tensor {
 	return functional.ConvTranspose2d(x, c.Weight, c.Bias,
 		[]int64{c.Stride, c.Stride}, []int64{c.Padding, c.Padding},
 		[]int64{c.OutPadding, c.OutPadding}, c.Groups, []int64{c.Dilation, c.Dilation})

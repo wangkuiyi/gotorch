@@ -98,7 +98,7 @@ func ExampleTrainMNISTSequential() {
 	mnist := torch.NewMNIST(dataDir(), transforms)
 	opt := torch.SGD(0.1, 0.5, 0, 0, false)
 	opt.AddParameters(net.Parameters())
-	epochs := 4
+	epochs := 1
 	startTime := time.Now()
 	for i := 0; i < epochs; i++ {
 		trainLoader := torch.NewDataLoader(mnist, 64)
