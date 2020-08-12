@@ -153,7 +153,7 @@ func (a Tensor) Tanh() Tensor {
 // Sigmoid returns sigmoid of the current tensor
 func (a Tensor) Sigmoid() Tensor {
 	var t C.Tensor
-	MustNil(unsafe.Pointer(C.Tanh(C.Tensor(*a.T), &t)))
+	MustNil(unsafe.Pointer(C.Sigmoid(C.Tensor(*a.T), &t)))
 	SetTensorFinalizer((*unsafe.Pointer)(&t))
 	return Tensor{(*unsafe.Pointer)(&t)}
 }
