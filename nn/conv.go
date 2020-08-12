@@ -97,7 +97,6 @@ func ConvTranspose2d(inChannels, outChannels, kernelSize, stride, padding,
 		c.Bias = torch.Empty([]int64{outChannels}, true)
 	}
 	c.ResetParameters()
-	c.Init(c)
 	return c
 }
 
@@ -109,6 +108,7 @@ func (c *ConvTranspose2dModule) ResetParameters() {
 		bound := 1.0 / math.Sqrt(float64(fanIn))
 		initializer.Uniform(&c.Bias, -bound, bound)
 	}
+	c.Init(c)
 }
 
 // Forward method
