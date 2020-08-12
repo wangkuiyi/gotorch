@@ -45,6 +45,7 @@ const char *LogSoftmax(Tensor a, int64_t dim, Tensor *result);
 // TODO(qijun) only support float
 const char *Item(Tensor a, float *result);
 
+const char *Tensor_Detach(Tensor a, Tensor *result);
 const char *Tensor_String(Tensor a);
 void Tensor_Print(Tensor a);
 void Tensor_Close(Tensor a);
