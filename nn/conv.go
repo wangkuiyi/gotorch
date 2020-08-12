@@ -55,14 +55,14 @@ func (c *conv2d) Forward(x torch.Tensor) torch.Tensor {
 }
 
 type convTranspose2d struct {
-	InChannels  int
-	OutChannels int
-	KernelSize  int
-	Stride      int
-	Padding     int
-	OutPadding  int
-	Groups      int
-	Dilation    int
+	InChannels  int64
+	OutChannels int64
+	KernelSize  int64
+	Stride      int64
+	Padding     int64
+	OutPadding  int64
+	Groups      int64
+	Dilation    int64
 	PaddingMode string
 	Weight      torch.Tensor
 	Bias        torch.Tensor
@@ -71,8 +71,9 @@ type convTranspose2d struct {
 // ConvTranspose2d torch.nn.functional.conv_transpose2d
 // TODO(qijun): only support zero padding mode
 // only support symmetry kernel/stride/padding/dilation
+// not support output_size when forwarding
 func ConvTranspose2d(inChannels, outChannels, kernelSize, stride, padding,
-	outPadding, groups, dilation int, bias bool, paddingMode string) Module {
+	outPadding, groups int64, bias bool, dilation int64, paddingMode string) Module {
 	c := &convTranspose2d{
 		InChannels:  inChannels,
 		OutChannels: outChannels,
@@ -84,21 +85,28 @@ func ConvTranspose2d(inChannels, outChannels, kernelSize, stride, padding,
 		Dilation:    dilation,
 		PaddingMode: "zeros",
 	}
-	c.Weight = torch.Empty([]int{inChannels, outChannels / groups, kernelSize,
+	c.Weight = torch.Empty([]int64{inChannels, outChannels / groups, kernelSize,
 		kernelSize}, true)
-	initializer.KaimingUniform(&c.Weight, math.Sqrt(5.0), "fan_in", "leaky_relu")
 	if bias {
-		c.Bias = torch.Empty([]int{outChannels}, true)
+		c.Bias = torch.Empty([]int64{outChannels}, true)
+	}
+	c.ResetParameters()
+	return c
+}
+
+// ResetParameters method
+func (c *convTranspose2d) ResetParameters() {
+	initializer.KaimingUniform(&c.Weight, math.Sqrt(5.0), "fan_in", "leaky_relu")
+	if c.Bias.T != nil {
 		fanIn, _ := initializer.CalculateFanInAndFanOut(c.Weight)
 		bound := 1.0 / math.Sqrt(float64(fanIn))
 		initializer.Uniform(&c.Bias, -bound, bound)
 	}
-	return c
 }
 
 // Forward method
 func (c *convTranspose2d) Forward(x torch.Tensor) torch.Tensor {
 	return functional.ConvTranspose2d(x, c.Weight, c.Bias,
-		[]int{c.Stride, c.Stride}, []int{c.Padding, c.Padding},
-		[]int{c.OutPadding, c.OutPadding}, c.Groups, []int{c.Dilation, c.Dilation})
+		[]int64{c.Stride, c.Stride}, []int64{c.Padding, c.Padding},
+		[]int64{c.OutPadding, c.OutPadding}, c.Groups, []int64{c.Dilation, c.Dilation})
 }
