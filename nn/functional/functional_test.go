@@ -27,3 +27,11 @@ func TestBatchNorm(t *testing.T) {
 	r := BatchNorm(input, torch.Tensor{}, torch.Tensor{}, w, torch.Tensor{}, true, 0.1, 0.1)
 	assert.NotNil(t, r.T)
 }
+
+func TestBinaryCrossEntropy(t *testing.T) {
+	input := torch.RandN([]int64{3, 2}, true)
+	target := torch.Rand([]int64{3, 2}, false)
+	loss := BinaryCrossEntropy(torch.Sigmoid(input), target, torch.Tensor{}, "mean")
+	assert.NotNil(t, loss.T)
+	loss.Backward()
+}
