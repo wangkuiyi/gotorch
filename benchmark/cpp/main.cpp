@@ -1,6 +1,7 @@
 /* Copyright 2020, GoTorch Authors */
 #include <torch/torch.h>
 
+#include <chrono>  // NOLINT
 #include <cstddef>
 #include <cstdio>
 #include <iostream>
@@ -64,7 +65,8 @@ auto main() -> int {
   float loss_value = 0.0;
   int total_throughtput = 0;
   for (size_t epoch = 0; epoch < kNumberOfEpochs; ++epoch) {
-    const clock_t begin_time = clock();
+    std::chrono::high_resolution_clock::time_point start_time =
+        std::chrono::high_resolution_clock::now();
     size_t batch_idx = 0;
     for (auto& batch : *train_loader) {
       auto data = batch.data.to(device), targets = batch.target.to(device);
@@ -80,9 +82,12 @@ auto main() -> int {
       }
       batch_idx++;
     }
-    float duration =
-        static_cast<float>((clock() - begin_time) / CLOCKS_PER_SEC);
-    int throughput = (train_dataset_size * 1.0 / duration);
+    std::chrono::high_resolution_clock::time_point end_time =
+        std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> time_span =
+        std::chrono::duration_cast<std::chrono::duration<double>>(end_time -
+                                                                  start_time);
+    int throughput = (train_dataset_size * 1.0 / time_span.count());
     total_throughtput += throughput;
     std::printf("End Train Epoch: %ld, Throughput: %d sampels/sec\n", epoch,
                 throughput);
