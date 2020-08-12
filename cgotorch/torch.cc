@@ -173,6 +173,15 @@ const char *Item(Tensor a, float *result) {
   }
 }
 
+const char *Mean(Tensor a, Tensor *result) {
+  try {
+    *result = new at::Tensor(a->mean());
+    return nullptr;
+  } catch (const std::exception &e) {
+    return exception_str(e.what());
+  }
+}
+
 void Tensor_Print(Tensor a) { std::cout << *a << std::endl; }
 
 void Tensor_Close(Tensor a) { delete a; }

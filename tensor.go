@@ -198,6 +198,14 @@ func (a Tensor) Item() float32 {
 	return t
 }
 
+// Mean torch.mean
+func (a Tensor) Mean() Tensor {
+	var t C.Tensor
+	MustNil(unsafe.Pointer(C.Mean(C.Tensor(*a.T), &t)))
+	SetTensorFinalizer((*unsafe.Pointer)(&t))
+	return Tensor{(*unsafe.Pointer)(&t)}
+}
+
 // Backward compute the gradient of current tensor
 func (a Tensor) Backward() {
 	C.Tensor_Backward(C.Tensor(*a.T))
@@ -241,6 +249,11 @@ func Sigmoid(t Tensor) Tensor {
 // LogSoftmax returns log softmax of the input tensor
 func LogSoftmax(t Tensor, dim int64) Tensor {
 	return t.LogSoftmax(dim)
+}
+
+// Mean returns mean of the current tensor
+func Mean(t Tensor) Tensor {
+	return t.Mean()
 }
 
 // Squeeze torch.squeeze

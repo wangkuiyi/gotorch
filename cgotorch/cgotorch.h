@@ -49,6 +49,7 @@ const char *Squeeze(Tensor a, Tensor *result);
 const char *SqueezeWithDim(Tensor a, int64_t dim, Tensor *result);
 // TODO(qijun) only support float
 const char *Item(Tensor a, float *result);
+const char *Mean(Tensor a, Tensor *result);
 
 const char *Tensor_Detach(Tensor a, Tensor *result);
 const char *Tensor_String(Tensor a);
