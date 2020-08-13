@@ -218,6 +218,14 @@ func (a Tensor) Grad() Tensor {
 	return Tensor{(*unsafe.Pointer)(&t)}
 }
 
+// To returns a Tensor with the specify device
+func (a Tensor) To(device Device) Tensor {
+	var t C.Tensor
+	MustNil(unsafe.Pointer(C.Tensor_To(C.Tensor(*a.T), device.T, &t)))
+	SetTensorFinalizer((*unsafe.Pointer)(&t))
+	return Tensor{(*unsafe.Pointer)(&t)}
+}
+
 // MM multiplies each element of the input two tensors
 func MM(a, b Tensor) Tensor {
 	var t C.Tensor
@@ -282,4 +290,9 @@ func View(a Tensor, shape []int64) Tensor {
 	MustNil(unsafe.Pointer(C.View(C.Tensor(*a.T), &t, (*C.int64_t)(unsafe.Pointer(&shape[0])), C.int64_t(len(shape)))))
 	SetTensorFinalizer((*unsafe.Pointer)(&t))
 	return Tensor{(*unsafe.Pointer)(&t)}
+}
+
+// To copy Tensor memory to the specify device
+func To(a Tensor, device Device) Tensor {
+	return a.To(device)
 }
