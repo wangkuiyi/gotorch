@@ -165,12 +165,12 @@ func main() {
 	optimizerG := torch.Adam(lr, 0.5, 0.5, 0.0)
 	optimizerG.AddParameters(netG.Parameters())
 
-	epochs := 5
+	epochs := 30
 	checkpointStep := 200
 	checkpointCount := 1
 	batchSize := int64(64)
+	i := 0
 	for epoch := 0; epoch < epochs; epoch++ {
-		i := 0
 		trainLoader := torch.NewDataLoader(mnist, batchSize)
 		for trainLoader.Scan() {
 			// (1) update D network
