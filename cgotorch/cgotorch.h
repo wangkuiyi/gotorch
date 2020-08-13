@@ -10,13 +10,11 @@ typedef at::Tensor *Tensor;
 typedef torch::optim::Optimizer *Optimizer;
 typedef torch::data::datasets::MNIST *MNIST;
 typedef torch::data::transforms::Normalize<> *Normalize;
-typedef torch::data::transforms::Stack<> *Stack;
 #else
 typedef void *Tensor;
 typedef void *Optimizer;
 typedef void *MNIST;
 typedef void *Normalize;
-typedef void *Stack;
 #endif
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -132,7 +130,6 @@ void Optimizer_Close(Optimizer opt);
 typedef struct DatasetMNIST {
   MNIST p;
   Normalize normalize;
-  Stack stack;
   double mean, stddev;
 } Dataset;
 
@@ -141,7 +138,6 @@ void MNIST_Close(Dataset d);
 
 // cache normalize transform on dataset
 void Dataset_Normalize(Dataset *dataset, double mean, double stddev);
-void Dataset_Stack(Dataset *dataset);
 
 typedef void *Iterator;
 typedef void *DataLoader;

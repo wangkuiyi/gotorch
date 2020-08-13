@@ -72,7 +72,7 @@ func ExampleTrainDCGAN() {
 	if e := downloadMNIST(); e != nil {
 		log.Printf("Cannot find or download MNIST dataset: %v", e)
 	}
-	transforms := []torch.Transform{torch.NewNormalize(0.5, 0.5), torch.NewStack()}
+	transforms := []torch.Transform{torch.NewNormalize(0.5, 0.5)}
 	mnist := torch.NewMNIST(dataDir(), transforms)
 
 	nz := int64(100)

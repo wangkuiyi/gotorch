@@ -24,10 +24,6 @@ type Normalize struct {
 	mean, stddev float64
 }
 
-// Stack transform struct
-type Stack struct {
-}
-
 // NewMNIST returns MNIST dataset
 func NewMNIST(dataRoot string, transforms []Transform) *Dataset {
 	var dataset C.Dataset
@@ -40,8 +36,6 @@ func NewMNIST(dataRoot string, transforms []Transform) *Dataset {
 		switch t := v.(type) {
 		case *Normalize:
 			C.Dataset_Normalize(&dataset, C.double(v.(*Normalize).mean), C.double(v.(*Normalize).stddev))
-		case *Stack:
-			C.Dataset_Stack(&dataset)
 		default:
 			panic(fmt.Sprintf("unsupposed transform type: %T", t))
 		}
@@ -58,11 +52,6 @@ func (d *Dataset) Close() {
 // NewNormalize returns normalize transformer
 func NewNormalize(mean float64, stddev float64) *Normalize {
 	return &Normalize{mean, stddev}
-}
-
-// NewStack returns stack transformer
-func NewStack() *Stack {
-	return &Stack{}
 }
 
 // DataLoader struct

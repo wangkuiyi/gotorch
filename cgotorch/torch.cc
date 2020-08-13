@@ -221,10 +221,6 @@ void Dataset_Normalize(Dataset *dataset, double mean, double stddev) {
   dataset->normalize = new torch::data::transforms::Normalize<>(mean, stddev);
 }
 
-void Dataset_Stack(Dataset *dataset) {
-  dataset->stack = new torch::data::transforms::Stack<>();
-}
-
 using TypeMapDataset = torch::data::datasets::MapDataset<
     torch::data::datasets::MapDataset<torch::data::datasets::MNIST,
                                       torch::data::transforms::Normalize<>>,
