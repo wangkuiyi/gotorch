@@ -66,9 +66,9 @@ type Tensor struct {
 }
 
 // RandN returns a tensor filled with standard normal distribution, torch.randn
-func RandN(shape []int64, requireGrad bool) Tensor {
+func RandN(shape []int64, requiresGrad bool) Tensor {
 	rg := 0
-	if requireGrad {
+	if requiresGrad {
 		rg = 1
 	}
 	var t C.Tensor
@@ -92,9 +92,9 @@ func Rand(shape []int64, requireGrad bool) Tensor {
 }
 
 // Empty returns a tensor filled with random number, torch.empty
-func Empty(shape []int64, requireGrad bool) Tensor {
+func Empty(shape []int64, requiresGrad bool) Tensor {
 	rg := 0
-	if requireGrad {
+	if requiresGrad {
 		rg = 1
 	}
 	var t C.Tensor

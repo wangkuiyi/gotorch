@@ -25,7 +25,6 @@ func NewLinear(in, out int64, bias bool) *Linear {
 		OutFeatures: out,
 	}
 	l.Weight = torch.Empty([]int64{out, in}, true)
-
 	if bias {
 		l.Bias = torch.Empty([]int64{out, 1}, true)
 	}
