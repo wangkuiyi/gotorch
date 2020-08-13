@@ -7,7 +7,6 @@ import (
 )
 
 // BatchNorm2dModule torch.nn.BatchNorm2d
-// TODO(qijun): training flag is always true
 type BatchNorm2dModule struct {
 	Module
 	NumFeatures       int64
