@@ -67,8 +67,10 @@ Tensor Tensor_Grad(Tensor a);
 // torch.nn.init
 ////////////////////////////////////////////////////////////////////////////////
 
-// torch.nn.init.zero_
+// torch.nn.init.zeros_
 const char *Zeros_(Tensor *tensor);
+// torch.nn.init.ones_
+const char *Ones_(Tensor *tensor);
 // torch.nn.init.uniform_
 const char *Uniform_(Tensor *tensor, double low, double high);
 // torch.nn.init.kaiming_uniform_

@@ -12,14 +12,14 @@ import (
 
 type MLPMNISTNet struct {
 	nn.Module
-	FC1, FC2, FC3 *nn.Linear
+	FC1, FC2, FC3 *nn.LinearModule
 }
 
 func NewMNISTNet() *MLPMNISTNet {
 	r := &MLPMNISTNet{
-		FC1: nn.NewLinear(28*28, 512, false),
-		FC2: nn.NewLinear(512, 512, false),
-		FC3: nn.NewLinear(512, 10, false)}
+		FC1: nn.Linear(28*28, 512, false),
+		FC2: nn.Linear(512, 512, false),
+		FC3: nn.Linear(512, 10, false)}
 	r.Init(r)
 	return r
 }
@@ -74,7 +74,7 @@ func ExampleTrainMNIST() {
 
 type MLPMNISTSequential struct {
 	nn.Module
-	Layers *nn.Sequential
+	Layers *nn.SequentialModule
 }
 
 func (s *MLPMNISTSequential) Forward(x torch.Tensor) torch.Tensor {
@@ -86,12 +86,12 @@ func ExampleTrainMNISTSequential() {
 	if e := downloadMNIST(); e != nil {
 		log.Printf("Cannot find or download MNIST dataset: %v", e)
 	}
-	net := &MLPMNISTSequential{Layers: nn.NewSequential(
-		nn.NewLinear(28*28, 512, false),
-		nn.NewFunctional(torch.Tanh),
-		nn.NewLinear(512, 512, false),
-		nn.NewFunctional(torch.Tanh),
-		nn.NewLinear(512, 10, false))}
+	net := &MLPMNISTSequential{Layers: nn.Sequential(
+		nn.Linear(28*28, 512, false),
+		nn.Functional(torch.Tanh),
+		nn.Linear(512, 512, false),
+		nn.Functional(torch.Tanh),
+		nn.Linear(512, 10, false))}
 	net.Init(net)
 	net.ZeroGrad()
 	transforms := []torch.Transform{torch.NewNormalize(0.1307, 0.3081)}

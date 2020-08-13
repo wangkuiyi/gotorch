@@ -9,14 +9,14 @@ import (
 
 type myNet struct {
 	nn.Module
-	L1, L2 *nn.Linear
+	L1, L2 *nn.LinearModule
 }
 
 // MyNet returns a MyNet instance
 func newMyNet() *myNet {
 	n := &myNet{
-		L1: nn.NewLinear(100, 200, false),
-		L2: nn.NewLinear(200, 10, false),
+		L1: nn.Linear(100, 200, false),
+		L2: nn.Linear(200, 10, false),
 	}
 	n.Init(n)
 	return n

@@ -24,7 +24,7 @@ func TestTranspose2d(t *testing.T) {
 func TestBatchNorm(t *testing.T) {
 	input := torch.RandN([]int64{10, 20}, true)
 	w := torch.RandN([]int64{20}, true)
-	r := BatchNorm(input, w, torch.Tensor{}, torch.Tensor{}, torch.Tensor{}, true, 0.1, 0.1)
+	r := BatchNorm(input, torch.Tensor{}, torch.Tensor{}, w, torch.Tensor{}, true, 0.1, 0.1)
 	assert.NotNil(t, r.T)
 }
 
