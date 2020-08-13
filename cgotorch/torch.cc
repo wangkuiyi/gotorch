@@ -1,11 +1,12 @@
 // Copyright 2020, GoTorch Authors
+#include "torch/torch.h"
+
 #include <iostream>
 #include <sstream>
 #include <string>
 #include <vector>
 
 #include "torch/script.h"
-#include "torch/torch.h"
 
 // FIXME(shendiaomo): including cgotorch.h before torch/torch.h will fail
 #include "cgotorch/cgotorch.h"
@@ -31,6 +32,18 @@ const char *RandN(int64_t *size, int64_t length, int64_t require_grad,
     at::Tensor t =
         torch::randn(torch::IntArrayRef(size, length),
                      at::TensorOptions().requires_grad(require_grad));
+    *result = new at::Tensor(t);
+    return nullptr;
+  } catch (const std::exception &e) {
+    return exception_str(e.what());
+  }
+}
+
+const char *Rand(int64_t *size, int64_t length, int64_t require_grad,
+                 Tensor *result) {
+  try {
+    at::Tensor t = torch::rand(torch::IntArrayRef(size, length),
+                               at::TensorOptions().requires_grad(require_grad));
     *result = new at::Tensor(t);
     return nullptr;
   } catch (const std::exception &e) {
@@ -124,9 +137,45 @@ const char *LogSoftmax(Tensor a, int64_t dim, Tensor *result) {
   }
 }
 
+const char *Squeeze(Tensor a, Tensor *result) {
+  try {
+    *result = new at::Tensor(a->squeeze());
+    return nullptr;
+  } catch (const std::exception &e) {
+    return exception_str(e.what());
+  }
+}
+
+const char *SqueezeWithDim(Tensor a, int64_t dim, Tensor *result) {
+  try {
+    *result = new at::Tensor(a->squeeze(dim));
+    return nullptr;
+  } catch (const std::exception &e) {
+    return exception_str(e.what());
+  }
+}
+
+const char *Tensor_Detach(Tensor a, Tensor *result) {
+  try {
+    *result = new at::Tensor(a->detach());
+    return nullptr;
+  } catch (const std::exception &e) {
+    return exception_str(e.what());
+  }
+}
+
 const char *Item(Tensor a, float *result) {
   try {
     *result = a->item<float>();
+    return nullptr;
+  } catch (const std::exception &e) {
+    return exception_str(e.what());
+  }
+}
+
+const char *Mean(Tensor a, Tensor *result) {
+  try {
+    *result = new at::Tensor(a->mean());
     return nullptr;
   } catch (const std::exception &e) {
     return exception_str(e.what());

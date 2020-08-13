@@ -40,6 +40,7 @@ func BatchNorm2d(numFeatures int64, eps, momentum float64,
 		b.RunningVar = torch.Empty([]int64{numFeatures}, false)
 	}
 	b.ResetParameters()
+	b.Init(b)
 	return b
 }
 
