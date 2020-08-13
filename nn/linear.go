@@ -8,8 +8,8 @@ import (
 	initializer "github.com/wangkuiyi/gotorch/nn/initializer"
 )
 
-// Linear applies a linear transformation with optional bias.
-type Linear struct {
+// LinearModule applies a linear transformation with optional bias.
+type LinearModule struct {
 	Module
 	InFeatures  int64
 	OutFeatures int64
@@ -17,9 +17,9 @@ type Linear struct {
 	Bias        torch.Tensor
 }
 
-// NewLinear creates a `Linear` instance
-func NewLinear(in, out int64, bias bool) *Linear {
-	l := &Linear{
+// Linear creates a `Linear` instance
+func Linear(in, out int64, bias bool) *LinearModule {
+	l := &LinearModule{
 		Module:      Module{isTraining: true},
 		InFeatures:  in,
 		OutFeatures: out,
@@ -34,11 +34,11 @@ func NewLinear(in, out int64, bias bool) *Linear {
 }
 
 // Forward does a linear transformation to the `input` tensor.
-func (l *Linear) Forward(x torch.Tensor) torch.Tensor {
+func (l *LinearModule) Forward(x torch.Tensor) torch.Tensor {
 	return F.Linear(x, l.Weight, l.Bias)
 }
 
-func (l *Linear) resetParameters() {
+func (l *LinearModule) resetParameters() {
 	initializer.KaimingUniform(&l.Weight, math.Sqrt(5.0), "fan_in", "leaky_relu")
 	if l.Bias.T != nil {
 		fanIn, _ := initializer.CalculateFanInAndFanOut(l.Weight)

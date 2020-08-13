@@ -37,7 +37,7 @@ func (l *layer3) Forward(sum string) int {
 
 type model1 struct {
 	Module
-	module *Sequential
+	module *SequentialModule
 }
 
 func (m *model1) Forward() int {
@@ -45,13 +45,13 @@ func (m *model1) Forward() int {
 }
 
 func TestSequential(t *testing.T) {
-	m := model1{module: NewSequential(&layer1{}, &layer2{}, &layer3{})}
+	m := model1{module: Sequential(&layer1{}, &layer2{}, &layer3{})}
 	assert.Equal(t, m.Forward(), 3)
 }
 
 type layer4 struct {
 	Module
-	module *Sequential
+	module *SequentialModule
 }
 
 func (l *layer4) Forward(x, y int) string {
@@ -60,7 +60,7 @@ func (l *layer4) Forward(x, y int) string {
 
 type model2 struct {
 	Module
-	module *Sequential
+	module *SequentialModule
 }
 
 func (l *model2) Forward(x, y int) int {
@@ -69,9 +69,9 @@ func (l *model2) Forward(x, y int) int {
 
 func TestSequentialInSequential(t *testing.T) {
 	m := model2{
-		module: NewSequential(
+		module: Sequential(
 			&layer4{
-				module: NewSequential(&layer1{}, &layer2{}),
+				module: Sequential(&layer1{}, &layer2{}),
 			},
 			&layer3{}),
 	}

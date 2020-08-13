@@ -6,9 +6,9 @@ import (
 	"github.com/wangkuiyi/gotorch/nn/initializer"
 )
 
-// BatchNorm2d torch.nn.BatchNorm2d
+// BatchNorm2dModule torch.nn.BatchNorm2d
 // TODO(qijun): training flag is always true
-type BatchNorm2d struct {
+type BatchNorm2dModule struct {
 	Module
 	NumFeatures       int64
 	Eps               float64
@@ -21,10 +21,10 @@ type BatchNorm2d struct {
 	RunningVar        torch.Tensor `gotorch:"buffer"`
 }
 
-// NewBatchNorm2d creates a `BatchNorm2d` instance
-func NewBatchNorm2d(numFeatures int64, eps, momentum float64,
-	affine, trackRunningStats bool) *BatchNorm2d {
-	b := &BatchNorm2d{
+// BatchNorm2d creates a `BatchNorm2dModule` instance
+func BatchNorm2d(numFeatures int64, eps, momentum float64,
+	affine, trackRunningStats bool) *BatchNorm2dModule {
+	b := &BatchNorm2dModule{
 		Module:            Module{isTraining: true},
 		NumFeatures:       numFeatures,
 		Eps:               eps,
@@ -45,14 +45,14 @@ func NewBatchNorm2d(numFeatures int64, eps, momentum float64,
 	return b
 }
 
-func (b *BatchNorm2d) resetRunningStats() {
+func (b *BatchNorm2dModule) resetRunningStats() {
 	if b.TrackRunningStats {
 		initializer.Zeros(&b.RunningMean)
 		initializer.Ones(&b.RunningVar)
 	}
 }
 
-func (b *BatchNorm2d) resetParameters() {
+func (b *BatchNorm2dModule) resetParameters() {
 	b.resetRunningStats()
 	if b.Affine {
 		initializer.Ones(&b.Weight)
@@ -61,7 +61,7 @@ func (b *BatchNorm2d) resetParameters() {
 }
 
 // Forward method
-func (b *BatchNorm2d) Forward(x torch.Tensor) torch.Tensor {
+func (b *BatchNorm2dModule) Forward(x torch.Tensor) torch.Tensor {
 	bnTraining := (b.RunningMean.T == nil) && (b.RunningVar.T == nil)
 	if b.isTraining {
 		bnTraining = true
