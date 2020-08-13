@@ -198,6 +198,11 @@ func (a Tensor) Item() float32 {
 	return t
 }
 
+// View returns a new Tensor with the same data but of a different shape
+func (a Tensor) View(shape []int64) Tensor {
+	return View(a, shape)
+}
+
 // Mean torch.mean
 func (a Tensor) Mean() Tensor {
 	var t C.Tensor
