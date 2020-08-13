@@ -9,13 +9,13 @@ import (
 
 type myNet struct {
 	Module
-	L1, L2 *Linear
+	L1, L2 *LinearModule
 }
 
 func newMyNet() *myNet {
 	n := &myNet{
-		L1: NewLinear(100, 200, false),
-		L2: NewLinear(200, 10, false),
+		L1: Linear(100, 200, false),
+		L2: Linear(200, 10, false),
 	}
 	n.Init(n)
 	return n
@@ -31,13 +31,13 @@ func (n *myNet) Forward(x torch.Tensor) torch.Tensor {
 type myNet2 struct {
 	Module
 	Weight torch.Tensor `gotorch:"buffer"`
-	L1     *Linear
+	L1     *LinearModule
 }
 
 func newMyNet2() *myNet2 {
 	n := &myNet2{
 		Weight: torch.RandN([]int64{100, 200}, false),
-		L1:     NewLinear(100, 200, false),
+		L1:     Linear(100, 200, false),
 	}
 	n.Init(n)
 	return n
@@ -52,13 +52,13 @@ func (n *myNet2) Forward(x torch.Tensor) torch.Tensor {
 type hierarchyNet struct {
 	Module
 	L1 *myNet
-	L2 *Linear
+	L2 *LinearModule
 }
 
 func newHierarchyNet() *hierarchyNet {
 	n := &hierarchyNet{
 		L1: newMyNet(),
-		L2: NewLinear(200, 10, false),
+		L2: Linear(200, 10, false),
 	}
 	n.Init(n)
 	return n
@@ -93,21 +93,21 @@ func TestModule(t *testing.T) {
 }
 
 func TestConv2d(t *testing.T) {
-	c := NewConv2d(16, 33, 3, 2, 0, 1, 1, true, "zeros")
+	c := Conv2d(16, 33, 3, 2, 0, 1, 1, true, "zeros")
 	x := torch.RandN([]int64{20, 16, 50, 100}, false)
 	output := c.Forward(x)
 	assert.NotNil(t, output)
 }
 
 func TestConvTranspose2d(t *testing.T) {
-	c := NewConvTranspose2d(16, 33, 3, 2, 0, 1, 1, true, 1, "zeros")
+	c := ConvTranspose2d(16, 33, 3, 2, 0, 1, 1, true, 1, "zeros")
 	x := torch.RandN([]int64{20, 16, 50, 100}, false)
 	output := c.Forward(x)
 	assert.NotNil(t, output.T)
 }
 
 func TestBatchNorm2d(t *testing.T) {
-	b := NewBatchNorm2d(100, 1e-5, 0.1, true, true)
+	b := BatchNorm2d(100, 1e-5, 0.1, true, true)
 	x := torch.RandN([]int64{20, 100, 35, 45}, false)
 	output := b.Forward(x)
 	assert.NotNil(t, output.T)
