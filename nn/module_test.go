@@ -100,14 +100,14 @@ func TestConv2d(t *testing.T) {
 }
 
 func TestConvTranspose2d(t *testing.T) {
-	c := ConvTranspose2d(16, 33, 3, 2, 0, 1, 1, true, 1, "zeros")
+	c := NewConvTranspose2d(16, 33, 3, 2, 0, 1, 1, true, 1, "zeros")
 	x := torch.RandN([]int64{20, 16, 50, 100}, false)
 	output := c.Forward(x)
 	assert.NotNil(t, output.T)
 }
 
 func TestBatchNorm2d(t *testing.T) {
-	b := BatchNorm2d(100, 1e-5, 0.1, true, true)
+	b := NewBatchNorm2d(100, 1e-5, 0.1, true, true)
 	x := torch.RandN([]int64{20, 100, 35, 45}, false)
 	output := b.Forward(x)
 	assert.NotNil(t, output.T)

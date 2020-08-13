@@ -6,8 +6,10 @@ import (
 	"github.com/wangkuiyi/gotorch/nn/initializer"
 )
 
+// BatchNorm2d torch.nn.BatchNorm2d
 // TODO(qijun): training flag is always true
-type batchNorm2d struct {
+type BatchNorm2d struct {
+	Module
 	NumFeatures       int64
 	Eps               float64
 	Momentum          float64
@@ -17,19 +19,18 @@ type batchNorm2d struct {
 	Bias              torch.Tensor
 	RunningMean       torch.Tensor `gotorch:"buffer"`
 	RunningVar        torch.Tensor `gotorch:"buffer"`
-	Training          bool
 }
 
-// BatchNorm2d torch.nn.BatchNorm2d
-func BatchNorm2d(numFeatures int64, eps, momentum float64,
-	affine, trackRunningStats bool) Module {
-	b := &batchNorm2d{
+// NewBatchNorm2d creates a `BatchNorm2d` instance
+func NewBatchNorm2d(numFeatures int64, eps, momentum float64,
+	affine, trackRunningStats bool) *BatchNorm2d {
+	b := &BatchNorm2d{
+		Module:            Module{isTraining: true},
 		NumFeatures:       numFeatures,
 		Eps:               eps,
 		Momentum:          momentum,
 		Affine:            affine,
 		TrackRunningStats: trackRunningStats,
-		Training:          true,
 	}
 	if b.Affine {
 		b.Weight = torch.Empty([]int64{numFeatures}, true)
@@ -39,33 +40,34 @@ func BatchNorm2d(numFeatures int64, eps, momentum float64,
 		b.RunningMean = torch.Empty([]int64{numFeatures}, false)
 		b.RunningVar = torch.Empty([]int64{numFeatures}, false)
 	}
-	b.ResetParameters()
+	b.resetParameters()
 	b.Init(b)
 	return b
 }
 
-func (b *batchNorm2d) ResetRunningStats() {
+func (b *BatchNorm2d) resetRunningStats() {
 	if b.TrackRunningStats {
 		initializer.Zeros(&b.RunningMean)
 		initializer.Ones(&b.RunningVar)
 	}
 }
 
-func (b *batchNorm2d) ResetParameters() {
-	b.ResetRunningStats()
+func (b *BatchNorm2d) resetParameters() {
+	b.resetRunningStats()
 	if b.Affine {
 		initializer.Ones(&b.Weight)
 		initializer.Zeros(&b.Bias)
 	}
 }
 
-func (b *batchNorm2d) Forward(x torch.Tensor) torch.Tensor {
+// Forward method
+func (b *BatchNorm2d) Forward(x torch.Tensor) torch.Tensor {
 	bnTraining := (b.RunningMean.T == nil) && (b.RunningVar.T == nil)
-	if b.Training {
+	if b.isTraining {
 		bnTraining = true
 	}
 	var fmean, fvar torch.Tensor
-	if !b.Training || b.TrackRunningStats {
+	if !b.isTraining || b.TrackRunningStats {
 		fmean = b.RunningMean
 		fvar = b.RunningVar
 	}
