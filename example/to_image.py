@@ -1,18 +1,15 @@
-import numpy as np
-import torchvision.utils as vutils
 import torch
+import torchvision.utils as vutils
 import glob, os
 
-NUM = 10
-SHAPE = (NUM, 28, 28)
-
-files = glob.glob("*.txt")
+files = glob.glob("*.pt")
 for file in files:
     directory = os.path.splitext(file)[0]
     if not os.path.exists(directory):
         os.mkdir(directory)
-    a = np.loadtxt(file)
-    a = a.reshape(SHAPE)
-    for i in range(NUM):
-        t = torch.from_numpy(a[i])
-        vutils.save_image(t, directory + '/' + str(i) + '.png', normalize=True) 
+
+    module = torch.jit.load(file)
+    images = list(module.parameters())[0]
+    for i in range(10):
+        image = images[i].detach().cpu().reshape(28, 28)
+        vutils.save_image(image, directory + '/' + str(i) + '.png', normalize=True) 

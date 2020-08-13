@@ -208,7 +208,7 @@ func main() {
 				epoch, epochs, i, errD, errG.Item(), DX, DGZ1, DGZ2)
 			if i%checkpointStep == 0 {
 				samples := netG.Forward(torch.RandN([]int64{10, nz, 1, 1}, false))
-				ckName := fmt.Sprintf("dcgan-sample-%d.txt", checkpointCount)
+				ckName := fmt.Sprintf("dcgan-sample-%d.pt", checkpointCount)
 				samples.Detach().Save(ckName)
 				checkpointCount++
 			}

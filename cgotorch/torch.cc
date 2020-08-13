@@ -1,7 +1,6 @@
 // Copyright 2020, GoTorch Authors
 #include "torch/torch.h"
 
-#include <fstream>
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -189,14 +188,7 @@ void Tensor_Close(Tensor a) { delete a; }
 
 const char *Tensor_Save(Tensor tensor, const char *path) {
   try {
-    std::ofstream file;
-    file.open(std::string(path));
-    int64_t numel = tensor->numel();
-    float *t = tensor->data_ptr<float>();
-    for (int64_t i = 0; i < numel; i++) {
-      file << t[i] << "\n";
-    }
-    file.close();
+    torch::save(*tensor, std::string(path));
     return nullptr;
   } catch (const std::exception &e) {
     return exception_str(e.what());

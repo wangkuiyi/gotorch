@@ -7,5 +7,5 @@ libcgotorch.so
 data
 *.test
 .DS_store
-*.txt
 *.png
+*.pt
