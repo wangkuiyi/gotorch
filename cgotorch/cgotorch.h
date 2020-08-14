@@ -58,6 +58,9 @@ const char *Tensor_String(Tensor a);
 void Tensor_Print(Tensor a);
 void Tensor_Close(Tensor a);
 void FreeString(const char *s);
+const char *Tensor_Save(Tensor tensor, const char *path);
+const char *Tensor_Dim(Tensor tensor, int64_t *dim);
+const char *Tensor_Shape(Tensor tensor, int64_t *dims);
 
 // Backward, Gradient
 void Tensor_Backward(Tensor a);
@@ -147,7 +150,6 @@ void MNIST_Close(Dataset d);
 
 // cache normalize transform on dataset
 void Dataset_Normalize(Dataset *dataset, double mean, double stddev);
-// void Dataset_Stack(Dataset* dataset, Transform transform);
 
 typedef void *Iterator;
 typedef void *DataLoader;

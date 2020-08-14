@@ -24,11 +24,6 @@ type Normalize struct {
 	mean, stddev float64
 }
 
-// Stack transform struct
-type Stack struct {
-	T unsafe.Pointer
-}
-
 // NewMNIST returns MNIST dataset
 func NewMNIST(dataRoot string, transforms []Transform) *Dataset {
 	var dataset C.Dataset

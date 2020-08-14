@@ -8,6 +8,7 @@ import (
 	nn "github.com/wangkuiyi/gotorch/nn"
 	F "github.com/wangkuiyi/gotorch/nn/functional"
 	"github.com/wangkuiyi/gotorch/nn/initializer"
+	"github.com/wangkuiyi/gotorch/vision"
 )
 
 type MLPMNISTNet struct {
@@ -35,12 +36,12 @@ func (n *MLPMNISTNet) Forward(x torch.Tensor) torch.Tensor {
 }
 
 func ExampleTrainMNIST() {
-	if e := downloadMNIST(); e != nil {
+	if e := vision.DownloadMNIST(); e != nil {
 		log.Printf("Cannot find or download MNIST dataset: %v", e)
 	}
 	initializer.ManualSeed(1)
 	transforms := []torch.Transform{torch.NewNormalize(0.1307, 0.3081)}
-	mnist := torch.NewMNIST(dataDir(), transforms)
+	mnist := torch.NewMNIST(vision.MNISTDir(), transforms)
 
 	net := NewMNISTNet()
 	net.ZeroGrad()
@@ -83,7 +84,7 @@ func (s *MLPMNISTSequential) Forward(x torch.Tensor) torch.Tensor {
 }
 
 func ExampleTrainMNISTSequential() {
-	if e := downloadMNIST(); e != nil {
+	if e := vision.DownloadMNIST(); e != nil {
 		log.Printf("Cannot find or download MNIST dataset: %v", e)
 	}
 	net := &MLPMNISTSequential{Layers: nn.Sequential(
@@ -95,7 +96,7 @@ func ExampleTrainMNISTSequential() {
 	net.Init(net)
 	net.ZeroGrad()
 	transforms := []torch.Transform{torch.NewNormalize(0.1307, 0.3081)}
-	mnist := torch.NewMNIST(dataDir(), transforms)
+	mnist := torch.NewMNIST(vision.MNISTDir(), transforms)
 	opt := torch.SGD(0.1, 0.5, 0, 0, false)
 	opt.AddParameters(net.Parameters())
 	epochs := 1

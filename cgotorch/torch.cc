@@ -186,6 +186,34 @@ void Tensor_Print(Tensor a) { std::cout << *a << std::endl; }
 
 void Tensor_Close(Tensor a) { delete a; }
 
+const char *Tensor_Save(Tensor tensor, const char *path) {
+  try {
+    torch::save(*tensor, std::string(path));
+    return nullptr;
+  } catch (const std::exception &e) {
+    return exception_str(e.what());
+  }
+}
+
+const char *Tensor_Dim(Tensor tensor, int64_t *dim) {
+  try {
+    *dim = tensor->dim();
+    return nullptr;
+  } catch (const std::exception &e) {
+    return exception_str(e.what());
+  }
+}
+
+const char *Tensor_Shape(Tensor tensor, int64_t *dims) {
+  try {
+    int i = 0;
+    for (int64_t dim : tensor->sizes()) dims[i++] = dim;
+    return nullptr;
+  } catch (const std::exception &e) {
+    return exception_str(e.what());
+  }
+}
+
 // The caller must free the returned string by calling FreeString.
 const char *Tensor_String(Tensor a) {
   std::stringstream ss;

@@ -134,6 +134,25 @@ func (a *Tensor) Close() {
 	}
 }
 
+// Save the tensor to a file
+func (a Tensor) Save(path string) {
+	C.Tensor_Save(C.Tensor(*a.T), C.CString(path))
+}
+
+// Dim returns dim
+func (a Tensor) Dim() int64 {
+	var dim int64
+	MustNil(unsafe.Pointer(C.Tensor_Dim(C.Tensor(*a.T), (*C.int64_t)(&dim))))
+	return dim
+}
+
+// Shape returns shape
+func (a Tensor) Shape() []int64 {
+	shape := make([]int64, a.Dim())
+	MustNil(unsafe.Pointer(C.Tensor_Shape(C.Tensor(*a.T), (*C.int64_t)(unsafe.Pointer(&shape[0])))))
+	return shape
+}
+
 // Relu returns relu of the tensor
 func (a *Tensor) Relu() Tensor {
 	var t C.Tensor
@@ -196,6 +215,11 @@ func (a Tensor) Item() float32 {
 	var t float32
 	MustNil(unsafe.Pointer(C.Item(C.Tensor(*a.T), (*C.float)(&t))))
 	return t
+}
+
+// View returns a new Tensor with the same data but of a different shape
+func (a Tensor) View(shape []int64) Tensor {
+	return View(a, shape)
 }
 
 // Mean torch.mean
