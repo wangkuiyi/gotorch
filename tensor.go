@@ -218,7 +218,8 @@ func (a Tensor) Grad() Tensor {
 	return Tensor{(*unsafe.Pointer)(&t)}
 }
 
-// To returns a Tensor with the specify device
+// To returns a Tensor on the specified device with the same content as the a.
+// If the specified device doesn't exist, To panics.
 func (a Tensor) To(device Device) Tensor {
 	var t C.Tensor
 	MustNil(unsafe.Pointer(C.Tensor_To(C.Tensor(*a.T), device.T, &t)))
@@ -292,7 +293,8 @@ func View(a Tensor, shape []int64) Tensor {
 	return Tensor{(*unsafe.Pointer)(&t)}
 }
 
-// To copy Tensor memory to the specify device
+// To returns a Tensor on the specified device with the same content as the a.
+// If the specified device doesn't exist, To panics.
 func To(a Tensor, device Device) Tensor {
 	return a.To(device)
 }
