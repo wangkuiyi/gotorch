@@ -47,7 +47,7 @@ func ExampleTrainMNIST() {
 	opt := torch.SGD(0.01, 0.5, 0, 0, false)
 	opt.AddParameters(net.Parameters())
 
-	epochs := 5
+	epochs := 2
 	startTime := time.Now()
 	var lastLoss float32
 	for epoch := 0; epoch < epochs; epoch++ {
