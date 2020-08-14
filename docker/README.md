@@ -2,7 +2,7 @@
 
 The [Dockerfile](/docker/Dockerfile) in this directory defined
 the devbox Docker images of GoTorch, this Docker image includes
-some building toolkit of Go, Python and C++.
+some building toolkit of Go, Python, and C++.
 
 ## Building the Dev Docker Image
 
