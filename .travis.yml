@@ -33,8 +33,7 @@ branches:
 script:
   - set -e
   - pre-commit run -a
-  - (cd cgotorch; make -f Makefile.linux)
-  - go get -u -t ./...
   - export LD_LIBRARY_PATH=$TRAVIS_BUILD_DIR/cgotorch/libtorch/lib:$LD_LIBRARY_PATH
-  - echo $LD_LIBRARY_PATH
+  - cgotorch/build.sh
+  - go get -u -t ./...
   - go test -v -race ./...
