@@ -230,6 +230,14 @@ void FreeString(const char *s) { delete[] s; }
 void Tensor_Backward(Tensor a) { a->backward(); }
 Tensor Tensor_Grad(Tensor a) { return new at::Tensor(a->grad()); }
 
+const char *Tensor_SetData(Tensor self, Tensor new_data) {
+  try {
+    self->set_data(*new_data);
+    return nullptr;
+  } catch (const std::exception &e) {
+    return exception_str(e.what());
+  }
+}
 ////////////////////////////////////////////////////////////////////////////////
 //  Dataset, DataLoader, and Iterator torch.utils.data
 ////////////////////////////////////////////////////////////////////////////////

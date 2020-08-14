@@ -251,6 +251,11 @@ func (a Tensor) To(device Device) Tensor {
 	return Tensor{(*unsafe.Pointer)(&t)}
 }
 
+// SetData sets the tensor data held by b to a
+func (a Tensor) SetData(b Tensor) {
+	MustNil(unsafe.Pointer(C.Tensor_SetData(C.Tensor(*a.T), C.Tensor(*b.T))))
+}
+
 // MM multiplies each element of the input two tensors
 func MM(a, b Tensor) Tensor {
 	var t C.Tensor

@@ -11,17 +11,8 @@ import (
 // Dtype is the data type of scalars
 type Dtype int // TODO(shendiaomo): this is a placeholder to be defined later
 
-// DeviceType is the type of devices
-type DeviceType int // TODO(shendiaomo): this is a placeholder to be defined latert
-
 // DeviceIndex is the index of available devices
 type DeviceIndex int16
-
-// Device represents a a compute device on which a tensor is located.
-type Device struct {
-	typ DeviceType
-	idx DeviceIndex
-}
 
 // IModule is the interface of `Module`s
 type IModule interface {
@@ -30,7 +21,7 @@ type IModule interface {
 	// IsTraining returns true if the module is in training mode
 	IsTraining() bool
 	// To recursively casts all parameters to the given `dtype` and `device`.
-	To(device Device, dtype Dtype, nonBlocking bool)
+	To(device torch.Device)
 	// ZeroGrad recursively zeros out the `grad` value of each registered parameter.
 	ZeroGrad()
 	// String is for printing modules prettily
@@ -109,8 +100,40 @@ func (m *Module) IsTraining() bool {
 }
 
 // To recursively casts all parameters to the given `dtype` and `device`.
-func (m *Module) To(device Device, dtype Dtype, nonBlocking bool) {
+func (m *Module) To(device torch.Device) {
 	// TODO(shendiaomo): to be implemented after the `To` method of `Tensors` is ready
+	moduleType := reflect.TypeOf((*IModule)(nil)).Elem()
+	tensorType := reflect.TypeOf((*torch.Tensor)(nil)).Elem()
+	sv := reflect.ValueOf(m.outer).Elem() // Elem gets what the pointer points to.
+	for i := 0; i < sv.NumField(); i++ {
+		f := sv.Type().Field(i)
+		v := sv.Field(i)
+		if v.Kind() == reflect.Slice || v.Kind() == reflect.Array {
+			for j := 0; j < v.Len(); j++ {
+				torchCheck(v.CanInterface(),
+					"GoTorch requires exporting Module field %s.%s", sv.Type().Name(), f.Name)
+				if m, ok := v.Index(j).Interface().(IModule); ok {
+					m.To(device)
+				}
+			}
+		} else if f.Type.Implements(moduleType) {
+			if sv.Type() == moduleType && v.Addr() == reflect.ValueOf(m.outer).Addr() {
+				// Skip `outer` itself
+				continue
+			}
+			torchCheck(v.CanInterface(),
+				"GoTorch requires exporting Module field %s.%s", sv.Type().Name(), f.Name)
+			if m, ok := v.Interface().(IModule); ok {
+				m.To(device)
+			}
+		} else if f.Type == tensorType {
+			param := v.Interface().(torch.Tensor)
+			if param.T != nil {
+				param.SetData(param.To(device))
+			}
+		}
+	}
+
 }
 
 // ZeroGrad recursively zeros out the `grad` value of each registered parameter.
