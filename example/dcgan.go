@@ -30,13 +30,13 @@ func newGenerator(nz int64) *nn.SequentialModule {
 func newDiscriminator() *nn.SequentialModule {
 	return nn.Sequential(
 		nn.Conv2d(1, 64, 4, 2, 1, 1, 1, false, "zeros"),
-		nn.LeakyRelu(0.2, false),
+		nn.Functional(func(in torch.Tensor) torch.Tensor { return torch.LeakyRelu(in, 0.2) }),
 		nn.Conv2d(64, 128, 4, 2, 1, 1, 1, false, "zeros"),
 		nn.BatchNorm2d(128, 1e-5, 0.1, true, true),
-		nn.LeakyRelu(0.2, false),
+		nn.Functional(func(in torch.Tensor) torch.Tensor { return torch.LeakyRelu(in, 0.2) }),
 		nn.Conv2d(128, 256, 4, 2, 1, 1, 1, false, "zeros"),
 		nn.BatchNorm2d(256, 1e-5, 0.1, true, true),
-		nn.LeakyRelu(0.2, false),
+		nn.Functional(func(in torch.Tensor) torch.Tensor { return torch.LeakyRelu(in, 0.2) }),
 		nn.Conv2d(256, 1, 3, 1, 0, 1, 1, false, "zeros"),
 		nn.Functional(torch.Sigmoid),
 	)
