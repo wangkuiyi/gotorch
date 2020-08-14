@@ -81,6 +81,26 @@ func (m *Module) Init(outer IModule) {
 // Train enables "training" mode
 func (m *Module) Train(on bool) {
 	m.isTraining = on
+	sv := reflect.ValueOf(m.outer).Elem()
+	for i := 0; i < sv.NumField(); i++ {
+		f := sv.Type().Field(i)
+		v := sv.Field(i)
+		if v.Kind() == reflect.Slice || v.Kind() == reflect.Array {
+			for j := 0; j < v.Len(); j++ {
+				torchCheck(v.CanInterface(),
+					"GoTorch requires exporting Module field %s.%s", sv.Type().Name(), f.Name)
+				if m, ok := v.Index(j).Interface().(IModule); ok {
+					m.Train(on)
+				}
+			}
+		} else {
+			torchCheck(v.CanInterface(),
+				"GoTorch requires exporting Module field %s.%s", sv.Type().Name(), f.Name)
+			if m, ok := v.Interface().(IModule); ok {
+				m.Train(on)
+			}
+		}
+	}
 }
 
 // IsTraining returns true if the module is in training mode
