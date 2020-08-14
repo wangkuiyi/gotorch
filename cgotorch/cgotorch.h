@@ -10,11 +10,13 @@ typedef at::Tensor *Tensor;
 typedef torch::optim::Optimizer *Optimizer;
 typedef torch::data::datasets::MNIST *MNIST;
 typedef torch::data::transforms::Normalize<> *Normalize;
+typedef torch::Device *Device;
 #else
 typedef void *Tensor;
 typedef void *Optimizer;
 typedef void *MNIST;
 typedef void *Normalize;
+typedef void *Device;
 #endif
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -61,8 +63,6 @@ void FreeString(const char *s);
 void Tensor_Backward(Tensor a);
 Tensor Tensor_Grad(Tensor a);
 
-void ManualSeed(int64_t seed);
-
 ////////////////////////////////////////////////////////////////////////////////
 // torch.nn.init
 ////////////////////////////////////////////////////////////////////////////////
@@ -79,6 +79,7 @@ const char *KaimingUniform_(double a, const char *fan_mod,
 const char *CalculateFanInAndFanOut(Tensor tensor, int64_t *fan_in,
                                     int64_t *fan_out);
 
+void ManualSeed(int64_t seed);
 ////////////////////////////////////////////////////////////////////////////////
 // torch.nn.functional
 ////////////////////////////////////////////////////////////////////////////////
@@ -123,6 +124,14 @@ void Optimizer_Step(Optimizer opt);
 void Optimizer_AddParameters(Optimizer opt, Tensor *tensors, int64_t length);
 void Optimizer_Close(Optimizer opt);
 
+////////////////////////////////////////////////////////////////////////////////
+// Device
+////////////////////////////////////////////////////////////////////////////////
+
+const char *Torch_Device(const char *device_type, Device *device);
+bool IsCUDAAvailable();
+
+const char *Tensor_To(Tensor input, Device device, Tensor *output);
 ////////////////////////////////////////////////////////////////////////////////
 //  Dataset, DataLoader, and Iterator torch.utils.data
 ////////////////////////////////////////////////////////////////////////////////
