@@ -39,12 +39,20 @@ func ExampleTrainMNIST() {
 	if e := vision.DownloadMNIST(); e != nil {
 		log.Printf("Cannot find or download MNIST dataset: %v", e)
 	}
+	var device torch.Device
+	if torch.IsCUDAAvailable() {
+		log.Println("CUDA is valid")
+		device = torch.NewDevice("cuda")
+	} else {
+		log.Println("No CUDA found; CPU only")
+		device = torch.NewDevice("cpu")
+	}
 	initializer.ManualSeed(1)
 	transforms := []torch.Transform{torch.NewNormalize(0.1307, 0.3081)}
 	mnist := torch.NewMNIST(vision.MNISTDir(), transforms)
-
 	net := NewMNISTNet()
 	net.ZeroGrad()
+	net.To(device)
 	opt := torch.SGD(0.01, 0.5, 0, 0, false)
 	opt.AddParameters(net.Parameters())
 
@@ -54,10 +62,10 @@ func ExampleTrainMNIST() {
 	for epoch := 0; epoch < epochs; epoch++ {
 		trainLoader := torch.NewDataLoader(mnist, 64)
 		for trainLoader.Scan() {
-			batch := trainLoader.Batch()
+			data, target := trainLoader.Batch().Data.To(device), trainLoader.Batch().Target.To(device)
 			opt.ZeroGrad()
-			pred := net.Forward(batch.Data)
-			loss := F.NllLoss(pred, batch.Target, torch.Tensor{}, -100, "mean")
+			pred := net.Forward(data)
+			loss := F.NllLoss(pred, target, torch.Tensor{}, -100, "mean")
 			loss.Backward()
 			opt.Step()
 			lastLoss = loss.Item()

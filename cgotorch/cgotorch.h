@@ -61,7 +61,7 @@ void FreeString(const char *s);
 const char *Tensor_Save(Tensor tensor, const char *path);
 const char *Tensor_Dim(Tensor tensor, int64_t *dim);
 const char *Tensor_Shape(Tensor tensor, int64_t *dims);
-
+const char *Tensor_SetData(Tensor self, Tensor new_data);
 // Backward, Gradient
 void Tensor_Backward(Tensor a);
 Tensor Tensor_Grad(Tensor a);
