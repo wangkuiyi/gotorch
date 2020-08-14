@@ -1,4 +1,5 @@
-FROM ubuntu:bionic
+ARG BASE_IMAGE=ubuntu:bionic
+FROM ${BASE_IMAGE}
 
 RUN apt-get -qq update && apt-get -qq install -y curl unzip make git clang clang-format cppcheck python3-pip
 RUN python3 -m pip install -qq pre-commit cpplint
