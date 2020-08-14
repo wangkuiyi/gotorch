@@ -92,6 +92,22 @@ func TestModule(t *testing.T) {
 	assert.Contains(t, hnNamedParams, "hierarchyNet.L2.Weight")
 }
 
+func TestModuleTrain(t *testing.T) {
+	n := newMyNet()
+	n.Train(false)
+	assert.False(t, n.IsTraining())
+	assert.False(t, n.L1.IsTraining())
+	assert.False(t, n.L2.IsTraining())
+
+	hn := newHierarchyNet()
+	hn.Train(false)
+	assert.False(t, hn.IsTraining())
+	assert.False(t, hn.L2.IsTraining())
+	assert.False(t, hn.L1.IsTraining())
+	assert.False(t, hn.L1.L1.IsTraining())
+	assert.False(t, hn.L1.L2.IsTraining())
+}
+
 func TestConv2d(t *testing.T) {
 	c := Conv2d(16, 33, 3, 2, 0, 1, 1, true, "zeros")
 	x := torch.RandN([]int64{20, 16, 50, 100}, false)
