@@ -1,6 +1,6 @@
 # DCGAN Example
 
-We first build the gotorch project. For how to build and test, please refer to CONTRIBUTING.md
+We first build the gotorch project. For how to build and test, please refer to [CONTRIBUTING.md](https://github.com/wangkuiyi/gotorch/blob/develop/CONTRIBUTING.md).
 
 Then, we run the following command in the root directory to install gotorch project.
 
@@ -32,3 +32,7 @@ We use the `pickle_to_png.py` to transform the saved pickle files into png forma
 ```bash
 python pickle_to_png.py
 ```
+
+Here is a generated image after 15 epoches training:
+
+![example1](1.png) ![example2](3.png) ![example3](6.png)
