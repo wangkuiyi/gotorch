@@ -33,6 +33,6 @@ We use the `pickle_to_png.py` to transform the saved pickle files into png forma
 python pickle_to_png.py
 ```
 
-Here is a generated image after 15 epoches training:
+Here are some generated images after 15 epoches training:
 
 ![example1](1.png) ![example2](3.png) ![example3](6.png)
