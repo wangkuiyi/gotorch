@@ -8,12 +8,6 @@ import (
 	torch "github.com/wangkuiyi/gotorch"
 )
 
-// Dtype is the data type of scalars
-type Dtype int // TODO(shendiaomo): this is a placeholder to be defined later
-
-// DeviceIndex is the index of available devices
-type DeviceIndex int16
-
 // IModule is the interface of `Module`s
 type IModule interface {
 	// Train enables "training" mode
