@@ -6,7 +6,7 @@
 
 Please refer to [CONTRIBUTING.md](CONTRIBUTING.md).
 
-## Examples and Usages
+## Examples
 
 Please refer to examples in `*_test.go` files.
 
