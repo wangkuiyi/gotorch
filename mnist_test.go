@@ -18,9 +18,9 @@ type MLPMNISTNet struct {
 
 func NewMNISTNet() *MLPMNISTNet {
 	r := &MLPMNISTNet{
-		FC1: nn.Linear(28*28, 512, false),
-		FC2: nn.Linear(512, 512, false),
-		FC3: nn.Linear(512, 10, false)}
+		FC1: nn.Linear(28*28, 512, true),
+		FC2: nn.Linear(512, 512, true),
+		FC3: nn.Linear(512, 10, true)}
 	r.Init(r)
 	return r
 }
@@ -35,7 +35,7 @@ func (n *MLPMNISTNet) Forward(x torch.Tensor) torch.Tensor {
 	return x.LogSoftmax(1)
 }
 
-func ExampleTrainMNIST() {
+func ExampleTrainMNISTMLP() {
 	if e := vision.DownloadMNIST(); e != nil {
 		log.Printf("Cannot find or download MNIST dataset: %v", e)
 	}
