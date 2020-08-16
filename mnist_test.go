@@ -35,7 +35,7 @@ func (n *MLPMNISTNet) Forward(x torch.Tensor) torch.Tensor {
 	return x.LogSoftmax(1)
 }
 
-func ExampleTrainMNISTMLP() {
+func ExampleTrainMLPUsingMNIST() {
 	if e := vision.DownloadMNIST(); e != nil {
 		log.Printf("Cannot find or download MNIST dataset: %v", e)
 	}
