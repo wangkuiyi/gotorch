@@ -1,8 +1,8 @@
 all : libcgotorch.so
 
-libcgotorch.so : torch.cc functional.cc init.cc optim.cc cgotorch.h ${LIBTORCH}
+libcgotorch.so : torch.cc functional.cc init.cc optim.cc cgotorch.h ${LIBTORCH_DIR}
 	rm -f libtorch
-	ln -s ${LIBTORCH} libtorch
+	ln -s ${LIBTORCH_DIR} libtorch
 	${CXX} -std=c++14 \
 	-I .. \
 	-I libtorch/include \
@@ -11,10 +11,11 @@ libcgotorch.so : torch.cc functional.cc init.cc optim.cc cgotorch.h ${LIBTORCH}
 	-fPIC \
 	-shared \
 	torch.cc functional.cc init.cc optim.cc \
-	-o $@ -install_name @rpath/$@ \
+	-o $@ ${INSTALL_NAME} \
 	-Wl,-rpath,libtorch/lib \
-	-Wl,-all_load libtorch/lib/libc10.dylib \
-	-lc10 -ltorch -ltorch_cpu
+	-Wl,-${LOAD} libtorch/lib/libc10.${LIB_SUFFIX} \
+	-lc10 -ltorch -ltorch_cpu \
+	-D_GLIBCXX_USE_CXX11_ABI=${GLIBCXX_USE_CXX11_ABI}
 
 clean:
 	rm -rf *.so

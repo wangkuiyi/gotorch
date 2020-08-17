@@ -6,7 +6,7 @@ go:
   # We rely on github.com/stretchr/testify, which requires a recent Go version.
   - 1.14
 dist: bionic
-compiler: clang++
+compiler: clang
 
 addons:
   apt:
