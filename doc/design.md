@@ -1,6 +1,6 @@
-# Design Doc: GoTorch
+# GoTorch
 
-The GoTorch Authors
+This document explains the motivations and key design challenges of GoTorch.
 
 ## GoTorch and Go+
 
