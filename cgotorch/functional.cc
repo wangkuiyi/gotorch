@@ -120,7 +120,41 @@ const char *NllLoss(Tensor input, Tensor target, Tensor weight,
 
 const char *Linear(Tensor input, Tensor weight, Tensor bias, Tensor *result) {
   try {
-    auto out = torch::linear(*input, *weight, (bias ? *bias : torch::Tensor()));
+    auto out = torch::nn::functional::linear(*input, *weight,
+                                             (bias ? *bias : torch::Tensor()));
+    *result = new at::Tensor(out);
+    return nullptr;
+  } catch (const std::exception &e) {
+    return exception_str(e.what());
+  }
+}
+
+const char *MaxPool2d(Tensor input, int64_t *kernel_data, int64_t kernel_len,
+                      int64_t *stride_data, int64_t stride_len,
+                      int64_t *padding_data, int64_t padding_len,
+                      int64_t *dilation_data, int64_t dilation_len,
+                      int8_t ceil_mode, Tensor *result) {
+  try {
+    auto out = torch::nn::functional::max_pool2d(
+        *input, torch::nn::functional::MaxPool2dFuncOptions(
+                    torch::IntArrayRef(kernel_data, kernel_len))
+                    .stride(torch::IntArrayRef(stride_data, stride_len))
+                    .padding(torch::IntArrayRef(padding_data, padding_len))
+                    .dilation(torch::IntArrayRef(dilation_data, dilation_len))
+                    .ceil_mode(ceil_mode));
+    *result = new at::Tensor(out);
+    return nullptr;
+  } catch (const std::exception &e) {
+    return exception_str(e.what());
+  }
+}
+
+const char *AdaptiveAvgPool2d(Tensor input, int64_t *output_size_data,
+                              int64_t output_size_len, Tensor *result) {
+  try {
+    auto out = torch::nn::functional::adaptive_avg_pool2d(
+        *input, torch::nn::functional::AdaptiveAvgPool2dFuncOptions(
+                    torch::IntArrayRef(output_size_data, output_size_len)));
     *result = new at::Tensor(out);
     return nullptr;
   } catch (const std::exception &e) {
