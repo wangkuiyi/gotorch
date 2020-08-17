@@ -7,10 +7,12 @@ pushd $DIR
 OS=$(uname | tr '[:upper:]' '[:lower:]')
 ARCH=$(uname -m)
 LIBTORCH_DIR=""
+CXX="clang++"
 
 if [ "$OS" == "linux" ]; then
     if [ "$ARCH" == "arm" ]; then
         echo "Building for Raspbian ...";
+        CXX="g++"
         LIBTORCH_DIR="rpi/libtorch"
         if [ ! -d "$DIR/$LIBTORCH_DIR" ]; then
             curl -LsO 'https://github.com/ljk53/pytorch-rpi/raw/master/libtorch-rpi-cxx11-abi-shared-1.6.0.zip';
@@ -51,7 +53,6 @@ elif [[ "$OS" == "darwin" ]]; then
     fi
 fi
 
-echo $LIBTORCH_DIR
-make LIBTORCH="$LIBTORCH_DIR" -f Makefile;
+make CXX="$CXX" LIBTORCH="$LIBTORCH_DIR" -f Makefile;
 
 popd

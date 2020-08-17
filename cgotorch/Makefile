@@ -3,7 +3,7 @@ all : libcgotorch.so
 libcgotorch.so : torch.cc functional.cc init.cc optim.cc cgotorch.h ${LIBTORCH}
 	rm -f libtorch
 	ln -s ${LIBTORCH} libtorch
-	g++ -std=c++14 \
+	${CXX} -std=c++14 \
 	-I .. \
 	-I libtorch/include \
 	-I libtorch/include/torch/csrc/api/include \
