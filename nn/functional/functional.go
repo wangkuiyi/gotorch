@@ -146,7 +146,8 @@ func Linear(input, weight, bias torch.Tensor) torch.Tensor {
 }
 
 // MaxPool2d torch.nn.functional.max_pool2d
-func MaxPool2d(input torch.Tensor, kernelSize, stride, padding, dilation []int64, ceilMode bool) {
+func MaxPool2d(input torch.Tensor, kernelSize, stride, padding,
+	dilation []int64, ceilMode bool) torch.Tensor {
 	var cMode C.int8_t
 	if ceilMode {
 		cMode = 1
@@ -158,14 +159,14 @@ func MaxPool2d(input torch.Tensor, kernelSize, stride, padding, dilation []int64
 		(*C.int64_t)(unsafe.Pointer(&stride[0])), C.int64_t(len(stride)),
 		(*C.int64_t)(unsafe.Pointer(&padding[0])), C.int64_t(len(padding)),
 		(*C.int64_t)(unsafe.Pointer(&dilation[0])), C.int64_t(len(dilation)),
-		CMode,
+		cMode,
 		&t)))
 	torch.SetTensorFinalizer((*unsafe.Pointer)(&t))
 	return torch.Tensor{(*unsafe.Pointer)(&t)}
 }
 
 // AdaptiveAvgPool2d torch.nn.functional.adaptive_avg_pool2d
-func AdaptiveAvgPool2d(input torch.Tensor, outputSize []int64) {
+func AdaptiveAvgPool2d(input torch.Tensor, outputSize []int64) torch.Tensor {
 	var t C.Tensor
 	torch.MustNil(unsafe.Pointer(C.AdaptiveAvgPool2d(
 		C.Tensor(*input.T),
