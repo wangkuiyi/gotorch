@@ -269,7 +269,9 @@ using TypeIterator = torch::data::Iterator<TypeDataLoader::BatchType>;
 DataLoader MakeDataLoader(Dataset dataset, int64_t batchsize) {
   auto map_dataset = dataset.p->map(*dataset.normalize)
                          .map(torch::data::transforms::Stack<>());
-  auto p = torch::data::make_data_loader(map_dataset, batchsize);
+  auto p =
+      torch::data::make_data_loader<torch::data::samplers::SequentialSampler>(
+          map_dataset, batchsize);
   return p.release();
 }
 
