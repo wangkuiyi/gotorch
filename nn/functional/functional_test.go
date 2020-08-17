@@ -35,3 +35,15 @@ func TestBinaryCrossEntropy(t *testing.T) {
 	assert.NotNil(t, loss.T)
 	loss.Backward()
 }
+
+func TestMaxPool2d(t *testing.T) {
+	input := torch.RandN([]int64{20, 16, 50, 32})
+	out := MaxPool2d([]int64{3, 2}, []int64{2, 1}, []int64{1, 1}, false)
+	assert.NotNil(t, out.T)
+}
+
+func TestAdaptiveAvgPool2d(t *testing.T) {
+	input := torch.RandN([]int64{1, 64, 8, 9})
+	out := AdaptiveAvgPool2d(input, []int64{5, 7})
+	assert.NotNil(t, out.T)
+}

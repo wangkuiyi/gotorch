@@ -113,6 +113,15 @@ const char *NllLoss(Tensor input, Tensor target, Tensor weight,
                     Tensor *result);
 
 const char *Linear(Tensor input, Tensor weight, Tensor bias, Tensor *result);
+
+const char *MaxPool2d(Tensor input, int64_t *kernel_data, int64_t kernel_len,
+                      int64_t *stride_data, int64_t stride_len,
+                      int64_t *padding_data, int64_t padding_len,
+                      int64_t *dilation_data, int64_t dilation_len,
+                      int64_t ceil_mode, Tensor *result);
+
+const char *AdaptiveAvgPool2d(Tensor input, int64_t *output_size_data,
+                              int64_t output_size_len, Tensor *result);
 ////////////////////////////////////////////////////////////////////////////////
 // Optimizer torch.optim
 ////////////////////////////////////////////////////////////////////////////////
