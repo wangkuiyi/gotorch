@@ -10,15 +10,21 @@ if [[ "$OS" == "linux" ]]; then
         echo "Building for Raspbian ...";
         make -f Makefile.rpi;
     elif $(whereis cuda | cut -f 2 -d ' ')/bin/nvcc --version > /dev/null; then
-        echo "Building for Linux with CUDA ...";
-        make -f Makefile.linux-gpu;
+	CUDA_VERSION=`nvcc --version | grep release | grep -Eo "[0-9]+.[0-9]+" | head -1`
+	if [[ "$CUDA_VERSION" == "10.1" ]]; then
+		echo "Building for Linux with CUDA 10.1";
+		make -f Makefile.linux-cuda101;
+	elif [[ "$CUDA_VERSION" == "10.2" ]]; then
+		echo "Building for Linux with CUDA 10.2";
+		make -f Makefile.linux-cuda102;
+	fi
     else
         echo "Building for Linux without CUDA ...";
-        make -f Makefile.linux
+        make -f Makefile.linux;
     fi
 elif [[ "$OS" == "darwin" ]]; then
     echo "Building for macOS ...";
-    make -f Makefile
+    make -f Makefile;
 fi
 
 popd

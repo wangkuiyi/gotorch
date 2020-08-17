@@ -3,12 +3,12 @@ all : libcgotorch.so
 libtorch-cxx11-1.6.0-linux-cuda102.zip :
 	curl -Lso libtorch-cxx11-1.6.0-linux-cuda102.zip 'https://download.pytorch.org/libtorch/cu102/libtorch-cxx11-abi-shared-with-deps-1.6.0.zip'
 
-linux-gpu/libtorch : libtorch-cxx11-1.6.0-linux-cuda102.zip
-	unzip -qq -o $< -d linux-gpu
+linux-cuda102/libtorch : libtorch-cxx11-1.6.0-linux-cuda102.zip
+	unzip -qq -o $< -d linux-cuda102
 
-libcgotorch.so : torch.cc functional.cc init.cc optim.cc cgotorch.h linux-gpu/libtorch
+libcgotorch.so : torch.cc functional.cc init.cc optim.cc cgotorch.h linux-cuda102/libtorch
 	rm -f libtorch
-	ln -s linux-gpu/libtorch libtorch
+	ln -s linux-cuda102/libtorch libtorch
 	clang++ -std=c++14 \
 	-I .. \
 	-I libtorch/include \
