@@ -5,7 +5,7 @@ jobs:
     docker:
       - image: circleci/golang:1.15
 
-    working_directory: /go/src/github.com/{{ORG_NAME}}/{{REPO_NAME}}
+    working_directory: /go/src/github.com/wangkuiyi/gotorch
     steps:
       - checkout
       - run: cgotorch/build.sh
