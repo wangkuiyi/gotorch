@@ -17,7 +17,7 @@ $GOPATH/src/github.com/wangkuiyi/gotorch/cgotorch/build.sh
 Run the Go examples and unit tests.
 
 ```bash
-go test github.com/wangkuiyi/gotorch/...
+go test -v github.com/wangkuiyi/gotorch/...
 ```
 
 The above `go test` command might fail and complain that it cannot find the `.so` or `.dylib` files.  If so, please run the following command.
