@@ -162,7 +162,6 @@ func (r *ResnetModule) makeLayer(block reflect.Type, planes, blocks, stride int6
 	if stride != 1 || r.Inplanes != planes*getExpension(block) {
 		downsample = nn.Sequential(nn.Conv2d(r.Inplanes, planes*getExpension(block), 1, stride, 0, 1, 1, false, "zeros"),
 			nn.BatchNorm2d(planes*getExpension(block), 1e-5, 0.1, true, true))
-
 	}
 
 	layers := []nn.IModule{}
