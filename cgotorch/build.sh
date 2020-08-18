@@ -6,7 +6,7 @@ pushd $DIR
 
 OS=$(uname | tr '[:upper:]' '[:lower:]')
 ARCH=$(uname -m)
-CXX="clang++"
+CXX="g++"
 LIBTORCH_DIR=""
 GLIBCXX_USE_CXX11_ABI="1"
 LOAD="force_load"
@@ -16,7 +16,6 @@ INSTALL_NAME=""
 if [ "$OS" == "linux" ]; then
     if [ "$ARCH" == "arm" ]; then
         echo "Building for Raspbian ...";
-        CXX="g++"
         LIBTORCH_DIR="rpi/libtorch"
         if [ ! -d "$DIR/$LIBTORCH_DIR" ]; then
             curl -LsO 'https://github.com/ljk53/pytorch-rpi/raw/master/libtorch-rpi-cxx11-abi-shared-1.6.0.zip';
