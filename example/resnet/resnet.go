@@ -63,14 +63,14 @@ type BottleneckModule struct {
 func Bottleneck(inplanes, planes, stride int64, downsample *nn.SequentialModule,
 	groups, baseWidth, dilation int64) *BottleneckModule {
 	width := (planes * baseWidth / 64) * groups
-	expensions := int64(4)
+	expension := int64(4)
 	b := &BottleneckModule{
 		conv1:      nn.Conv2d(inplanes, width, 1, 1, 0, 1, 1, false, "zeros"),
 		conv2:      nn.Conv2d(width, width, 3, stride, dilation, dilation, groups, false, "zeros"),
-		conv3:      nn.Conv2d(width, planes*expensions, 1, 1, 0, 1, 1, false, "zeros"),
+		conv3:      nn.Conv2d(width, planes*expension, 1, 1, 0, 1, 1, false, "zeros"),
 		bn1:        nn.BatchNorm2d(width, 1e-5, 0.1, true, true),
 		bn2:        nn.BatchNorm2d(width, 1e-5, 0.1, true, true),
-		bn3:        nn.BatchNorm2d(planes*expensions, 1e-5, 0.1, true, true),
+		bn3:        nn.BatchNorm2d(planes*expension, 1e-5, 0.1, true, true),
 		downsample: downsample,
 	}
 	b.Init(b)
@@ -100,7 +100,7 @@ func (b *BottleneckModule) Forward(x torch.Tensor) torch.Tensor {
 	return out
 }
 
-func getExpensions(t reflect.Type) int64 {
+func getExpension(t reflect.Type) int64 {
 	if t.Name() == "BasicBlockModule" {
 		return 1
 	}
@@ -136,18 +136,18 @@ type ResnetModule struct {
 func Resnet(block reflect.Type, layers []int64, numClasses int64, zeroInitResidual bool, groups int64, widthPerGroup int64) *ResnetModule {
 	inplanes := int64(64)
 	r := &ResnetModule{
-		conv1: nn.Conv2d(3, inplanes, 7, 2, 3, 1, 1, false, "zeros"),
-		bn1:   nn.BatchNorm2d(inplanes, 1e-5, 0.1, true, true),
-		fc:    nn.Linear(512*getExpensions(block), numClasses, true),
+		conv1:     nn.Conv2d(3, inplanes, 7, 2, 3, 1, 1, false, "zeros"),
+		bn1:       nn.BatchNorm2d(inplanes, 1e-5, 0.1, true, true),
+		fc:        nn.Linear(512*getExpension(block), numClasses, true),
+		inplanes:  inplanes,
+		groups:    groups,
+		baseWidth: widthPerGroup,
+		dilation:  1,
 	}
 	r.layer1 = r.makeLayer(block, 64, layers[0], 1, false)
 	r.layer2 = r.makeLayer(block, 128, layers[1], 2, false)
 	r.layer3 = r.makeLayer(block, 256, layers[2], 2, false)
 	r.layer4 = r.makeLayer(block, 512, layers[3], 2, false)
-	r.inplanes = inplanes
-	r.groups = groups
-	r.baseWidth = widthPerGroup
-	r.dilation = 1
 	r.Init(r)
 	return r
 }
@@ -160,9 +160,9 @@ func (r *ResnetModule) makeLayer(block reflect.Type, planes, blocks, stride int6
 		stride = 1
 	}
 
-	if stride != 1 || r.inplanes != planes*getExpensions(block) {
-		downsample = nn.Sequential(nn.Conv2d(r.inplanes, planes*getExpensions(block), 1, stride, 0, 1, 1, false, "zeros"),
-			nn.BatchNorm2d(planes*getExpensions(block), 1e-5, 0.1, true, true))
+	if stride != 1 || r.inplanes != planes*getExpension(block) {
+		downsample = nn.Sequential(nn.Conv2d(r.inplanes, planes*getExpension(block), 1, stride, 0, 1, 1, false, "zeros"),
+			nn.BatchNorm2d(planes*getExpension(block), 1e-5, 0.1, true, true))
 	}
 
 	layers := []nn.IModule{}
