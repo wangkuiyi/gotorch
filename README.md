@@ -4,29 +4,29 @@
 
 A Go-idiomatic binding of PyTorch, to be called by [Go+](https://github.com/goplus/gop) programs.
 
-- Build and Test
+#### Build and Test
 
-  Please refer to [CONTRIBUTING.md](CONTRIBUTING.md).
+Please refer to [CONTRIBUTING.md](CONTRIBUTING.md).
 
-- Examples
+#### Examples
 
-  Please refer to examples in `*_test.go` files.
+Please refer to examples in `*_test.go` files.
 
-- Design Docs
+#### Design Docs
 
-  Please refer to documents in [`./doc`](./doc).
+Please refer to documents in [`./doc`](./doc).
 
-- Architecture
+#### Architecture
 
-  ```
-  Go+ applications   # users write DL applicaitons in Go+,
-       │             # whose syntax is as concise as Python
-   [Go+ compiler]
-       ↓
-  Go source code ━(calls)→ GoTorch ━(calls)→ libtorch ━(links)→ pytorch/xla ━(calls)→ XLA ops
-       │
-   [Go compiler]
-       ↓
-  executable binary  # x86_64, ARM, CUDA, TPU
-                     # Linux, macOS, Android, iOS
-  ```
+```
+Go+ applications   # users write DL applicaitons in Go+,
+     │             # whose syntax is as concise as Python
+ [Go+ compiler]
+     ↓
+Go source code ━(calls)→ GoTorch ━(calls)→ libtorch ━(links)→ pytorch/xla ━(calls)→ XLA ops
+     │
+ [Go compiler]
+     ↓
+executable binary  # x86_64, ARM, CUDA, TPU
+                   # Linux, macOS, Android, iOS
+```
