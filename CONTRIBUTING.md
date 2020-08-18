@@ -1,6 +1,6 @@
 # How to Contribute
 
-## Build and Test on macOS
+## Build and Test
 
 Retrieve the source code into the directory `$GOPATH/src/github.com/wangkuiyi/gotorch` -- you can set GOPATH pointing to any directory by setting `export GOPATH=some/directory`.
 
@@ -12,7 +12,7 @@ Build the CGO binding of `libtorch`.
 
 ```bash
 cd $GOPATH/src/github.com/wangkuiyi/gotorch/cgotorch
-make
+./build.sh
 ```
 
 Run the Go examples and unit tests.
@@ -26,12 +26,4 @@ The above `go test` command might fail and complain that it cannot find the `.so
 
 ```bash
 export LD_LIBRARY_PATH=$GOPATH/src/github.com/wangkuiyi/gotorch/cgotorch/libtorch/lib:$LD_LIBRARY_PATH
-```
-
-## Build and Test on Linux
-
-Please follow the above procedure with the command of building `cgotorch` changed to be 
-
-```bash
-make -f Makefile.linux
 ```
