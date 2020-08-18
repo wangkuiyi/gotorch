@@ -306,6 +306,23 @@ func Squeeze(t Tensor, dim ...int64) Tensor {
 	}
 }
 
+// Add torch.add
+func Add(a, other Tensor, alpha float32) Tensor {
+	var t C.Tensor
+	MustNil(unsafe.Pointer(C.Add(C.Tensor(*a.T), C.Tensor(*other.T),
+		C.float(alpha), &t)))
+	SetTensorFinalizer((*unsafe.Pointer)(&t))
+	return Tensor{(*unsafe.Pointer)(&t)}
+}
+
+// Flatten torch.flatten
+func Flatten(a Tensor, startDim, endDim int64) Tensor {
+	var t C.Tensor
+	MustNil(unsafe.Pointer(C.Flatten(C.Tensor(*a.T), C.int64_t(startDim), C.int64_t(endDim), &t)))
+	SetTensorFinalizer((*unsafe.Pointer)(&t))
+	return Tensor{(*unsafe.Pointer)(&t)}
+}
+
 // Sum returns the sum of all elements in the input tensor
 func Sum(a Tensor) Tensor {
 	var t C.Tensor

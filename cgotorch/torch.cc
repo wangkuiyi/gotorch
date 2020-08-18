@@ -119,6 +119,24 @@ const char *Sigmoid(Tensor a, Tensor *result) {
   }
 }
 
+const char *Add(Tensor a, Tensor other, float alpha, Tensor *result) {
+  try {
+    *result = new at::Tensor(torch::add(*a, *other, alpha));
+    return nullptr;
+  } catch (const std::exception &e) {
+    return exception_str(e.what());
+  }
+}
+
+const char *Flatten(Tensor a, startDim, endDim int64_t, Tensor *result) {
+  try {
+    *result = new at::Tensor(torch.flatten(*a, startDim, endDim));
+    return nullptr;
+  } catch (const std::exception &e) {
+    return exception_str(e.what());
+  }
+}
+
 const char *View(Tensor a, Tensor *result, int64_t *size, int64_t size_len) {
   try {
     *result = new at::Tensor(a->view(torch::IntArrayRef(size, size_len)));
