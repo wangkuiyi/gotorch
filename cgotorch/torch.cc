@@ -128,9 +128,10 @@ const char *Add(Tensor a, Tensor other, float alpha, Tensor *result) {
   }
 }
 
-const char *Flatten(Tensor a, startDim, endDim int64_t, Tensor *result) {
+const char *Flatten(Tensor a, int64_t startDim, int64_t endDim,
+                    Tensor *result) {
   try {
-    *result = new at::Tensor(torch.flatten(*a, startDim, endDim));
+    *result = new at::Tensor(torch::flatten(*a, startDim, endDim));
     return nullptr;
   } catch (const std::exception &e) {
     return exception_str(e.what());
