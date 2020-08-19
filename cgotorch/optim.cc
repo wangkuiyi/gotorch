@@ -30,7 +30,7 @@ void Optimizer_ZeroGrad(Optimizer opt) { opt->zero_grad(); }
 
 void Optimizer_Step(Optimizer opt) { opt->step(); }
 
-void Optimizer_AddParameters(Optimizer opt, Tensor *tensors, int64_t length) {
+void Optimizer_AddParameters(Optimizer opt, Tensor* tensors, int64_t length) {
   std::vector<torch::Tensor> params;
   while (params.size() < length) params.push_back(**tensors++);
   opt->add_param_group({params});
