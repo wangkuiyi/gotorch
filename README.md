@@ -2,7 +2,7 @@
 
 [![Travis CI](https://travis-ci.com/wangkuiyi/gotorch.svg?branch=develop)](https://travis-ci.com/wangkuiyi/gotorch)
 [![codecov](https://codecov.io/gh/wangkuiyi/gotorch/branch/develop/graph/badge.svg)](https://codecov.io/gh/wangkuiyi/gotorch)
-[![CircleCI](https://circleci.com/gh/wangkuiyi/gotorch.svg?style=svg)](https://circleci.com/gh/wangkuiyi/gotorch)
+[![CircleCI](https://circleci.com/gh/wangkuiyi/gotorch.svg?style=shield)](https://circleci.com/gh/wangkuiyi/gotorch)
 
 GoTorch is a Go-idiomatic PyTorch, including PyTorch modules and functionals
 rewritten in Go.
