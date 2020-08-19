@@ -46,15 +46,18 @@ libtorch includes the C++ definition of the fundamental data type `at::Tensor`
 and native functions that operate it.
 
 The key design feature of the tensor is automatic garbage collection (GC). In
-C++, the class `at::Tensor` contains only one data member, a smart pointer to
-the real tensor object.  This smart pointer performs reference count-based GC,
-which frees a tensor once its reference count gets zero.  Comparing with Go and
-Java’s GC, which runs the mark-and-sweep algorithm, reference count reacts
-instantly but cannot handle the case of cyclic-dependency.
+C++, the class `at::Tensor` contains only one data member, a strong reference
+count-based smart pointer, `c10::intrusive_ptr`, which works like
+`std::shared_ptr`, to the real tensor object.  This smart pointer performs
+reference count-based GC, which frees a tensor once its reference count gets
+zero.  Compared to Go and Java’s GC, which runs the mark-and-sweep algorithm,
+reference count reacts instantly but cannot handle the case of
+cyclic-dependency.
 
 PyTorch programmers access `at::Tensor` from the Python binding. Python’s GC
-uses reference counts like `shared_ptr`.  For completeness, Python runs
-mark-and-sweep from time to time to handle cyclic-dependencies.
+uses strong reference count-based algorithm like `std::shared_ptr`, which cannot
+handle cyclic-dependencies.  Therefore, Python runs mark-and-sweep from time to
+time to free cyclic-dependencies.
 
 Go provides an asynchronous API, `runtime.GC()`, to trigger GC and returns
 immediately without waiting for the completion of GC.  If all tensors are in CPU
