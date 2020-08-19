@@ -17,6 +17,3 @@ script:
   - cgotorch/build.sh
   - go get -u -t ./...
   - go test -coverprofile=coverage.txt -covermode=atomic -v -race ./...
-
-after_install:
-  - bash <(curl -s https://codecov.io/bash)

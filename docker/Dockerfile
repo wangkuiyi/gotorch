@@ -8,6 +8,10 @@ RUN GOPATH=/go /usr/local/go/bin/go get golang.org/x/lint/golint
 RUN GOPATH=/go /usr/local/go/bin/go get github.com/stretchr/testify
 RUN cp /go/bin/* /usr/local/bin/
 
+ENV GOPATH=/go
+ENV PATH=/usr/local/go/bin:/go/bin:/usr/bin:/usr/local/bin:/usr/sbin
+ENV LD_LIBRARY_PATH=/go/src/github.com/wangkuiyi/gotorch/cgotorch/libtorch/lib
+
 RUN echo 'export GOPATH=/go' >> /root/.bashrc
 RUN echo 'export PATH=/usr/local/go/bin:/go/bin:$PATH' >> /root/.bashrc
 RUN echo 'export LD_LIBRARY_PATH=$GOPATH/src/github.com/wangkuiyi/gotorch/cgotorch/libtorch/lib'
