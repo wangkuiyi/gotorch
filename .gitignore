@@ -9,3 +9,4 @@ data
 .DS_store
 *.png
 *.pt
+trace.out
