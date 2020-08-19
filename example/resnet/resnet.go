@@ -187,6 +187,7 @@ func (r *ResnetModule) Forward(x torch.Tensor) torch.Tensor {
 	x = r.L2.Forward(x).(torch.Tensor)
 	x = r.L3.Forward(x).(torch.Tensor)
 	x = r.L4.Forward(x).(torch.Tensor)
+
 	x = F.AdaptiveAvgPool2d(x, []int64{1, 1})
 	x = torch.Flatten(x, 1, -1)
 	x = r.FC.Forward(x)
