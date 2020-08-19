@@ -330,10 +330,70 @@ func Flatten(a Tensor, startDim, endDim int64) Tensor {
 	return Tensor{(*unsafe.Pointer)(&t)}
 }
 
+// TopK torch.topk
+func TopK(a Tensor, k, dim int64, largest, sorted bool) (Tensor, Tensor) {
+	var values, indices C.Tensor
+	l := 0
+	if largest {
+		l = 1
+	}
+	s := 0
+	if sorted {
+		s = 1
+	}
+	MustNil(unsafe.Pointer(C.TopK(C.Tensor(*a.T), C.int64_t(k), C.int64_t(dim),
+		C.int8_t(l), C.int8_t(s), &values, &indices)))
+	return Tensor{(*unsafe.Pointer)(&values)}, Tensor{(*unsafe.Pointer)(&indices)}
+}
+
+// Transpose torch.transpose
+func Transpose(a Tensor, dim0, dim1 int64) Tensor {
+	var t C.Tensor
+	MustNil(unsafe.Pointer(C.Transpose(C.Tensor(*a.T), C.int64_t(dim0), C.int64_t(dim1), &t)))
+	SetTensorFinalizer((*unsafe.Pointer)(&t))
+	return Tensor{(*unsafe.Pointer)(&t)}
+}
+
+// ExpandAs torch.expand_as
+func ExpandAs(a, other Tensor) Tensor {
+	var t C.Tensor
+	MustNil(unsafe.Pointer(C.ExpandAs(C.Tensor(*a.T), C.Tensor(*other.T), &t)))
+	SetTensorFinalizer((*unsafe.Pointer)(&t))
+	return Tensor{(*unsafe.Pointer)(&t)}
+}
+
+// Eq torch.eq
+func Eq(a, other Tensor) Tensor {
+	var t C.Tensor
+	MustNil(unsafe.Pointer(C.Eq(C.Tensor(*a.T), C.Tensor(*other.T), &t)))
+	SetTensorFinalizer((*unsafe.Pointer)(&t))
+	return Tensor{(*unsafe.Pointer)(&t)}
+}
+
+// IndexSelect torch.index_select
+func IndexSelect(a Tensor, dim int64, index Tensor) Tensor {
+	var t C.Tensor
+	MustNil(unsafe.Pointer(C.IndexSelect(C.Tensor(*a.T), C.int64_t(dim), C.Tensor(*index.T), &t)))
+	SetTensorFinalizer((*unsafe.Pointer)(&t))
+	return Tensor{(*unsafe.Pointer)(&t)}
+}
+
 // Sum returns the sum of all elements in the input tensor
 func Sum(a Tensor) Tensor {
 	var t C.Tensor
 	MustNil(unsafe.Pointer(C.Sum(C.Tensor(*a.T), &t)))
+	SetTensorFinalizer((*unsafe.Pointer)(&t))
+	return Tensor{(*unsafe.Pointer)(&t)}
+}
+
+// SumByDim torch.sum
+func SumByDim(a Tensor, dim int64, keepDim bool) Tensor {
+	k := 0
+	if keepDim {
+		k = 1
+	}
+	var t C.Tensor
+	MustNil(unsafe.Pointer(C.SumByDim(C.Tensor(*a.T), C.int64_t(dim), C.int8_t(k), &t)))
 	SetTensorFinalizer((*unsafe.Pointer)(&t))
 	return Tensor{(*unsafe.Pointer)(&t)}
 }

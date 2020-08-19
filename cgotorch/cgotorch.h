@@ -144,7 +144,6 @@ Optimizer Adam(double learning_rate, double beta1, double beta2,
 void Optimizer_ZeroGrad(Optimizer opt);
 void Optimizer_Step(Optimizer opt);
 void Optimizer_AddParameters(Optimizer opt, Tensor *tensors, int64_t length);
-void Optimizer_SetLR(Optimizer opt, double learning_rate);
 void Optimizer_Close(Optimizer opt);
 
 ////////////////////////////////////////////////////////////////////////////////
