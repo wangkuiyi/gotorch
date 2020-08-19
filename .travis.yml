@@ -11,6 +11,9 @@ branches:
   only:
     - develop
 
+install:
+  - go get -v -t -d ./...
+
 script:
   - export LD_LIBRARY_PATH=$TRAVIS_BUILD_DIR/cgotorch/libtorch/lib:$LD_LIBRARY_PATH
   - cgotorch/build.sh
