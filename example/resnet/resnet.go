@@ -22,7 +22,7 @@ func BasicBlock(inplanes, planes, stride int64, downsample *nn.SequentialModule,
 	b := &BasicBlockModule{
 		C1:         nn.Conv2d(inplanes, planes, 3, stride, 1, 1, 1, false, "zeros"),
 		BN1:        nn.BatchNorm2d(planes, 1e-5, 0.1, true, true),
-		C2:         nn.Conv2d(planes, planes, 3, stride, 1, 1, 1, false, "zeros"),
+		C2:         nn.Conv2d(planes, planes, 3, 1, 1, 1, 1, false, "zeros"),
 		BN2:        nn.BatchNorm2d(planes, 1e-5, 0.1, true, true),
 		Downsample: downsample,
 	}
@@ -182,6 +182,7 @@ func (r *ResnetModule) Forward(x torch.Tensor) torch.Tensor {
 	x = r.BN1.Forward(x)
 	x = torch.Relu(x)
 	x = F.MaxPool2d(x, []int64{3, 3}, []int64{2, 2}, []int64{1, 1}, []int64{1, 1}, true)
+
 	x = r.L1.Forward(x).(torch.Tensor)
 	x = r.L2.Forward(x).(torch.Tensor)
 	x = r.L3.Forward(x).(torch.Tensor)
@@ -204,11 +205,11 @@ func Resnet18() *ResnetModule {
 }
 
 func main() {
-	// resnet18 := Resnet18()
-	// input2 := torch.RandN([]int64{16, 3, 224, 224}, false)
-	// resnet18.Forward(input2)
+	resnet18 := Resnet18()
+	input1 := torch.RandN([]int64{16, 3, 224, 224}, false)
+	resnet18.Forward(input1)
 
 	resnet50 := Resnet50()
-	input1 := torch.RandN([]int64{16, 3, 224, 224}, false)
-	resnet50.Forward(input1)
+	input2 := torch.RandN([]int64{16, 3, 224, 224}, false)
+	resnet50.Forward(input2)
 }
