@@ -195,14 +195,14 @@ func (r *ResnetModule) Forward(x torch.Tensor) torch.Tensor {
 	return x
 }
 
-// Resnet50 returns a Resnet50 network
-func Resnet50() *ResnetModule {
-	return Resnet(reflect.TypeOf((*BottleneckModule)(nil)).Elem(), []int64{3, 4, 6, 3}, 1000, false, 1, 64)
-}
-
 // Resnet18 returns a Resnet18 network
 func Resnet18() *ResnetModule {
 	return Resnet(reflect.TypeOf((*BasicBlockModule)(nil)).Elem(), []int64{2, 2, 2, 2}, 1000, false, 1, 64)
+}
+
+// Resnet50 returns a Resnet50 network
+func Resnet50() *ResnetModule {
+	return Resnet(reflect.TypeOf((*BottleneckModule)(nil)).Elem(), []int64{3, 4, 6, 3}, 1000, false, 1, 64)
 }
 
 func main() {
