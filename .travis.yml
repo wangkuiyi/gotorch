@@ -5,38 +5,17 @@ language: go
 go:
   # We rely on github.com/stretchr/testify, which requires a recent Go version.
   - 1.14
-dist: bionic
-compiler: clang
-
-addons:
-  apt:
-    packages:
-      - python3-pip
-      - clang-format
-      - cppcheck
-
-install:
-  - python3 -m pip install --upgrade pip setuptools
-  - python3 -m pip install pre-commit cpplint
-  - go get -u golang.org/x/lint/golint
-  - sudo cp $(go env $GOPATH)/bin/* /usr/local/bin/
-
-cache:
-  directories:
-    # https://pre-commit.com/#travis-ci-example
-    - $HOME/.cache/pre-commit
+os: osx
 
 branches:
   only:
     - develop
 
+install:
+  - go get -v -t -d ./...
+
 script:
-  - set -e
-  - pre-commit run -a
   - export LD_LIBRARY_PATH=$TRAVIS_BUILD_DIR/cgotorch/libtorch/lib:$LD_LIBRARY_PATH
   - cgotorch/build.sh
-  - go get -u -t ./...
+  - go get -v -t -d ./...
   - go test -coverprofile=coverage.txt -covermode=atomic -v -race ./...
-
-after_install:
-  - bash <(curl -s https://codecov.io/bash)

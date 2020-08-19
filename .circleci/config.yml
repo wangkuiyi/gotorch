@@ -3,11 +3,14 @@ version: 2
 jobs:
   build:
     docker:
-      - image: circleci/golang:1.15
+      - image: cxwangyi/gotorch
 
     working_directory: /go/src/github.com/wangkuiyi/gotorch
     steps:
       - checkout
+      - run: pre-commit run -a
       - run: cgotorch/build.sh
       - run: go get -v -t -d ./...
-      - run: go test -v ./...
+      - run: LD_LIBRARY_PATH=$CIRCLE_WORKING_DIRECTORY/cgotorch/libtorch/lib:$LD_LIBRARY_PATH
+      - run: go test -race -coverprofile=coverage.txt -covermode=atomic -v ./...
+      - run: bash <(curl -s https://codecov.io/bash)
