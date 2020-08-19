@@ -12,5 +12,4 @@ jobs:
       - run: cgotorch/build.sh
       - run: go get -v -t -d ./...
       - run: go test -race -coverprofile=coverage.txt -covermode=atomic -v ./...
-      - codecov/upload:
-          - file: coverage.txt
+      - run: bash <(curl -s https://codecov.io/bash)
