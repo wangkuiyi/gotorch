@@ -84,7 +84,8 @@ func ExampleTrainMLPUsingMNIST() {
 	for epoch := 0; epoch < epochs; epoch++ {
 		trainLoader := torch.NewDataLoader(mnist, 64)
 		for trainLoader.Scan() {
-			data, target := trainLoader.Batch().Data.To(device), trainLoader.Batch().Target.To(device)
+			batch := trainLoader.Batch()
+			data, target := batch.Data.To(device, batch.Data.Dtype()), batch.Target.To(device, batch.Target.Dtype())
 			opt.ZeroGrad()
 			pred := net.Forward(data)
 			loss := F.NllLoss(pred, target, torch.Tensor{}, -100, "mean")

@@ -83,6 +83,15 @@ const char *Sum(Tensor a, Tensor *result) {
   }
 }
 
+const char *SumByDim(Tensor a, int64_t dim, int8_t keepDim, Tensor *result) {
+  try {
+    *result = new at::Tensor(a->sum(dim, keepDim));
+    return nullptr;
+  } catch (const std::exception &e) {
+    return exception_str(e.what());
+  }
+}
+
 const char *Relu(Tensor a, Tensor *result) {
   try {
     *result = new at::Tensor(a->relu());
@@ -132,6 +141,54 @@ const char *Flatten(Tensor a, int64_t startDim, int64_t endDim,
                     Tensor *result) {
   try {
     *result = new at::Tensor(torch::flatten(*a, startDim, endDim));
+    return nullptr;
+  } catch (const std::exception &e) {
+    return exception_str(e.what());
+  }
+}
+
+const char *TopK(Tensor a, int64_t k, int64_t dim, int8_t largest,
+                 int8_t sorted, Tensor *values, Tensor *indices) {
+  try {
+    auto outputs = torch::topk(*a, k, dim, largest, sorted);
+    *values = new at::Tensor(std::get<0>(outputs));
+    *indices = new at::Tensor(std::get<1>(outputs));
+    return nullptr;
+  } catch (const std::exception &e) {
+    return exception_str(e.what());
+  }
+}
+
+const char *Transpose(Tensor a, int64_t dim0, int64_t dim1, Tensor *result) {
+  try {
+    *result = new at::Tensor(torch::transpose(*a, dim0, dim1));
+    return nullptr;
+  } catch (const std::exception &e) {
+    return exception_str(e.what());
+  }
+}
+
+const char *ExpandAs(Tensor a, Tensor other, Tensor *result) {
+  try {
+    *result = new at::Tensor(a->expand_as(*other));
+    return nullptr;
+  } catch (const std::exception &e) {
+    return exception_str(e.what());
+  }
+}
+
+const char *Eq(Tensor a, Tensor other, Tensor *result) {
+  try {
+    *result = new at::Tensor(torch::eq(*a, *other));
+    return nullptr;
+  } catch (const std::exception &e) {
+    return exception_str(e.what());
+  }
+}
+
+const char *IndexSelect(Tensor a, int64_t dim, Tensor index, Tensor *result) {
+  try {
+    *result = new at::Tensor(torch::index_select(*a, dim, *index));
     return nullptr;
   } catch (const std::exception &e) {
     return exception_str(e.what());
@@ -227,6 +284,16 @@ const char *Tensor_Shape(Tensor tensor, int64_t *dims) {
   try {
     int i = 0;
     for (int64_t dim : tensor->sizes()) dims[i++] = dim;
+    return nullptr;
+  } catch (const std::exception &e) {
+    return exception_str(e.what());
+  }
+}
+
+const char *Tensor_Dtype(Tensor tensor, int8_t *dtype) {
+  try {
+    auto t = tensor->scalar_type();
+    *dtype = static_cast<int8_t>(t);
     return nullptr;
   } catch (const std::exception &e) {
     return exception_str(e.what());
@@ -333,9 +400,10 @@ const char *Torch_Device(const char *device_type, Device *device) {
 
 bool IsCUDAAvailable() { return torch::cuda::is_available(); }
 
-const char *Tensor_To(Tensor input, Device device, Tensor *output) {
+const char *Tensor_To(Tensor input, Device device, int8_t dtype,
+                      Tensor *output) {
   try {
-    auto result = input->to(*device, input->dtype());
+    auto result = input->to(*device, static_cast<at::ScalarType>(dtype));
     *output = new at::Tensor(result);
     return nullptr;
   } catch (const std::exception &e) {

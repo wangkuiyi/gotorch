@@ -41,12 +41,19 @@ const char *Empty(int64_t *size, int64_t length, int64_t require_grad,
 
 const char *MM(Tensor a, Tensor b, Tensor *result);
 const char *Sum(Tensor a, Tensor *result);
+const char *SumByDim(Tensor a, int64_t dim, int8_t keepDim, Tensor *result);
 const char *Relu(Tensor a, Tensor *result);
 const char *LeakyRelu(Tensor a, double negative_slope, Tensor *result);
 const char *Tanh(Tensor a, Tensor *result);
 const char *Sigmoid(Tensor a, Tensor *result);
 const char *Add(Tensor a, Tensor other, float alpha, Tensor *result);
 const char *Flatten(Tensor a, int64_t startDim, int64_t endDim, Tensor *result);
+const char *TopK(Tensor a, int64_t k, int64_t dim, int8_t largest,
+                 int8_t sorted, Tensor *values, Tensor *indices);
+const char *Transpose(Tensor a, int64_t dim0, int64_t dim1, Tensor *result);
+const char *ExpandAs(Tensor a, Tensor other, Tensor *result);
+const char *Eq(Tensor a, Tensor other, Tensor *result);
+const char *IndexSelect(Tensor a, int64_t dim, Tensor index, Tensor *result);
 const char *View(Tensor a, Tensor *result, int64_t *size, int64_t size_len);
 const char *LogSoftmax(Tensor a, int64_t dim, Tensor *result);
 const char *Squeeze(Tensor a, Tensor *result);
@@ -63,6 +70,7 @@ void FreeString(const char *s);
 const char *Tensor_Save(Tensor tensor, const char *path);
 const char *Tensor_Dim(Tensor tensor, int64_t *dim);
 const char *Tensor_Shape(Tensor tensor, int64_t *dims);
+const char *Tensor_Dtype(Tensor tensor, int8_t *dtype);
 const char *Tensor_SetData(Tensor self, Tensor new_data);
 // Backward, Gradient
 void Tensor_Backward(Tensor a);
@@ -145,7 +153,8 @@ void Optimizer_Close(Optimizer opt);
 const char *Torch_Device(const char *device_type, Device *device);
 bool IsCUDAAvailable();
 
-const char *Tensor_To(Tensor input, Device device, Tensor *output);
+const char *Tensor_To(Tensor input, Device device, int8_t dtype,
+                      Tensor *output);
 ////////////////////////////////////////////////////////////////////////////////
 //  Dataset, DataLoader, and Iterator torch.utils.data
 ////////////////////////////////////////////////////////////////////////////////
