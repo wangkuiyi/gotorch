@@ -123,7 +123,7 @@ func (m *Module) To(device torch.Device) {
 		} else if f.Type == tensorType {
 			param := v.Interface().(torch.Tensor)
 			if param.T != nil {
-				param.SetData(param.To(device))
+				param.SetData(param.To(device, param.Dtype()))
 			}
 		}
 	}

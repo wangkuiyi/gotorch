@@ -19,7 +19,7 @@ func TestDevice(t *testing.T) {
 			log.Println("No CUDA found; CPU only")
 			device = torch.NewDevice("cpu")
 		}
-		torch.RandN([]int64{2, 3}, false).To(device)
+		torch.RandN([]int64{2, 3}, false).To(device, torch.Float)
 	})
 }
 

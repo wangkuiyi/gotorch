@@ -153,6 +153,13 @@ func (a Tensor) Shape() []int64 {
 	return shape
 }
 
+// Dtype returns data type
+func (a Tensor) Dtype() int8 {
+	var t int8
+	MustNil(unsafe.Pointer(C.Tensor_Dtype(C.Tensor(*a.T), (*C.int8_t)(unsafe.Pointer(&t)))))
+	return t
+}
+
 // Relu returns relu of the tensor
 func (a *Tensor) Relu() Tensor {
 	var t C.Tensor
@@ -244,9 +251,9 @@ func (a Tensor) Grad() Tensor {
 
 // To returns a Tensor on the specified device with the same content as the a.
 // If the specified device doesn't exist, To panics.
-func (a Tensor) To(device Device) Tensor {
+func (a Tensor) To(device Device, dtype int8) Tensor {
 	var t C.Tensor
-	MustNil(unsafe.Pointer(C.Tensor_To(C.Tensor(*a.T), device.T, &t)))
+	MustNil(unsafe.Pointer(C.Tensor_To(C.Tensor(*a.T), device.T, C.int8_t(dtype), &t)))
 	SetTensorFinalizer((*unsafe.Pointer)(&t))
 	return Tensor{(*unsafe.Pointer)(&t)}
 }
@@ -341,6 +348,6 @@ func View(a Tensor, shape []int64) Tensor {
 
 // To returns a Tensor on the specified device with the same content as the a.
 // If the specified device doesn't exist, To panics.
-func To(a Tensor, device Device) Tensor {
-	return a.To(device)
+func To(a Tensor, device Device, dtype int8) Tensor {
+	return a.To(device, dtype)
 }
