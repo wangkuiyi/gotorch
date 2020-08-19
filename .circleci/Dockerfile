@@ -1,3 +1,8 @@
+# This Dockerfile generates the image used by CircleCI.  To update the image,
+# run the following two commands:
+#    docker build -t cxwangyi/gotorch .
+#    docker push cxwangyi/gotorch
+# The Docker image name cxwangyi/gotorch is the one used in cofig.yml.
 FROM circleci/golang:1.15
 
 RUN sudo apt-get -qq update && sudo apt-get -qq install -y curl unzip make git clang clang-format cppcheck python3-pip
