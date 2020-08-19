@@ -3,12 +3,38 @@
 [![Travis CI](https://travis-ci.com/wangkuiyi/gotorch.svg?branch=develop)](https://travis-ci.com/wangkuiyi/gotorch)
 [![codecov](https://codecov.io/gh/wangkuiyi/gotorch/branch/develop/graph/badge.svg)](https://codecov.io/gh/wangkuiyi/gotorch)
 
-A Go-idiomatic binding of PyTorch, to be called by [Go+](https://github.com/goplus/gop) programs.
+GoTorch is a Go-idiomatic PyTorch, including PyTorch modules and functionals
+rewritten in Go.
 
-## Build and Test
+## From GoTorch to Go+Torch
 
-Please refer to [CONTRIBUTING.md](CONTRIBUTING.md).
+GoTorch work with the following open-source communities to form Go+Torch.
 
-## Examples
+- the [Go+](https://github.com/goplus/gop) community,
+- the PyTorch community, and
+- the TenosrFlow XLA ecosystem.
 
-Please refer to examples in `*_test.go` files.
+The following figure reveals the technical relationship.
+
+```text
+Go+ applications   # users write DL applicaitons in Go+,
+     │             # whose syntax is as concise as Python
+ [Go+ compiler]
+     ↓
+Go source code ━(calls)→ GoTorch ━(calls)→ libtorch ━(links)→ pytorch/xla ━(calls)→ XLA ops
+     │
+ [Go compiler]
+     ↓
+executable binary  # x86_64, ARM, CUDA, TPU
+                   # Linux, macOS, Android, iOS
+```
+
+## GoTorch Documents
+
+- [Build and Test](CONTRIBUTING.md)
+
+- Examples
+
+  - [MNIST trainining](./mnist_test.go)
+
+- [Design Docs](./doc/design.md)
