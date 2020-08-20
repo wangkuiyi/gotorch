@@ -38,17 +38,17 @@ the fundamental data type tensor.
 
 To wrap mm, we don’t care about its implementations but its two forms.
 
-The global functions are in ATen/Functions.h, which is not in the PyTorch Github
-repo, because it is generated at build time from native_functions.yaml.  If you
-download the pre-built libtorch releases from PyTorch official Web
+The global functions are in `ATen/Functions.h`, which is not in the PyTorch
+Github repo, because it is generated at build time from native_functions.yaml.
+If you download the pre-built libtorch releases from PyTorch official Web
 [site](https://pytorch.org/get-started/locally/) and unzip it, you will find the
-file in directory libtorch/include/ATen/Functions.h.
+file in directory `libtorch/include/ATen/Functions.h`.
 
 ```c++
 CAFFE2_API Tensor mm(const Tensor & self, const Tensor & mat2);
 ```
 
-The method `Tensor::mm` is in TenosrBody.h, which, again is generated from
+The method `Tensor::mm` is in `TenosrBody.h`, which, again is generated from
 native_functions.yaml. You can find it in
 `libtorch/include/ATen/core/TensorBody.h`.
 
