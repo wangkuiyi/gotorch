@@ -14,3 +14,4 @@ jobs:
       - run: LD_LIBRARY_PATH=$CIRCLE_WORKING_DIRECTORY/cgotorch/libtorch/lib:$LD_LIBRARY_PATH
       - run: go test -race -coverprofile=coverage.txt -covermode=atomic -v ./...
       - run: bash <(curl -s https://codecov.io/bash)
+      - run: cd benchmark; make; ./mnist

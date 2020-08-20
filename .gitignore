@@ -10,3 +10,5 @@ data
 *.png
 *.pt
 trace.out
+*.prof
+*.pdf
