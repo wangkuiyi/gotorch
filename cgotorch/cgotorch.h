@@ -118,6 +118,10 @@ const char *ConvTranspose2d(Tensor input, Tensor weight, Tensor bias,
 const char *BinaryCrossEntropy(Tensor input, Tensor target, Tensor weight,
                                const char *reduction, Tensor *result);
 
+const char *CrossEntropy(Tensor input, Tensor target, Tensor weight,
+                         int64_t ignore_index, const char *reduction,
+                         Tensor *result);
+
 const char *NllLoss(Tensor input, Tensor target, Tensor weight,
                     int64_t ignore_index, const char *reduction,
                     Tensor *result);

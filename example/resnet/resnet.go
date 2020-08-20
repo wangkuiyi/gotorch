@@ -1,11 +1,13 @@
 package main
 
 import (
+	"log"
 	"reflect"
 
 	torch "github.com/wangkuiyi/gotorch"
 	"github.com/wangkuiyi/gotorch/nn"
 	F "github.com/wangkuiyi/gotorch/nn/functional"
+	"github.com/wangkuiyi/gotorch/nn/initializer"
 )
 
 // BasicBlockModule struct
@@ -206,11 +208,42 @@ func Resnet50() *ResnetModule {
 }
 
 func main() {
-	resnet18 := Resnet18()
-	input1 := torch.RandN([]int64{16, 3, 224, 224}, false)
-	resnet18.Forward(input1)
+	batchSize := int64(16)
+	epochs := 90
+	lr := 0.1
+	momentum := 0.9
+	weightDecay := 1e-4
 
-	resnet50 := Resnet50()
-	input2 := torch.RandN([]int64{16, 3, 224, 224}, false)
-	resnet50.Forward(input2)
+	var device torch.Device
+	if torch.IsCUDAAvailable() {
+		log.Println("CUDA is valid")
+		device = torch.NewDevice("cuda")
+	} else {
+		log.Println("No CUDA found; CPU only")
+		device = torch.NewDevice("cpu")
+	}
+
+	model := Resnet18()
+	model.To(device)
+
+	optimizer := torch.SGD(lr, momentum, 0, weightDecay, false)
+	optimizer.AddParameters(model.Parameters())
+
+	for epoch := 0; epoch < epochs; epoch++ {
+		model.Train(true)
+
+		image := torch.RandN([]int64{batchSize, 3, 224, 224}, false)
+		target := torch.Empty([]int64{batchSize}, false)
+		initializer.Uniform(&target, 0, 1000)
+
+		image.To(device, image.Dtype())
+		target.To(device, torch.Long)
+
+		output := model.Forward(image)
+		loss := F.CrossEntropy(output, target, torch.Tensor{}, -100, "mean")
+
+		optimizer.ZeroGrad()
+		loss.Backward()
+		optimizer.Step()
+	}
 }
