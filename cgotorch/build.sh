@@ -41,6 +41,7 @@ if [ "$OS" == "linux" ]; then
     else
         echo "Building for Linux without CUDA ...";
         LIBTORCH_DIR="linux/libtorch"
+        GLIBCXX_USE_CXX11_ABI="0"
         if [ ! -d "DIR/$LIBTORCH_DIR" ]; then
             curl -LsO 'https://download.pytorch.org/libtorch/cpu/libtorch-shared-with-deps-1.6.0%2Bcpu.zip'
             unzip -qq -o libtorch-shared-with-deps-1.6.0%2Bcpu.zip -d linux
