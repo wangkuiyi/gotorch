@@ -36,4 +36,16 @@ void Optimizer_AddParameters(Optimizer opt, Tensor* tensors, int64_t length) {
   opt->add_param_group({params});
 }
 
+void Optimizer_SetLR(Optimizer opt, double learning_rate) {
+  if (dynamic_cast<torch::optim::SGD*>(opt)) {
+    for (auto& pg : opt->param_groups()) {
+      static_cast<torch::optim::SGDOptions*>(&pg.options())->lr(learning_rate);
+    }
+  } else if (dynamic_cast<torch::optim::Adam*>(opt)) {
+    for (auto& pg : opt->param_groups()) {
+      static_cast<torch::optim::AdamOptions*>(&pg.options())->lr(learning_rate);
+    }
+  }
+}
+
 void Optimizer_Close(Optimizer opt) { delete opt; }

@@ -137,6 +137,15 @@ const char *Add(Tensor a, Tensor other, float alpha, Tensor *result) {
   }
 }
 
+const char *Add_(Tensor a, Tensor other, Tensor *result) {
+  try {
+    *result = new at::Tensor(a->add_(*other));
+    return nullptr;
+  } catch (const std::exception &e) {
+    return exception_str(e.what());
+  }
+}
+
 const char *Flatten(Tensor a, int64_t startDim, int64_t endDim,
                     Tensor *result) {
   try {

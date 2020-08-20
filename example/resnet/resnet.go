@@ -1,11 +1,15 @@
 package main
 
 import (
+	"fmt"
+	"log"
+	"math"
 	"reflect"
 
 	torch "github.com/wangkuiyi/gotorch"
 	"github.com/wangkuiyi/gotorch/nn"
 	F "github.com/wangkuiyi/gotorch/nn/functional"
+	"github.com/wangkuiyi/gotorch/nn/initializer"
 )
 
 // BasicBlockModule struct
@@ -36,7 +40,7 @@ func (b *BasicBlockModule) Forward(x torch.Tensor) torch.Tensor {
 
 	out := b.C1.Forward(x)
 	out = b.BN1.Forward(out)
-	out = torch.Relu(out)
+	out = F.Relu(out, true)
 
 	out = b.C2.Forward(out)
 	out = b.BN2.Forward(out)
@@ -45,8 +49,8 @@ func (b *BasicBlockModule) Forward(x torch.Tensor) torch.Tensor {
 		identity = b.Downsample.Forward(x).(torch.Tensor)
 	}
 
-	out = torch.Add(out, identity, 1)
-	out = torch.Relu(out)
+	out.AddInplace(identity)
+	out = F.Relu(out, true)
 	return out
 }
 
@@ -82,11 +86,11 @@ func (b *BottleneckModule) Forward(x torch.Tensor) torch.Tensor {
 	out := b.C1.Forward(x)
 
 	out = b.BN1.Forward(out)
-	out = torch.Relu(out)
+	out = F.Relu(out, true)
 
 	out = b.C2.Forward(out)
 	out = b.BN2.Forward(out)
-	out = torch.Relu(out)
+	out = F.Relu(out, true)
 
 	out = b.C3.Forward(out)
 	out = b.BN3.Forward(out)
@@ -94,8 +98,8 @@ func (b *BottleneckModule) Forward(x torch.Tensor) torch.Tensor {
 		identity = b.Downsample.Forward(x).(torch.Tensor)
 	}
 
-	out = torch.Add(out, identity, 1)
-	out = torch.Relu(out)
+	out.AddInplace(identity)
+	out = F.Relu(out, true)
 	return out
 }
 
@@ -180,7 +184,7 @@ func (r *ResnetModule) makeLayer(block reflect.Type, planes, blocks, stride int6
 func (r *ResnetModule) Forward(x torch.Tensor) torch.Tensor {
 	x = r.C1.Forward(x)
 	x = r.BN1.Forward(x)
-	x = torch.Relu(x)
+	x = F.Relu(x, true)
 	x = F.MaxPool2d(x, []int64{3, 3}, []int64{2, 2}, []int64{1, 1}, []int64{1, 1}, true)
 
 	x = r.L1.Forward(x).(torch.Tensor)
@@ -205,12 +209,53 @@ func Resnet50() *ResnetModule {
 	return Resnet(reflect.TypeOf((*BottleneckModule)(nil)).Elem(), []int64{3, 4, 6, 3}, 1000, false, 1, 64)
 }
 
-func main() {
-	resnet18 := Resnet18()
-	input1 := torch.RandN([]int64{16, 3, 224, 224}, false)
-	resnet18.Forward(input1)
+func adjustLearningRate(opt torch.Optimizer, epoch int, lr float64) {
+	newLR := lr * math.Pow(0.1, float64(epoch)/30.0)
+	opt.SetLR(newLR)
+}
 
-	resnet50 := Resnet50()
-	input2 := torch.RandN([]int64{16, 3, 224, 224}, false)
-	resnet50.Forward(input2)
+func main() {
+	batchSize := int64(16)
+	epochs := 1000
+	lr := 0.1
+	momentum := 0.9
+	weightDecay := 1e-4
+
+	var device torch.Device
+	if torch.IsCUDAAvailable() {
+		log.Println("CUDA is valid")
+		device = torch.NewDevice("cuda")
+	} else {
+		log.Println("No CUDA found; CPU only")
+		device = torch.NewDevice("cpu")
+	}
+
+	model := Resnet50()
+	model.To(device)
+
+	optimizer := torch.SGD(lr, momentum, 0, weightDecay, false)
+	optimizer.AddParameters(model.Parameters())
+
+	for epoch := 0; epoch < epochs; epoch++ {
+		adjustLearningRate(optimizer, epoch, lr)
+
+		model.Train(true)
+		{
+			torch.GC()
+			image := torch.RandN([]int64{batchSize, 3, 224, 224}, false).To(device, torch.Float)
+			target := torch.Empty([]int64{batchSize}, false)
+			initializer.Uniform(&target, 0, 1000)
+			target = target.To(device, torch.Long)
+
+			output := model.Forward(image)
+			loss := F.CrossEntropy(output, target, torch.Tensor{}, -100, "mean")
+
+			fmt.Printf("loss: %f\n", loss.Item())
+
+			optimizer.ZeroGrad()
+			loss.Backward()
+			optimizer.Step()
+		}
+	}
+	torch.FinishGC()
 }

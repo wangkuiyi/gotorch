@@ -54,6 +54,11 @@ func (opt Optimizer) Step() {
 	C.Optimizer_Step(*opt.Opt)
 }
 
+// SetLR sets learning rate
+func (opt Optimizer) SetLR(lr float64) {
+	C.Optimizer_SetLR(*opt.Opt, C.double(lr))
+}
+
 // Close the optimizer
 func (opt Optimizer) Close() {
 	C.Optimizer_Close(*opt.Opt)

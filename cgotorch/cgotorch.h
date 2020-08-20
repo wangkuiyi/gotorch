@@ -47,6 +47,7 @@ const char *LeakyRelu(Tensor a, double negative_slope, Tensor *result);
 const char *Tanh(Tensor a, Tensor *result);
 const char *Sigmoid(Tensor a, Tensor *result);
 const char *Add(Tensor a, Tensor other, float alpha, Tensor *result);
+const char *Add_(Tensor a, Tensor other, Tensor *result);
 const char *Flatten(Tensor a, int64_t startDim, int64_t endDim, Tensor *result);
 const char *TopK(Tensor a, int64_t k, int64_t dim, int8_t largest,
                  int8_t sorted, Tensor *values, Tensor *indices);
@@ -118,10 +119,15 @@ const char *ConvTranspose2d(Tensor input, Tensor weight, Tensor bias,
 const char *BinaryCrossEntropy(Tensor input, Tensor target, Tensor weight,
                                const char *reduction, Tensor *result);
 
+const char *CrossEntropy(Tensor input, Tensor target, Tensor weight,
+                         int64_t ignore_index, const char *reduction,
+                         Tensor *result);
+
 const char *NllLoss(Tensor input, Tensor target, Tensor weight,
                     int64_t ignore_index, const char *reduction,
                     Tensor *result);
 
+const char *FRelu(Tensor input, int8_t inplace, Tensor *result);
 const char *Linear(Tensor input, Tensor weight, Tensor bias, Tensor *result);
 
 const char *MaxPool2d(Tensor input, int64_t *kernel_data, int64_t kernel_len,
@@ -144,6 +150,7 @@ Optimizer Adam(double learning_rate, double beta1, double beta2,
 void Optimizer_ZeroGrad(Optimizer opt);
 void Optimizer_Step(Optimizer opt);
 void Optimizer_AddParameters(Optimizer opt, Tensor *tensors, int64_t length);
+void Optimizer_SetLR(Optimizer opt, double learning_rate);
 void Optimizer_Close(Optimizer opt);
 
 ////////////////////////////////////////////////////////////////////////////////

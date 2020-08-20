@@ -320,6 +320,17 @@ func Add(a, other Tensor, alpha float32) Tensor {
 	return Tensor{(*unsafe.Pointer)(&t)}
 }
 
+// AddInplace torch.add_
+func (a *Tensor) AddInplace(other Tensor) Tensor {
+	var t C.Tensor
+	MustNil(unsafe.Pointer(C.Add_(
+		C.Tensor(*a.T),
+		C.Tensor(*other.T),
+		&t)))
+	SetTensorFinalizer((*unsafe.Pointer)(&t))
+	return Tensor{(*unsafe.Pointer)(&t)}
+}
+
 // Flatten torch.flatten
 func Flatten(a Tensor, startDim, endDim int64) Tensor {
 	var t C.Tensor

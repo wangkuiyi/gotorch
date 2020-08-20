@@ -95,6 +95,41 @@ const char *BinaryCrossEntropy(Tensor input, Tensor target, Tensor weight,
   }
 }
 
+const char *CrossEntropy(Tensor input, Tensor target, Tensor weight,
+                         int64_t ignore_index, const char *reduction,
+                         Tensor *result) {
+  static std::unordered_map<std::string,
+                            torch::nn::CrossEntropyLossOptions::reduction_t>
+      reduce_map = {
+          {"none", torch::kNone},
+          {"mean", torch::kMean},
+          {"sum", torch::kSum},
+      };
+  try {
+    auto output = torch::nn::functional::cross_entropy(
+        *input, *target,
+        torch::nn::functional::CrossEntropyFuncOptions()
+            .weight((weight ? *weight : torch::Tensor()))
+            .ignore_index(ignore_index)
+            .reduction(reduce_map[std::string(reduction)]));
+    *result = new at::Tensor(output);
+    return nullptr;
+  } catch (const std::exception &e) {
+    return exception_str(e.what());
+  }
+}
+
+const char *FRelu(Tensor input, int8_t inplace, Tensor *result) {
+  try {
+    auto out = torch::nn::functional::relu(
+        *input, torch::nn::functional::ReLUFuncOptions(inplace));
+    *result = new at::Tensor(out);
+    return nullptr;
+  } catch (const std::exception &e) {
+    return exception_str(e.what());
+  }
+}
+
 const char *NllLoss(Tensor input, Tensor target, Tensor weight,
                     int64_t ignore_index, const char *reduction,
                     Tensor *result) {
