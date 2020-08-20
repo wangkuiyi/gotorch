@@ -49,7 +49,7 @@ func (b *BasicBlockModule) Forward(x torch.Tensor) torch.Tensor {
 		identity = b.Downsample.Forward(x).(torch.Tensor)
 	}
 
-	out.AddInplace(identity)
+	out.Add_(identity)
 	out = F.Relu(out, true)
 	return out
 }
@@ -98,7 +98,7 @@ func (b *BottleneckModule) Forward(x torch.Tensor) torch.Tensor {
 		identity = b.Downsample.Forward(x).(torch.Tensor)
 	}
 
-	out.AddInplace(identity)
+	out.Add_(identity)
 	out = F.Relu(out, true)
 	return out
 }
