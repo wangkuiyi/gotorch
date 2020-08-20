@@ -216,7 +216,7 @@ func adjustLearningRate(opt torch.Optimizer, epoch int, lr float64) {
 
 func main() {
 	batchSize := int64(16)
-	epochs := 90
+	epochs := 1000
 	lr := 0.1
 	momentum := 0.9
 	weightDecay := 1e-4

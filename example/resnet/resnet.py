@@ -13,7 +13,7 @@ def adjust_learning_rate(optimizer, epoch, lr):
 
 if __name__ == "__main__":
     batch_size = 16
-    epochs = 90
+    epochs = 1000
     lr = 0.1
     mementum = 0.9
     weight_decay = 1e-4
