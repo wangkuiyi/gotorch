@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"math"
 	"reflect"
 
 	torch "github.com/wangkuiyi/gotorch"
@@ -208,6 +209,11 @@ func Resnet50() *ResnetModule {
 	return Resnet(reflect.TypeOf((*BottleneckModule)(nil)).Elem(), []int64{3, 4, 6, 3}, 1000, false, 1, 64)
 }
 
+func adjustLearningRate(opt torch.Optimizer, epoch int, lr float64) {
+	newLR := lr * math.Pow(0.1, float64(epoch)/30.0)
+	opt.SetLR(newLR)
+}
+
 func main() {
 	batchSize := int64(16)
 	epochs := 90
@@ -231,22 +237,25 @@ func main() {
 	optimizer.AddParameters(model.Parameters())
 
 	for epoch := 0; epoch < epochs; epoch++ {
+		adjustLearningRate(optimizer, epoch, lr)
+
 		model.Train(true)
-		torch.GC()
+		{
+			torch.GC()
+			image := torch.RandN([]int64{batchSize, 3, 224, 224}, false).To(device, torch.Float)
+			target := torch.Empty([]int64{batchSize}, false)
+			initializer.Uniform(&target, 0, 1000)
+			target = target.To(device, torch.Long)
 
-		image := torch.RandN([]int64{batchSize, 3, 224, 224}, false).To(device, torch.Float)
-		target := torch.Empty([]int64{batchSize}, false)
-		initializer.Uniform(&target, 0, 1000)
-		target = target.To(device, torch.Long)
+			output := model.Forward(image)
+			loss := F.CrossEntropy(output, target, torch.Tensor{}, -100, "mean")
 
-		output := model.Forward(image)
-		loss := F.CrossEntropy(output, target, torch.Tensor{}, -100, "mean")
+			fmt.Printf("loss: %f\n", loss.Item())
 
-		fmt.Printf("loss: %f\n", loss.Item())
-
-		optimizer.ZeroGrad()
-		loss.Backward()
-		optimizer.Step()
+			optimizer.ZeroGrad()
+			loss.Backward()
+			optimizer.Step()
+		}
 	}
 	torch.FinishGC()
 }
