@@ -320,8 +320,8 @@ func Add(a, other Tensor, alpha float32) Tensor {
 	return Tensor{(*unsafe.Pointer)(&t)}
 }
 
-// אdd torch.add_
-func (a *Tensor) אdd(other Tensor) Tensor {
+// Add adds in-place
+func (a *Tensor) Add(other Tensor) Tensor {
 	var t C.Tensor
 	MustNil(unsafe.Pointer(C.Add_(
 		C.Tensor(*a.T),
