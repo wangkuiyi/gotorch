@@ -149,6 +149,19 @@ func CrossEntropy(input, target, weight torch.Tensor, ignoreIndex int64,
 	return torch.Tensor{(*unsafe.Pointer)(&t)}
 }
 
+// Relu torch.nn.functional.relu
+func Relu(input torch.Tensor, inplace bool) torch.Tensor {
+	var t C.Tensor
+	var cInplace C.int8_t
+	if inplace {
+		cInplace = 1
+	}
+	torch.MustNil(unsafe.Pointer(C.FRelu(
+		C.Tensor(*input.T), C.int8_t(cInplace), &t)))
+	torch.SetTensorFinalizer((*unsafe.Pointer)(&t))
+	return torch.Tensor{(*unsafe.Pointer)(&t)}
+}
+
 // Linear ports torch.nn.functional.linear
 func Linear(input, weight, bias torch.Tensor) torch.Tensor {
 	var t C.Tensor

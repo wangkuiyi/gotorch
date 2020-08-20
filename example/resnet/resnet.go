@@ -40,7 +40,7 @@ func (b *BasicBlockModule) Forward(x torch.Tensor) torch.Tensor {
 
 	out := b.C1.Forward(x)
 	out = b.BN1.Forward(out)
-	out = torch.Relu(out)
+	out = F.Relu(out, true)
 
 	out = b.C2.Forward(out)
 	out = b.BN2.Forward(out)
@@ -50,7 +50,7 @@ func (b *BasicBlockModule) Forward(x torch.Tensor) torch.Tensor {
 	}
 
 	out = torch.Add(out, identity, 1)
-	out = torch.Relu(out)
+	out = F.Relu(out, true)
 	return out
 }
 
@@ -86,11 +86,11 @@ func (b *BottleneckModule) Forward(x torch.Tensor) torch.Tensor {
 	out := b.C1.Forward(x)
 
 	out = b.BN1.Forward(out)
-	out = torch.Relu(out)
+	out = F.Relu(out, true)
 
 	out = b.C2.Forward(out)
 	out = b.BN2.Forward(out)
-	out = torch.Relu(out)
+	out = F.Relu(out, true)
 
 	out = b.C3.Forward(out)
 	out = b.BN3.Forward(out)
@@ -99,7 +99,7 @@ func (b *BottleneckModule) Forward(x torch.Tensor) torch.Tensor {
 	}
 
 	out = torch.Add(out, identity, 1)
-	out = torch.Relu(out)
+	out = F.Relu(out, true)
 	return out
 }
 
@@ -184,7 +184,7 @@ func (r *ResnetModule) makeLayer(block reflect.Type, planes, blocks, stride int6
 func (r *ResnetModule) Forward(x torch.Tensor) torch.Tensor {
 	x = r.C1.Forward(x)
 	x = r.BN1.Forward(x)
-	x = torch.Relu(x)
+	x = F.Relu(x, true)
 	x = F.MaxPool2d(x, []int64{3, 3}, []int64{2, 2}, []int64{1, 1}, []int64{1, 1}, true)
 
 	x = r.L1.Forward(x).(torch.Tensor)

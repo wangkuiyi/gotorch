@@ -126,6 +126,7 @@ const char *NllLoss(Tensor input, Tensor target, Tensor weight,
                     int64_t ignore_index, const char *reduction,
                     Tensor *result);
 
+const char *FRelu(Tensor input, int8_t inplace, Tensor *result);
 const char *Linear(Tensor input, Tensor weight, Tensor bias, Tensor *result);
 
 const char *MaxPool2d(Tensor input, int64_t *kernel_data, int64_t kernel_len,
