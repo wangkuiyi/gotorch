@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"reflect"
 
@@ -231,19 +232,21 @@ func main() {
 
 	for epoch := 0; epoch < epochs; epoch++ {
 		model.Train(true)
+		torch.GC()
 
-		image := torch.RandN([]int64{batchSize, 3, 224, 224}, false)
+		image := torch.RandN([]int64{batchSize, 3, 224, 224}, false).To(device, torch.Float)
 		target := torch.Empty([]int64{batchSize}, false)
 		initializer.Uniform(&target, 0, 1000)
-
-		image.To(device, image.Dtype())
-		target.To(device, torch.Long)
+		target = target.To(device, torch.Long)
 
 		output := model.Forward(image)
 		loss := F.CrossEntropy(output, target, torch.Tensor{}, -100, "mean")
+
+		fmt.Printf("loss: %f\n", loss.Item())
 
 		optimizer.ZeroGrad()
 		loss.Backward()
 		optimizer.Step()
 	}
+	torch.FinishGC()
 }
