@@ -1,11 +1,7 @@
 package gotorch_test
 
 import (
-	"flag"
 	"log"
-	"os"
-	"runtime/trace"
-	"testing"
 	"time"
 
 	torch "github.com/wangkuiyi/gotorch"
@@ -14,9 +10,6 @@ import (
 	"github.com/wangkuiyi/gotorch/nn/initializer"
 	"github.com/wangkuiyi/gotorch/vision"
 )
-
-var enableTrace bool
-var maxIters int
 
 type MLPMNISTNet struct {
 	nn.Module
@@ -43,7 +36,6 @@ func (n *MLPMNISTNet) Forward(x torch.Tensor) torch.Tensor {
 }
 
 func ExampleTrainMLPUsingMNIST() {
-
 	if e := vision.DownloadMNIST(); e != nil {
 		log.Printf("Cannot find or download MNIST dataset: %v", e)
 	}
@@ -67,19 +59,6 @@ func ExampleTrainMLPUsingMNIST() {
 	epochs := 2
 	startTime := time.Now()
 	var lastLoss float32
-	if enableTrace {
-		f, err := os.Create("trace.out")
-		if err != nil {
-			panic(err)
-		}
-		defer f.Close()
-
-		err = trace.Start(f)
-		if err != nil {
-			panic(err)
-		}
-		defer trace.Stop()
-	}
 	iters := 0
 	for epoch := 0; epoch < epochs; epoch++ {
 		trainLoader := torch.NewDataLoader(mnist, 64)
@@ -92,16 +71,10 @@ func ExampleTrainMLPUsingMNIST() {
 			loss.Backward()
 			opt.Step()
 			lastLoss = loss.Item()
-			if iters == maxIters && enableTrace {
-				break
-			}
 			iters++
 		}
 		log.Printf("Epoch: %d, Loss: %.4f", epoch, lastLoss)
 		trainLoader.Close()
-		if iters == maxIters && enableTrace {
-			break
-		}
 	}
 	throughput := float64(60000*epochs) / time.Since(startTime).Seconds()
 	log.Printf("Throughput: %f samples/sec", throughput)
@@ -156,11 +129,4 @@ func ExampleTrainMNISTSequential() {
 	mnist.Close()
 	torch.FinishGC()
 	// Output:
-}
-
-func init() {
-	testing.Init()
-	flag.BoolVar(&enableTrace, "trace", false, "enable trace runtime")
-	flag.IntVar(&maxIters, "max-iters", 10, "max iterators for tracing")
-	flag.Parse()
 }
