@@ -12,8 +12,6 @@ jobs:
       - run: cgotorch/build.sh
       - run: go get -v -t -d ./...
       - run: export LD_LIBRARY_PATH=$CIRCLE_WORKING_DIRECTORY/cgotorch/libtorch/lib:$LD_LIBRARY_PATH
-      - run: export OMP_NUM_THREADS=1
-      - run: export MKL_NUM_THREADS=1
-      - run: go test -coverprofile=coverage.txt -covermode=atomic -v ./...
+      - run: OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 go test -coverprofile=coverage.txt -covermode=atomic -v ./...
       - run: bash <(curl -s https://codecov.io/bash)
-      - run: cd benchmark; make; ./mnist
+      - run: cd benchmark; make; OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 ./mnist
