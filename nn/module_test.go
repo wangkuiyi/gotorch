@@ -71,6 +71,30 @@ func (n *hierarchyNet) Forward(x torch.Tensor) torch.Tensor {
 	return x
 }
 
+type myNet3 struct {
+	Module
+	L1 *SequentialModule
+	L2 *LinearModule
+}
+
+func newMyNet3() *myNet3 {
+	n := &myNet3{
+		L1: nil,
+		L2: Linear(200, 10, false),
+	}
+	n.Init(n)
+	return n
+}
+
+// Forward executes the calculation
+func (n *myNet3) Forward(x torch.Tensor) torch.Tensor {
+	if n.L1 != nil {
+		x = n.L1.Forward(x).(torch.Tensor)
+	}
+	x = n.L2.Forward(x)
+	return x
+}
+
 func TestModule(t *testing.T) {
 	n := newMyNet()
 	n.ZeroGrad()
@@ -106,6 +130,11 @@ func TestModuleTrain(t *testing.T) {
 	assert.False(t, hn.L1.IsTraining())
 	assert.False(t, hn.L1.L1.IsTraining())
 	assert.False(t, hn.L1.L2.IsTraining())
+
+	n3 := newMyNet3()
+	n3.Train(false)
+	assert.False(t, n3.IsTraining())
+	assert.False(t, n3.L2.IsTraining())
 }
 
 func TestConv2d(t *testing.T) {
