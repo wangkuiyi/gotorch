@@ -26,12 +26,10 @@ func SetTensorFinalizer(t *unsafe.Pointer) {
 		tensorFinalizersWG.Add(1)
 	}
 	runtime.SetFinalizer(t, func(ct *unsafe.Pointer) {
-		go func() {
-			C.Tensor_Close(C.Tensor(*ct))
-			if p {
-				tensorFinalizersWG.Done()
-			}
-		}()
+		C.Tensor_Close(C.Tensor(*ct))
+		if p {
+			tensorFinalizersWG.Done()
+		}
 	})
 }
 
