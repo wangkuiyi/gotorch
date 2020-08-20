@@ -75,14 +75,18 @@ func (m *Module) Train(on bool) {
 				torchCheck(v.CanInterface(),
 					"GoTorch requires exporting Module field %s.%s", sv.Type().Name(), f.Name)
 				if m, ok := v.Index(j).Interface().(IModule); ok {
-					m.Train(on)
+					if !reflect.ValueOf(m).IsNil() {
+						m.Train(on)
+					}
 				}
 			}
 		} else {
 			torchCheck(v.CanInterface(),
 				"GoTorch requires exporting Module field %s.%s", sv.Type().Name(), f.Name)
 			if m, ok := v.Interface().(IModule); ok {
-				m.Train(on)
+				if !reflect.ValueOf(m).IsNil() {
+					m.Train(on)
+				}
 			}
 		}
 	}
@@ -107,7 +111,9 @@ func (m *Module) To(device torch.Device) {
 				torchCheck(v.CanInterface(),
 					"GoTorch requires exporting Module field %s.%s", sv.Type().Name(), f.Name)
 				if m, ok := v.Index(j).Interface().(IModule); ok {
-					m.To(device)
+					if !reflect.ValueOf(m).IsNil() {
+						m.To(device)
+					}
 				}
 			}
 		} else if f.Type.Implements(moduleType) {
@@ -118,7 +124,9 @@ func (m *Module) To(device torch.Device) {
 			torchCheck(v.CanInterface(),
 				"GoTorch requires exporting Module field %s.%s", sv.Type().Name(), f.Name)
 			if m, ok := v.Interface().(IModule); ok {
-				m.To(device)
+				if !reflect.ValueOf(m).IsNil() {
+					m.To(device)
+				}
 			}
 		} else if f.Type == tensorType {
 			param := v.Interface().(torch.Tensor)
@@ -144,7 +152,9 @@ func (m *Module) ZeroGrad() {
 				torchCheck(v.CanInterface(),
 					"GoTorch requires exporting Module field %s.%s", sv.Type().Name(), f.Name)
 				if m, ok := v.Index(j).Interface().(IModule); ok {
-					m.ZeroGrad()
+					if !reflect.ValueOf(m).IsNil() {
+						m.ZeroGrad()
+					}
 				}
 			}
 		} else if f.Type.Implements(moduleType) {
@@ -155,7 +165,9 @@ func (m *Module) ZeroGrad() {
 			torchCheck(v.CanInterface(),
 				"GoTorch requires exporting Module field %s.%s", sv.Type().Name(), f.Name)
 			if m, ok := v.Interface().(IModule); ok {
-				m.ZeroGrad()
+				if !reflect.ValueOf(m).IsNil() {
+					m.ZeroGrad()
+				}
 			}
 		} else if f.Type == tensorType {
 			/* TODO(shendiaomo): implement `Grad`, `Defined` and `Detach`
@@ -190,6 +202,9 @@ func (m *Module) NamedBuffers() map[string]torch.Tensor {
 }
 
 func getNamedNonNilTensors(m IModule, prefix string, param, buffer bool, r map[string]torch.Tensor) {
+	if reflect.ValueOf(m).IsNil() {
+		return
+	}
 	moduleType := reflect.TypeOf((*IModule)(nil)).Elem()
 	sv := reflect.ValueOf(m).Elem() // Elem gets what the pointer points to.
 	for i := 0; i < sv.NumField(); i++ {
