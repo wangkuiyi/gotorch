@@ -230,7 +230,7 @@ func main() {
 		device = torch.NewDevice("cpu")
 	}
 
-	model := Resnet18()
+	model := Resnet50()
 	model.To(device)
 
 	optimizer := torch.SGD(lr, momentum, 0, weightDecay, false)
