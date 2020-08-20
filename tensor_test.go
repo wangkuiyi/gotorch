@@ -52,3 +52,11 @@ func TestMean(t *testing.T) {
 	z := y.Item()
 	assert.NotNil(t, z)
 }
+
+func TestAdd(t *testing.T) {
+	x := torch.RandN([]int64{2, 3}, false)
+	y := torch.RandN([]int64{2, 3}, false)
+	z := torch.Add(x, y, 1)
+	x.Add(y)
+	assert.True(t, torch.Equal(x, z))
+}

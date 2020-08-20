@@ -39,6 +39,8 @@ const char *Rand(int64_t *size, int64_t length, int64_t require_grad,
 const char *Empty(int64_t *size, int64_t length, int64_t require_grad,
                   Tensor *result);
 
+const char *Equal(Tensor a, Tensor b, int64_t *result);
+
 const char *MM(Tensor a, Tensor b, Tensor *result);
 const char *Sum(Tensor a, Tensor *result);
 const char *SumByDim(Tensor a, int64_t dim, int8_t keepDim, Tensor *result);

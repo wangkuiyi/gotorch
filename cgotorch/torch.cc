@@ -64,6 +64,15 @@ const char *Empty(int64_t *size, int64_t length, int64_t require_grad,
   }
 }
 
+const char *Equal(Tensor a, Tensor b, int64_t *result) {
+  try {
+    *result = at::equal(*a, *b) ? 1 : 0;
+    return nullptr;
+  } catch (const std::exception &e) {
+    return exception_str(e.what());
+  }
+}
+
 const char *MM(Tensor a, Tensor b, Tensor *result) {
   try {
     at::Tensor c = at::mm(*a, *b);

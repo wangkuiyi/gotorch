@@ -420,3 +420,10 @@ func View(a Tensor, shape []int64) Tensor {
 func To(a Tensor, device Device, dtype int8) Tensor {
 	return a.To(device, dtype)
 }
+
+// Equal compares two tensors by their content.
+func Equal(a, b Tensor) bool {
+	var r int64
+	MustNil(unsafe.Pointer(C.Equal(C.Tensor(*a.T), C.Tensor(*b.T), (*C.int64_t)(&r))))
+	return r != 0
+}
