@@ -5,6 +5,7 @@ import (
 	"log"
 	"math"
 	"reflect"
+	"time"
 
 	torch "github.com/wangkuiyi/gotorch"
 	"github.com/wangkuiyi/gotorch/nn"
@@ -216,7 +217,7 @@ func adjustLearningRate(opt torch.Optimizer, epoch int, lr float64) {
 
 func main() {
 	batchSize := int64(16)
-	epochs := 1000
+	epochs := 100
 	lr := 0.1
 	momentum := 0.9
 	weightDecay := 1e-4
@@ -236,6 +237,7 @@ func main() {
 	optimizer := torch.SGD(lr, momentum, 0, weightDecay, false)
 	optimizer.AddParameters(model.Parameters())
 
+	start := time.Now()
 	for epoch := 0; epoch < epochs; epoch++ {
 		adjustLearningRate(optimizer, epoch, lr)
 
@@ -258,4 +260,5 @@ func main() {
 		}
 	}
 	torch.FinishGC()
+	fmt.Println(time.Since(start).Seconds())
 }

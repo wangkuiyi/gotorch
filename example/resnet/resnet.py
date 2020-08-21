@@ -1,3 +1,4 @@
+import time
 import torch
 import torch.optim
 import torch.nn.functional as F
@@ -27,6 +28,7 @@ if __name__ == "__main__":
                                 momentum=mementum,
                                 weight_decay=weight_decay)
 
+    start = time.time()
     for epoch in range(epochs):
         adjust_learning_rate(optimizer, epoch, lr)
 
@@ -44,3 +46,4 @@ if __name__ == "__main__":
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
+    print(time.time() - start)
