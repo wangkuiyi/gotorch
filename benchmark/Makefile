@@ -6,7 +6,7 @@ main:
 	-I ${GOPATH}/src/github.com/wangkuiyi/gotorch/cgotorch/libtorch/include/torch/csrc/api/include \
 	-L ${GOPATH}/src/github.com/wangkuiyi/gotorch/cgotorch/libtorch/lib \
 	main.cpp \
-	-o mnist \
+	-O -o mnist \
 	-Wl,-rpath,${GOPATH}/src/github.com/wangkuiyi/gotorch/cgotorch/libtorch/lib \
 	-pthread \
 	-lc10 -ltorch -ltorch_cpu \
