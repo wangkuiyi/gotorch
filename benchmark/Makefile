@@ -1,6 +1,6 @@
-all: main
+all: mnist
 
-main:
+mnist: main.cpp
 	clang++ -std=c++14 \
 	-I ${GOPATH}/src/github.com/wangkuiyi/gotorch/cgotorch/libtorch/include \
 	-I ${GOPATH}/src/github.com/wangkuiyi/gotorch/cgotorch/libtorch/include/torch/csrc/api/include \
@@ -13,4 +13,4 @@ main:
 	-D_GLIBCXX_USE_CXX11_ABI=0
 
 clean:
-	rm -rf *.so
+	rm mnist
