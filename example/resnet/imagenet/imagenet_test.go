@@ -6,15 +6,17 @@ import (
 	"compress/gzip"
 	"image/color"
 	"io"
+	"io/ioutil"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/wangkuiyi/gotorch/example/resnet/imagenet"
 )
 
-func TestSynthesizer(t *testing.T) {
-	var tgz bytes.Buffer
-	s := imagenet.NewSynthesizer(&tgz)
+func generateColorData(w io.Writer) []string {
+	s := imagenet.NewSynthesizer(w)
+	defer s.Close()
 	colors := []color.Color{
 		color.RGBA{0, 0, 255, 255},
 		color.RGBA{0, 255, 0, 255},
@@ -26,7 +28,12 @@ func TestSynthesizer(t *testing.T) {
 	for i := 0; i < len(fns); i++ {
 		s.AddImage(fns[i], 469, 387, colors[i])
 	}
-	s.Close()
+	return fns
+}
+
+func TestSynthesizer(t *testing.T) {
+	var tgz bytes.Buffer
+	fns := generateColorData(&tgz)
 
 	gr, e := gzip.NewReader(&tgz)
 	assert.NoError(t, e)
@@ -41,4 +48,19 @@ func TestSynthesizer(t *testing.T) {
 		assert.Equal(t, fns[i], hdr.Name)
 		i++
 	}
+}
+
+func TestDataloader(t *testing.T) {
+	tmpFile, err := ioutil.TempFile("", "train.tar.gz")
+	defer os.Remove(tmpFile.Name())
+	generateColorData(tmpFile)
+	assert.NoError(t, tmpFile.Close())
+
+	loader, err := imagenet.NewLoader(tmpFile.Name(), 4, []imagenet.Transform{})
+	assert.NoError(t, err)
+
+	for loader.Scan() {
+		loader.Batch()
+	}
+	assert.NoError(t, loader.Close())
 }
