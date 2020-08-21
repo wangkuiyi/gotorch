@@ -60,12 +60,12 @@ func (m *Module) Init(outer IModule) {
 			}
 		}
 	}
-	torchCheck(m.outer != nil, "GoTorch requires defining modules via embedding a `Module` struct by value")
+	must(m.outer != nil, "GoTorch requires defining modules via embedding a `Module` struct by value")
 }
 
 // Train enables "training" mode
 func (m *Module) Train(on bool) {
-	torchCheck(m.outer != nil, "GoTorch requires calling `Init` before using")
+	must(m.outer != nil, "GoTorch requires calling `Init` before using")
 	m.isTraining = on
 	sv := reflect.ValueOf(m.outer).Elem()
 	for i := 0; i < sv.NumField(); i++ {
@@ -73,7 +73,7 @@ func (m *Module) Train(on bool) {
 		v := sv.Field(i)
 		if v.Kind() == reflect.Slice || v.Kind() == reflect.Array {
 			for j := 0; j < v.Len(); j++ {
-				torchCheck(v.CanInterface(),
+				must(v.CanInterface(),
 					"GoTorch requires exporting Module field %s.%s", sv.Type().Name(), f.Name)
 				if m, ok := v.Index(j).Interface().(IModule); ok {
 					if !reflect.ValueOf(m).IsNil() {
@@ -82,7 +82,7 @@ func (m *Module) Train(on bool) {
 				}
 			}
 		} else {
-			torchCheck(v.CanInterface(),
+			must(v.CanInterface(),
 				"GoTorch requires exporting Module field %s.%s", sv.Type().Name(), f.Name)
 			if m, ok := v.Interface().(IModule); ok {
 				if !reflect.ValueOf(m).IsNil() {
@@ -100,7 +100,7 @@ func (m *Module) IsTraining() bool {
 
 // To recursively casts all parameters to the given `dtype` and `device`.
 func (m *Module) To(device torch.Device) {
-	torchCheck(m.outer != nil, "GoTorch requires calling `Init` before using")
+	must(m.outer != nil, "GoTorch requires calling `Init` before using")
 	// TODO(shendiaomo): to be implemented after the `To` method of `Tensors` is ready
 	moduleType := reflect.TypeOf((*IModule)(nil)).Elem()
 	tensorType := reflect.TypeOf((*torch.Tensor)(nil)).Elem()
@@ -110,7 +110,7 @@ func (m *Module) To(device torch.Device) {
 		v := sv.Field(i)
 		if v.Kind() == reflect.Slice || v.Kind() == reflect.Array {
 			for j := 0; j < v.Len(); j++ {
-				torchCheck(v.CanInterface(),
+				must(v.CanInterface(),
 					"GoTorch requires exporting Module field %s.%s", sv.Type().Name(), f.Name)
 				if m, ok := v.Index(j).Interface().(IModule); ok {
 					if !reflect.ValueOf(m).IsNil() {
@@ -123,7 +123,7 @@ func (m *Module) To(device torch.Device) {
 				// Skip `outer` itself
 				continue
 			}
-			torchCheck(v.CanInterface(),
+			must(v.CanInterface(),
 				"GoTorch requires exporting Module field %s.%s", sv.Type().Name(), f.Name)
 			if m, ok := v.Interface().(IModule); ok {
 				if !reflect.ValueOf(m).IsNil() {
@@ -137,12 +137,11 @@ func (m *Module) To(device torch.Device) {
 			}
 		}
 	}
-
 }
 
 // ZeroGrad recursively zeros out the `grad` value of each registered parameter.
 func (m *Module) ZeroGrad() {
-	torchCheck(m.outer != nil, "GoTorch modules requires calling `Init` before using")
+	must(m.outer != nil, "GoTorch modules requires calling `Init` before using")
 	moduleType := reflect.TypeOf((*IModule)(nil)).Elem()
 	tensorType := reflect.TypeOf((*torch.Tensor)(nil)).Elem()
 	sv := reflect.ValueOf(m.outer).Elem() // Elem gets what the pointer points to.
@@ -152,7 +151,7 @@ func (m *Module) ZeroGrad() {
 		// TODO(shendiaomo): take reflect.Map into consideration
 		if v.Kind() == reflect.Slice || v.Kind() == reflect.Array {
 			for j := 0; j < v.Len(); j++ {
-				torchCheck(v.CanInterface(),
+				must(v.CanInterface(),
 					"GoTorch requires exporting Module field %s.%s", sv.Type().Name(), f.Name)
 				if m, ok := v.Index(j).Interface().(IModule); ok {
 					if !reflect.ValueOf(m).IsNil() {
@@ -165,7 +164,7 @@ func (m *Module) ZeroGrad() {
 				// Skip `outer` itself
 				continue
 			}
-			torchCheck(v.CanInterface(),
+			must(v.CanInterface(),
 				"GoTorch requires exporting Module field %s.%s", sv.Type().Name(), f.Name)
 			if m, ok := v.Interface().(IModule); ok {
 				if !reflect.ValueOf(m).IsNil() {
@@ -192,7 +191,7 @@ func (m *Module) String() string {
 
 // NamedParameters returns trainable parameters (recursively) with their names
 func (m *Module) NamedParameters() map[string]torch.Tensor {
-	torchCheck(m.outer != nil, "GoTorch modules requires calling `Init` before using")
+	must(m.outer != nil, "GoTorch modules requires calling `Init` before using")
 	r := make(map[string]torch.Tensor)
 	getNamedNonNilTensors(m.outer, reflect.TypeOf(m.outer).Elem().Name(), true, false, r)
 	return r
@@ -200,7 +199,7 @@ func (m *Module) NamedParameters() map[string]torch.Tensor {
 
 // NamedBuffers returns parameters (recursively) that are not trainable, with their names
 func (m *Module) NamedBuffers() map[string]torch.Tensor {
-	torchCheck(m.outer != nil, "GoTorch modules requires calling `Init` before using")
+	must(m.outer != nil, "GoTorch modules requires calling `Init` before using")
 	r := make(map[string]torch.Tensor)
 	getNamedNonNilTensors(m.outer, reflect.TypeOf(m.outer).Elem().Name(), false, true, r)
 	return r
@@ -216,14 +215,14 @@ func getNamedNonNilTensors(m IModule, prefix string, param, buffer bool, r map[s
 		f := sv.Type().Field(i)
 		v := sv.Field(i)
 		if v.Kind() == reflect.Slice || v.Kind() == reflect.Array {
-			torchCheck(v.CanInterface(),
+			must(v.CanInterface(),
 				"GoTorch requires exporting Module field %s.%s", sv.Type().Name(), f.Name)
 			for j := 0; j < v.Len(); j++ {
 				getNamedNonNilTensors(v.Index(j).Interface().(IModule),
 					fmt.Sprintf("%s.%s[%d]", prefix, f.Name, j), param, buffer, r)
 			}
 		} else if f.Type.Implements(moduleType) {
-			torchCheck(v.CanInterface(),
+			must(v.CanInterface(),
 				"GoTorch requires exporting Module field %s.%s", sv.Type().Name(), f.Name)
 			getNamedNonNilTensors(v.Interface().(IModule),
 				prefix+"."+f.Name, param, buffer, r)
@@ -250,7 +249,7 @@ func recordNonNilTensor(f reflect.StructField, v reflect.Value,
 		return // Don't wants a parameter but this field is one.
 	}
 
-	torchCheck(v.CanInterface(),
+	must(v.CanInterface(),
 		"GoTorch requires exporting Tensor field %s.%s", v.Type().Name(), f.Name)
 	fv := v.Interface().(torch.Tensor)
 	if fv.T == nil {
@@ -280,7 +279,7 @@ func (m *Module) Buffers() []torch.Tensor {
 	return result
 }
 
-func torchCheck(condition bool, fmtStr string, args ...interface{}) {
+func must(condition bool, fmtStr string, args ...interface{}) {
 	if !condition {
 		// Use logPanicf to be recoverable and enable stack trace
 		log.Panicf(fmtStr, args...)
