@@ -31,7 +31,7 @@ type Module struct {
 	name string
 }
 
-// Init initializes a `Module`, using a `Module` that's not `Init`ed is undefined behavior
+// Init initializes a `Module`, using a `Module` that's not `Init`ed will panic
 // Example:
 //
 // type MyModel struct {
@@ -65,6 +65,7 @@ func (m *Module) Init(outer IModule) {
 
 // Train enables "training" mode
 func (m *Module) Train(on bool) {
+	torchCheck(m.outer != nil, "GoTorch requires calling `Init` before using")
 	m.isTraining = on
 	sv := reflect.ValueOf(m.outer).Elem()
 	for i := 0; i < sv.NumField(); i++ {
@@ -99,6 +100,7 @@ func (m *Module) IsTraining() bool {
 
 // To recursively casts all parameters to the given `dtype` and `device`.
 func (m *Module) To(device torch.Device) {
+	torchCheck(m.outer != nil, "GoTorch requires calling `Init` before using")
 	// TODO(shendiaomo): to be implemented after the `To` method of `Tensors` is ready
 	moduleType := reflect.TypeOf((*IModule)(nil)).Elem()
 	tensorType := reflect.TypeOf((*torch.Tensor)(nil)).Elem()
@@ -140,6 +142,7 @@ func (m *Module) To(device torch.Device) {
 
 // ZeroGrad recursively zeros out the `grad` value of each registered parameter.
 func (m *Module) ZeroGrad() {
+	torchCheck(m.outer != nil, "GoTorch modules requires calling `Init` before using")
 	moduleType := reflect.TypeOf((*IModule)(nil)).Elem()
 	tensorType := reflect.TypeOf((*torch.Tensor)(nil)).Elem()
 	sv := reflect.ValueOf(m.outer).Elem() // Elem gets what the pointer points to.
@@ -189,6 +192,7 @@ func (m *Module) String() string {
 
 // NamedParameters returns trainable parameters (recursively) with their names
 func (m *Module) NamedParameters() map[string]torch.Tensor {
+	torchCheck(m.outer != nil, "GoTorch modules requires calling `Init` before using")
 	r := make(map[string]torch.Tensor)
 	getNamedNonNilTensors(m.outer, reflect.TypeOf(m.outer).Elem().Name(), true, false, r)
 	return r
@@ -196,6 +200,7 @@ func (m *Module) NamedParameters() map[string]torch.Tensor {
 
 // NamedBuffers returns parameters (recursively) that are not trainable, with their names
 func (m *Module) NamedBuffers() map[string]torch.Tensor {
+	torchCheck(m.outer != nil, "GoTorch modules requires calling `Init` before using")
 	r := make(map[string]torch.Tensor)
 	getNamedNonNilTensors(m.outer, reflect.TypeOf(m.outer).Elem().Name(), false, true, r)
 	return r
