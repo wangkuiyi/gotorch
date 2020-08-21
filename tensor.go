@@ -433,3 +433,16 @@ func Equal(a, b Tensor) bool {
 	MustNil(unsafe.Pointer(C.Equal(C.Tensor(*a.T), C.Tensor(*b.T), (*C.int64_t)(&r))))
 	return r != 0
 }
+
+// Stack concatenates sequence of tensors along a new dimension
+func Stack(tensors []Tensor, dim int64) Tensor {
+	CT := []C.Tensor{}
+	for _, t := range tensors {
+		CT = append(CT, C.Tensor(*t.T))
+	}
+	p := (*C.Tensor)(unsafe.Pointer(&CT[0]))
+	var t C.Tensor
+	MustNil(unsafe.Pointer(C.Stack(p, C.int64_t(len(CT)), C.int64_t(dim), &t)))
+	SetTensorFinalizer((*unsafe.Pointer)(&t))
+	return Tensor{(*unsafe.Pointer)(&t)}
+}
