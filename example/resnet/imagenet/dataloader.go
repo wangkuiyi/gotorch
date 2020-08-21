@@ -20,18 +20,16 @@ type Sample struct {
 	target int
 }
 
-// Loader provides a convenient interface to reader
+// DataLoader provides a convenient interface to reader
 // batch from ImageNet dataset.
 // Usage:
 //
-// transforms:= []Transform{ToTensor{}, RandomResizedCrop{}})
-// loader := imagenet.Loader("/imagenet/train.tar.gz",  32, transforms)
+// DataLoader := imagenet.DataLoader("/imagenet/train.tar.gz", 32)
 // for range imageNet.Scan() {
 //	img, target := imageNet.Batch()
 // }
-type Loader struct {
+type DataLoader struct {
 	batchSize  int64
-	transforms []Transform
 	f          *os.File
 	tr         *tar.Reader
 	classToIdx map[string]int
@@ -39,13 +37,8 @@ type Loader struct {
 	samples    []Sample
 }
 
-// Transform interface
-type Transform interface {
-	Do(interface{}) torch.Tensor
-}
-
-// NewLoader returns ImageNet dataloader
-func NewLoader(tarFile string, batchSize int64, transforms []Transform) (*Loader, error) {
+// NewDataLoader returns ImageNet dataDataLoader
+func NewDataLoader(tarFile string, batchSize int64) (*DataLoader, error) {
 	classToIdx, err := makeClassToIdx(tarFile)
 	if err != nil {
 		return nil, err
@@ -60,9 +53,8 @@ func NewLoader(tarFile string, batchSize int64, transforms []Transform) (*Loader
 		return nil, err
 	}
 
-	return &Loader{
+	return &DataLoader{
 		batchSize:  batchSize,
-		transforms: transforms,
 		f:          f,
 		tr:         tar.NewReader(gr),
 		isEOF:      false,
@@ -70,17 +62,17 @@ func NewLoader(tarFile string, batchSize int64, transforms []Transform) (*Loader
 	}, nil
 }
 
-// Close this loader
-func (p *Loader) Close() error {
+// Close this DataLoader
+func (p *DataLoader) Close() error {
 	return p.f.Close()
 }
 
 // Batch returns data and target Tensor
-func (p *Loader) Batch() (torch.Tensor, torch.Tensor) {
+func (p *DataLoader) Batch() (torch.Tensor, torch.Tensor) {
 	return torch.RandN([]int64{p.batchSize, 3, 2}, false), torch.RandN([]int64{p.batchSize, 1}, false)
 }
 
-func (p *Loader) updateSamples() error {
+func (p *DataLoader) nextSamples() error {
 	p.samples = []Sample{}
 	for i := int64(0); i < p.batchSize; i++ {
 		hdr, err := p.tr.Next()
@@ -107,11 +99,11 @@ func (p *Loader) updateSamples() error {
 }
 
 // Scan return false if no more data
-func (p *Loader) Scan() bool {
+func (p *DataLoader) Scan() bool {
 	if p.isEOF {
 		return false
 	}
-	must(p.updateSamples())
+	must(p.nextSamples())
 	return true
 }
 

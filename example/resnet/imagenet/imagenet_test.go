@@ -56,7 +56,7 @@ func TestDataloader(t *testing.T) {
 	generateColorData(tmpFile)
 	assert.NoError(t, tmpFile.Close())
 
-	loader, err := imagenet.NewLoader(tmpFile.Name(), 4, []imagenet.Transform{})
+	loader, err := imagenet.NewDataLoader(tmpFile.Name(), 4)
 	assert.NoError(t, err)
 
 	for loader.Scan() {
