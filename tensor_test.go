@@ -60,3 +60,10 @@ func TestAdd(t *testing.T) {
 	x.AddI(y, 1)
 	assert.True(t, torch.Equal(x, z))
 }
+
+func TestStack(t *testing.T) {
+	t1 := torch.RandN([]int64{2, 3}, false)
+	t2 := torch.RandN([]int64{2, 3}, false)
+	out := torch.Stack([]torch.Tensor{t1, t2}, 0)
+	assert.Equal(t, []int64{2, 2, 3}, out.Shape())
+}
