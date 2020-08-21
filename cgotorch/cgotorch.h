@@ -49,7 +49,7 @@ const char *LeakyRelu(Tensor a, double negative_slope, Tensor *result);
 const char *Tanh(Tensor a, Tensor *result);
 const char *Sigmoid(Tensor a, Tensor *result);
 const char *Add(Tensor a, Tensor other, float alpha, Tensor *result);
-const char *Add_(Tensor a, Tensor other, Tensor *result);
+const char *Add_(Tensor a, Tensor other, float alpha, Tensor *result);
 const char *Flatten(Tensor a, int64_t startDim, int64_t endDim, Tensor *result);
 const char *TopK(Tensor a, int64_t k, int64_t dim, int8_t largest,
                  int8_t sorted, Tensor *values, Tensor *indices);

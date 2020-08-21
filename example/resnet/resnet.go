@@ -49,7 +49,7 @@ func (b *BasicBlockModule) Forward(x torch.Tensor) torch.Tensor {
 		identity = b.Downsample.Forward(x).(torch.Tensor)
 	}
 
-	out.Add(identity)
+	out.AddI(identity, 1)
 	out = F.Relu(out, true)
 	return out
 }
@@ -98,7 +98,7 @@ func (b *BottleneckModule) Forward(x torch.Tensor) torch.Tensor {
 		identity = b.Downsample.Forward(x).(torch.Tensor)
 	}
 
-	out.Add(identity)
+	out.AddI(identity, 1)
 	out = F.Relu(out, true)
 	return out
 }
@@ -185,7 +185,7 @@ func (r *ResnetModule) Forward(x torch.Tensor) torch.Tensor {
 	x = r.C1.Forward(x)
 	x = r.BN1.Forward(x)
 	x = F.Relu(x, true)
-	x = F.MaxPool2d(x, []int64{3, 3}, []int64{2, 2}, []int64{1, 1}, []int64{1, 1}, true)
+	x = F.MaxPool2d(x, []int64{3, 3}, []int64{2, 2}, []int64{1, 1}, []int64{1, 1}, false)
 
 	x = r.L1.Forward(x).(torch.Tensor)
 	x = r.L2.Forward(x).(torch.Tensor)

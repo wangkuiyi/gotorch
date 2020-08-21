@@ -146,9 +146,9 @@ const char *Add(Tensor a, Tensor other, float alpha, Tensor *result) {
   }
 }
 
-const char *Add_(Tensor a, Tensor other, Tensor *result) {
+const char *Add_(Tensor a, Tensor other, float alpha, Tensor *result) {
   try {
-    *result = new at::Tensor(a->add_(*other));
+    *result = new at::Tensor(a->add_(*other, alpha));
     return nullptr;
   } catch (const std::exception &e) {
     return exception_str(e.what());

@@ -57,6 +57,6 @@ func TestAdd(t *testing.T) {
 	x := torch.RandN([]int64{2, 3}, false)
 	y := torch.RandN([]int64{2, 3}, false)
 	z := torch.Add(x, y, 1)
-	x.Add(y)
+	x.AddI(y, 1)
 	assert.True(t, torch.Equal(x, z))
 }

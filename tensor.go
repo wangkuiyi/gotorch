@@ -320,12 +320,18 @@ func Add(a, other Tensor, alpha float32) Tensor {
 	return Tensor{(*unsafe.Pointer)(&t)}
 }
 
-// Add adds in-place
-func (a *Tensor) Add(other Tensor) Tensor {
+// Add torch.add
+func (a *Tensor) Add(other Tensor, alpha float32) Tensor {
+	return Add(*a, other, alpha)
+}
+
+// AddI adds in-place
+func (a *Tensor) AddI(other Tensor, alpha float32) Tensor {
 	var t C.Tensor
 	MustNil(unsafe.Pointer(C.Add_(
 		C.Tensor(*a.T),
 		C.Tensor(*other.T),
+		C.float(alpha),
 		&t)))
 	SetTensorFinalizer((*unsafe.Pointer)(&t))
 	return Tensor{(*unsafe.Pointer)(&t)}
