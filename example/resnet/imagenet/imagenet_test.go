@@ -6,8 +6,6 @@ import (
 	"compress/gzip"
 	"image/color"
 	"io"
-	"io/ioutil"
-	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -51,16 +49,12 @@ func TestSynthesizer(t *testing.T) {
 }
 
 func TestDataloader(t *testing.T) {
-	tmpFile, err := ioutil.TempFile("", "train.tar.gz")
-	defer os.Remove(tmpFile.Name())
-	generateColorData(tmpFile)
-	assert.NoError(t, tmpFile.Close())
-
-	loader, err := imagenet.NewDataLoader(tmpFile.Name(), 4)
+	var tgz bytes.Buffer
+	generateColorData(&tgz)
+	loader, err := imagenet.NewDataLoader(&tgz, 4)
 	assert.NoError(t, err)
 
 	for loader.Scan() {
 		loader.Batch()
 	}
-	assert.NoError(t, loader.Close())
 }

@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"image"
 	"io"
-	"os"
 	"path/filepath"
 
 	torch "github.com/wangkuiyi/gotorch"
@@ -30,7 +29,6 @@ type Sample struct {
 // }
 type DataLoader struct {
 	batchSize  int64
-	f          *os.File
 	tr         *tar.Reader
 	classToIdx map[string]int
 	isEOF      bool
@@ -38,37 +36,32 @@ type DataLoader struct {
 }
 
 // NewDataLoader returns ImageNet dataDataLoader
-func NewDataLoader(tarFile string, batchSize int64) (*DataLoader, error) {
-	classToIdx, err := makeClassToIdx(tarFile)
+func NewDataLoader(reader io.Reader, batchSize int64) (*DataLoader, error) {
+	// using io.TeeReader to read the input io.Reader twice, the first reading
+	// make a mapping from class name to target index, the second read all images.
+	var buff bytes.Buffer
+	r := io.TeeReader(reader, &buff)
+	classToIdx, err := makeClassToIdx(r)
 	if err != nil {
 		return nil, err
 	}
 
-	f, err := os.Open(tarFile)
+	gr, err := gzip.NewReader(&buff)
 	if err != nil {
 		return nil, err
 	}
-	gr, err := gzip.NewReader(f)
-	if err != nil {
-		return nil, err
-	}
-
 	return &DataLoader{
 		batchSize:  batchSize,
-		f:          f,
 		tr:         tar.NewReader(gr),
 		isEOF:      false,
 		classToIdx: classToIdx,
 	}, nil
 }
 
-// Close this DataLoader
-func (p *DataLoader) Close() error {
-	return p.f.Close()
-}
-
 // Batch returns data and target Tensor
 func (p *DataLoader) Batch() (torch.Tensor, torch.Tensor) {
+	// TODO(yancey1989): execute transform function sequentially to transfrom the sample
+	// data to Tensors.
 	return torch.RandN([]int64{p.batchSize, 3, 2}, false), torch.RandN([]int64{p.batchSize, 1}, false)
 }
 
@@ -87,10 +80,8 @@ func (p *DataLoader) nextSamples() error {
 		target := p.classToIdx[filepath.Base(filepath.Dir(hdr.Name))]
 		// read image
 		data := make([]byte, hdr.Size)
-		_, err = p.tr.Read(data)
-		// TODO(yancey1989): supports reading very large image as streaming
-		if err != io.EOF {
-			return fmt.Errorf("has not read the complete image")
+		if _, err := p.tr.Read(data); err != io.EOF {
+			return fmt.Errorf("has not read a complete image")
 		}
 		image, _, err := image.Decode(bytes.NewReader(data))
 		p.samples = append(p.samples, Sample{image, target})
@@ -113,12 +104,8 @@ func must(e error) {
 	}
 }
 
-func makeClassToIdx(tarFile string) (map[string]int, error) {
-	f, err := os.Open(tarFile)
-	if err != nil {
-		return nil, err
-	}
-	gr, err := gzip.NewReader(f)
+func makeClassToIdx(reader io.Reader) (map[string]int, error) {
+	gr, err := gzip.NewReader(reader)
 	if err != nil {
 		return nil, err
 	}
