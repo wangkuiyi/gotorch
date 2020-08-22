@@ -60,9 +60,7 @@ The PyTorch build system generates declarations of global function forms in
 
 ```cpp
 namespace at {
-
 CAFFE2_API Tensor mm(const Tensor & self, const Tensor & mat2);
-
 }  // namespace at
 ```
 
@@ -71,9 +69,7 @@ The method `at::Tensor::mm` is in `libtorch/include/ATen/core/TensorBody.h`.
 ```cpp
 namespace at {
 class CAFFE2_API Tensor {
-
   Tensor mm(const Tensor & mat2) const;
-
  protected:
   c10::intrusive_ptr<TensorImpl, UndefinedTensorImpl> impl_;
 };
