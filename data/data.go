@@ -1,10 +1,10 @@
-package gotorch
+package data
 
 // #cgo CFLAGS: -I ${SRCDIR}/cgotorch
 // #cgo LDFLAGS: -L ${SRCDIR}/cgotorch -Wl,-rpath ${SRCDIR}/cgotorch -lcgotorch
 // #cgo LDFLAGS: -L ${SRCDIR}/cgotorch/libtorch/lib -Wl,-rpath ${SRCDIR}/cgotorch/libtorch/lib -lc10 -ltorch -ltorch_cpu
 // #include <stdlib.h>
-// #include "cgotorch.h"
+// #include "../cgotorch/cgotorch.h"
 import "C"
 import (
 	"fmt"
@@ -54,8 +54,8 @@ func NewNormalize(mean float64, stddev float64) *Normalize {
 	return &Normalize{mean, stddev}
 }
 
-// DataLoader struct
-type DataLoader struct {
+// Loader struct
+type Loader struct {
 	T     C.DataLoader
 	batch *Batch
 	iter  C.Iterator
@@ -67,18 +67,18 @@ type Batch struct {
 	Target Tensor
 }
 
-// NewDataLoader returns DataLoader pointer
-func NewDataLoader(dataset *Dataset, batchSize int64) *DataLoader {
-	loader := C.MakeDataLoader(C.Dataset(dataset.T), C.int64_t(batchSize))
-	return &DataLoader{
+// NewLoader returns Loader pointer
+func NewLoader(dataset *Dataset, batchSize int64) *Loader {
+	loader := C.MakeLoader(C.Dataset(dataset.T), C.int64_t(batchSize))
+	return &Loader{
 		T:     loader,
 		batch: nil,
 		iter:  nil,
 	}
 }
 
-// Close DataLoader
-func (loader *DataLoader) Close() {
+// Close Loader
+func (loader *Loader) Close() {
 	C.Loader_Close(loader.T)
 }
 
@@ -95,8 +95,8 @@ func NewBatch(iter C.Iterator) *Batch {
 	}
 }
 
-// Scan scans the batch from DataLoader
-func (loader *DataLoader) Scan() bool {
+// Scan scans the batch from Loader
+func (loader *Loader) Scan() bool {
 	// make the previous batch object to be unreachable
 	// to release the Tensor memory.
 	loader.batch = nil
@@ -115,6 +115,6 @@ func (loader *DataLoader) Scan() bool {
 }
 
 // Batch returns the batch data on the current iteration.
-func (loader *DataLoader) Batch() *Batch {
+func (loader *Loader) Batch() *Batch {
 	return loader.batch
 }

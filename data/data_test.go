@@ -1,10 +1,11 @@
-package gotorch_test
+package data_test
 
 import (
 	"log"
 	"testing"
 
 	torch "github.com/wangkuiyi/gotorch"
+	"github.com/wangkuiyi/gotorch/data"
 	"github.com/wangkuiyi/gotorch/vision"
 )
 
@@ -14,7 +15,7 @@ func ExampleMNIST() {
 	}
 
 	dataset := torch.NewMNIST(vision.MNISTDir(), []torch.Transform{torch.NewNormalize(0.1307, 0.3081)})
-	trainLoader := torch.NewDataLoader(dataset, 8)
+	trainLoader := data.NewDataLoader(dataset, 8)
 	for trainLoader.Scan() {
 		_ = trainLoader.Batch()
 	}
