@@ -58,22 +58,22 @@ The PyTorch build system generates declarations of global function forms in
 `libtorch/include/ATen/Functions.h`.  The declaration of the native function
 `mm` is as the following.
 
-```c++
+```cpp
 namespace at {
-...
+
 CAFFE2_API Tensor mm(const Tensor & self, const Tensor & mat2);
-...
+
 }  // namespace at
 ```
 
 The method `at::Tensor::mm` is in `libtorch/include/ATen/core/TensorBody.h`.
 
-```c++
+```cpp
 namespace at {
 class CAFFE2_API Tensor {
-  ...
+
   Tensor mm(const Tensor & mat2) const;
-  ...
+
  protected:
   c10::intrusive_ptr<TensorImpl, UndefinedTensorImpl> impl_;
 };
@@ -130,7 +130,7 @@ thrown by libtorch if there is any, or `nullptr`.
 
 The implementation of the C wrapper `MM` is in C++ and in `cgotorch/torch.cc`.
 
-```c++
+```cpp
 const char *MM(Tensor a, Tensor b, Tensor *result) {
   try {
     at::Tensor c = at::mm(*a, *b);
@@ -168,7 +168,7 @@ Tensor, which is a pointer.
 The literal translation of the C type Tensor into Go is
 
 ```go
-type Tenosr unsafe.Pointer`
+type Tenosr unsafe.Pointer
 ```
 
 The Go type `unsafe.Pointer` represents any C pointer type.
@@ -180,7 +180,7 @@ but not C pointers could have finalizers attached, so we add a `*`, indicating a
 Go pointer, to the above definition, this makes it a Go pointer to a C pointer.
 
 ```go
-type Tensor *unsafe.Pointer`
+type Tensor *unsafe.Pointer
 ```
 
 This pointer-to-pointer is still not enough as we need to attach methods of
