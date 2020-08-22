@@ -1,6 +1,6 @@
 # `gotorch`
 
-[![Travis CI](https://travis-ci.com/wangkuiyi/gotorch.svg?branch=develop)](https://travis-ci.com/wangkuiyi/gotorch)
+[![TravisCI](https://travis-ci.com/wangkuiyi/gotorch.svg?branch=develop)](https://travis-ci.com/wangkuiyi/gotorch)
 [![codecov](https://codecov.io/gh/wangkuiyi/gotorch/branch/develop/graph/badge.svg)](https://codecov.io/gh/wangkuiyi/gotorch)
 [![CircleCI](https://circleci.com/gh/wangkuiyi/gotorch.svg?style=shield)](https://circleci.com/gh/wangkuiyi/gotorch)
 [![GoDoc](https://img.shields.io/badge/godoc-reference-teal.svg)](https://pkg.go.dev/mod/github.com/wangkuiyi/gotorch)
@@ -23,7 +23,7 @@ Go+ applications   # users write DL applicaitons in Go+,
      │             # whose syntax is as concise as Python
  [Go+ compiler]
      ↓
-Go source code ━(calls)→ GoTorch ━(calls)→ libtorch ━(links)→ pytorch/xla ━(calls)→ XLA ops
+Go source code -→ GoTorch -→ libtorch -→ pytorch/xla -→ XLA ops
      │
  [Go compiler]
      ↓
