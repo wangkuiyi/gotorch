@@ -11,7 +11,7 @@ libcgotorch.so : torch.cc functional.cc init.cc optim.cc cgotorch.h ${LIBTORCH_D
 	-fPIC \
 	-shared \
 	torch.cc functional.cc init.cc optim.cc \
-	-o $@ ${INSTALL_NAME} \
+	-O -o $@ ${INSTALL_NAME} \
 	-Wl,-rpath,libtorch/lib \
 	-Wl,-${LOAD} libtorch/lib/libc10.${LIB_SUFFIX} \
 	-lc10 -ltorch -ltorch_cpu \

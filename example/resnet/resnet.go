@@ -5,6 +5,7 @@ import (
 	"log"
 	"math"
 	"reflect"
+	"time"
 
 	torch "github.com/wangkuiyi/gotorch"
 	"github.com/wangkuiyi/gotorch/nn"
@@ -49,7 +50,7 @@ func (b *BasicBlockModule) Forward(x torch.Tensor) torch.Tensor {
 		identity = b.Downsample.Forward(x).(torch.Tensor)
 	}
 
-	out.AddInplace(identity)
+	out.AddI(identity, 1)
 	out = F.Relu(out, true)
 	return out
 }
@@ -98,7 +99,7 @@ func (b *BottleneckModule) Forward(x torch.Tensor) torch.Tensor {
 		identity = b.Downsample.Forward(x).(torch.Tensor)
 	}
 
-	out.AddInplace(identity)
+	out.AddI(identity, 1)
 	out = F.Relu(out, true)
 	return out
 }
@@ -185,7 +186,7 @@ func (r *ResnetModule) Forward(x torch.Tensor) torch.Tensor {
 	x = r.C1.Forward(x)
 	x = r.BN1.Forward(x)
 	x = F.Relu(x, true)
-	x = F.MaxPool2d(x, []int64{3, 3}, []int64{2, 2}, []int64{1, 1}, []int64{1, 1}, true)
+	x = F.MaxPool2d(x, []int64{3, 3}, []int64{2, 2}, []int64{1, 1}, []int64{1, 1}, false)
 
 	x = r.L1.Forward(x).(torch.Tensor)
 	x = r.L2.Forward(x).(torch.Tensor)
@@ -216,7 +217,7 @@ func adjustLearningRate(opt torch.Optimizer, epoch int, lr float64) {
 
 func main() {
 	batchSize := int64(16)
-	epochs := 1000
+	epochs := 100
 	lr := 0.1
 	momentum := 0.9
 	weightDecay := 1e-4
@@ -236,6 +237,7 @@ func main() {
 	optimizer := torch.SGD(lr, momentum, 0, weightDecay, false)
 	optimizer.AddParameters(model.Parameters())
 
+	start := time.Now()
 	for epoch := 0; epoch < epochs; epoch++ {
 		adjustLearningRate(optimizer, epoch, lr)
 
@@ -258,4 +260,5 @@ func main() {
 		}
 	}
 	torch.FinishGC()
+	fmt.Println(time.Since(start).Seconds())
 }

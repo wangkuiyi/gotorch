@@ -320,12 +320,18 @@ func Add(a, other Tensor, alpha float32) Tensor {
 	return Tensor{(*unsafe.Pointer)(&t)}
 }
 
-// AddInplace torch.add_
-func (a *Tensor) AddInplace(other Tensor) Tensor {
+// Add torch.add
+func (a *Tensor) Add(other Tensor, alpha float32) Tensor {
+	return Add(*a, other, alpha)
+}
+
+// AddI adds in-place
+func (a *Tensor) AddI(other Tensor, alpha float32) Tensor {
 	var t C.Tensor
 	MustNil(unsafe.Pointer(C.Add_(
 		C.Tensor(*a.T),
 		C.Tensor(*other.T),
+		C.float(alpha),
 		&t)))
 	SetTensorFinalizer((*unsafe.Pointer)(&t))
 	return Tensor{(*unsafe.Pointer)(&t)}
@@ -419,4 +425,24 @@ func View(a Tensor, shape []int64) Tensor {
 // If the specified device doesn't exist, To panics.
 func To(a Tensor, device Device, dtype int8) Tensor {
 	return a.To(device, dtype)
+}
+
+// Equal compares two tensors by their content.
+func Equal(a, b Tensor) bool {
+	var r int64
+	MustNil(unsafe.Pointer(C.Equal(C.Tensor(*a.T), C.Tensor(*b.T), (*C.int64_t)(&r))))
+	return r != 0
+}
+
+// Stack concatenates sequence of tensors along a new dimension
+func Stack(tensors []Tensor, dim int64) Tensor {
+	CT := []C.Tensor{}
+	for _, t := range tensors {
+		CT = append(CT, C.Tensor(*t.T))
+	}
+	p := (*C.Tensor)(unsafe.Pointer(&CT[0]))
+	var t C.Tensor
+	MustNil(unsafe.Pointer(C.Stack(p, C.int64_t(len(CT)), C.int64_t(dim), &t)))
+	SetTensorFinalizer((*unsafe.Pointer)(&t))
+	return Tensor{(*unsafe.Pointer)(&t)}
 }

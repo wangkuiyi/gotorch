@@ -157,3 +157,18 @@ func TestBatchNorm2d(t *testing.T) {
 	output := b.Forward(x)
 	assert.NotNil(t, output.T)
 }
+
+func TestNewModuleWithoutInit(t *testing.T) {
+	newMyNetWithoutInit := func() *myNet {
+		return &myNet{
+			L1: Linear(100, 200, false),
+			L2: Linear(200, 10, false),
+		}
+	}
+	n := newMyNetWithoutInit()
+	assert.Panics(t, func() { n.Train(true) })
+	assert.Panics(t, func() { n.To(torch.NewDevice("cpu")) })
+	assert.Panics(t, func() { n.ZeroGrad() })
+	assert.Panics(t, func() { n.NamedParameters() })
+	assert.Panics(t, func() { n.NamedBuffers() })
+}
