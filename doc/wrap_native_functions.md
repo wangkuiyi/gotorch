@@ -158,7 +158,7 @@ operates the Go type `Tenosr` defined in `tensor.go`.
 ```go
 // Tensor wrappers a pointer to C.Tensor
 type Tensor struct {
-	T *unsafe.Pointer
+    T *unsafe.Pointer
 }
 ```
 
@@ -187,17 +187,16 @@ This pointer-to-pointer is still not enough as we need to attach methods of
 `at::Tensor`, like `MM`, `Add`, and `To`, to the Go type.  Again, Go pointers
 cannot have methods, so we wrap the above pointer-to-pointer in a struct.
 
-
 Given the Go type `Tensor`, the Go wrapper `MM` is as follows.
 
 ```go
 package gotorch
 
 func MM(a, b Tensor) Tensor {
-	var t C.Tensor
-	MustNil(unsafe.Pointer(C.MM(C.Tensor(*a.T), C.Tensor(*b.T), &t)))
-	SetTensorFinalizer((*unsafe.Pointer)(&t))
-	return Tensor{(*unsafe.Pointer)(&t)}
+    var t C.Tensor
+    MustNil(unsafe.Pointer(C.MM(C.Tensor(*a.T), C.Tensor(*b.T), &t)))
+    SetTensorFinalizer((*unsafe.Pointer)(&t))
+    return Tensor{(*unsafe.Pointer)(&t)}
 }
 ```
 
