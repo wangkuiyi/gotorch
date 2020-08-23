@@ -43,17 +43,17 @@ On a Late 2018 MacBook Pro running macOS 10.15.5, a typical run of the three
 programs output their throughput.
 
 ```bash
-~/go/src/github.com/wangkuiyi/gotorch $ /usr/bin/time python benchmark/mnist.py
+$ /usr/bin/time python benchmark/mnist.py
 The throughput: 4236.326723046286 samples/sec
        71.80 real       417.61 user         4.68 sys
 
-~/go/src/github.com/wangkuiyi/gotorch $ /usr/bin/time go test -run TrainMNIST
+$ /usr/bin/time go test -run TrainMNIST
 2020/08/12 10:52:31 Throughput: 9282.386087 samples/sec
 PASS
-ok  	github.com/wangkuiyi/gotorch	33.026s
+ok      github.com/wangkuiyi/gotorch    33.026s
        34.27 real        97.30 user       263.18 sys
 
-~/go/src/github.com/wangkuiyi/gotorch $ make -C benchmark && /usr/bin/time ./benchmark/mnist
+$ make -C benchmark && /usr/bin/time ./benchmark/mnist
 The throughput: 21426.107422 samples/sec
        14.37 real        83.01 user         0.64 sys
 ```
@@ -106,18 +106,17 @@ The reasons include:
    run a mark-and-sweep algorithm to detect and free unused tensors after
    each iteration.
 
-
 ## pprof
 
 Two runs of the C++ version of MNIST training example on iMac 2015 without GPU.
 
 ```
-yi@WangYis-iMac:~/go/src/github.com/wangkuiyi/gotorch/benchmark (pprof)$ ./mnist
+$ ./mnist
 The throughput: 14907.086914 samples/sec
 ```
 
 ```
-yi@WangYis-iMac:~/go/src/github.com/wangkuiyi/gotorch/benchmark (pprof)*$ ./mnist
+$ ./mnist
 The throughput: 15456.287109 samples/sec
 ```
 
@@ -125,7 +124,7 @@ Two runs of the GoTorch version on the same computer achieves throughtput very
 close to the C++ counterpart.
 
 ```
-yi@WangYis-iMac:~/go/src/github.com/wangkuiyi/gotorch (pprof)*$ go test -cpuprofile cpu.prof -memprofile mem.prof -v -run TrainMLPUsingMNIST
+$ go test -cpuprofile cpu.prof -memprofile mem.prof -v -run TrainMLPUsingMNIST
 === RUN   ExampleTrainMLPUsingMNIST
 2020/08/19 14:04:44 No CUDA found; CPU only
 2020/08/19 14:04:48 Epoch: 0, Loss: 0.1280
@@ -133,11 +132,11 @@ yi@WangYis-iMac:~/go/src/github.com/wangkuiyi/gotorch (pprof)*$ go test -cpuprof
 2020/08/19 14:04:53 Throughput: 13678.129358 samples/sec
 --- PASS: ExampleTrainMLPUsingMNIST (9.02s)
 PASS
-ok  	github.com/wangkuiyi/gotorch	9.466s
+ok      github.com/wangkuiyi/gotorch    9.466s
 ```
 
 ```
-yi@WangYis-iMac:~/go/src/github.com/wangkuiyi/gotorch (pprof)*$ go test -cpuprofile cpu.prof -memprofile mem.prof -v -run TrainMLPUsingMNIST
+$ go test -cpuprofile cpu.prof -memprofile mem.prof -v -run TrainMLPUsingMNIST
 === RUN   ExampleTrainMLPUsingMNIST
 2020/08/19 14:05:05 No CUDA found; CPU only
 2020/08/19 14:05:10 Epoch: 0, Loss: 0.1280
@@ -163,6 +162,6 @@ The PyTorch version using the official pip package runs much slower than the
 GoTorch and C++ versions.
 
 ```
-yi@WangYis-iMac:~/go/src/github.com/wangkuiyi/gotorch/benchmark (pprof)*$ time python mnist.py
+$ time python mnist.py
 The throughput: 4692.161879128401 samples/sec
 ```

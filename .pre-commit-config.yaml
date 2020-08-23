@@ -1,14 +1,22 @@
 repos:
-- repo: git://github.com/dnephin/pre-commit-golang
-  rev: v0.3.5
-  hooks:
-  - id: go-fmt
-  - id: go-lint
-  - id: validate-toml
-  - id: no-go-testing
-- repo: https://github.com/bmorcos/pre-commit-hooks-cpp
-  rev: master
-  hooks:
-  - id: cpplint
-  - id: cppcheck
-  - id: clang-format
+  - repo: git://github.com/dnephin/pre-commit-golang
+    rev: v0.3.5
+    hooks:
+      - id: go-fmt
+      - id: go-lint
+      - id: validate-toml
+      - id: no-go-testing
+  - repo: https://github.com/bmorcos/pre-commit-hooks-cpp
+    rev: master
+    hooks:
+      - id: cpplint
+      - id: cppcheck
+      - id: clang-format
+  - repo: https://github.com/adrienverge/yamllint
+    rev: v1.17.0
+    hooks:
+      - id: yamllint
+  - repo: https://github.com/markdownlint/markdownlint
+    rev: v0.10.0
+    hooks:
+      - id: markdownlint
