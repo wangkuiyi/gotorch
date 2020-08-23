@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/wangkuiyi/gotorch/example/resnet/imagenet"
+	"github.com/wangkuiyi/gotorch/vision/imagenet"
 )
 
 func generateColorData(w io.Writer) []string {

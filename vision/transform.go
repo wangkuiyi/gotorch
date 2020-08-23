@@ -1,9 +1,12 @@
 package vision
 
+// Transform interface
+type Transform interface{}
+
 // NormalizeTransformer corresponds to torchvision.transforms.html#Normalize. It
 // implements Go interface gotorch/data.Transform.
 type NormalizeTransformer struct {
-	mean, stddev float64
+	Mean, Stddev float64
 }
 
 // Normalize returns normalize transformer

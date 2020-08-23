@@ -1,4 +1,4 @@
-package vision
+package mnist
 
 import (
 	"compress/gzip"

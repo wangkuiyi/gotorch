@@ -8,6 +8,7 @@ import (
 	F "github.com/wangkuiyi/gotorch/nn/functional"
 	"github.com/wangkuiyi/gotorch/nn/initializer"
 	"github.com/wangkuiyi/gotorch/vision"
+	"github.com/wangkuiyi/gotorch/vision/mnist"
 )
 
 func generator(nz int64) *nn.SequentialModule {
@@ -42,7 +43,7 @@ func discriminator() *nn.SequentialModule {
 }
 
 func main() {
-	mnist := vision.MNIST("",
+	dataset := mnist.NewDataset("",
 		[]vision.Transform{vision.Normalize(0.5, 0.5)})
 
 	nz := int64(100)
@@ -63,7 +64,7 @@ func main() {
 	batchSize := int64(64)
 	i := 0
 	for epoch := 0; epoch < epochs; epoch++ {
-		trainLoader := vision.NewMNISTLoader(mnist, batchSize)
+		trainLoader := mnist.NewLoader(dataset, batchSize)
 		for trainLoader.Scan() {
 			// (1) update D network
 			// train with real
@@ -105,6 +106,6 @@ func main() {
 		}
 		trainLoader.Close()
 	}
-	mnist.Close()
+	dataset.Close()
 	torch.FinishGC()
 }

@@ -1,8 +1,8 @@
-package vision
+package mnist
 
-// #cgo CFLAGS: -I ${SRCDIR}/../cgotorch
-// #cgo LDFLAGS: -L ${SRCDIR}/../cgotorch -Wl,-rpath ${SRCDIR}/../cgotorch -lcgotorch
-// #cgo LDFLAGS: -L ${SRCDIR}/../cgotorch/libtorch/lib -Wl,-rpath ${SRCDIR}/../cgotorch/libtorch/lib -lc10 -ltorch -ltorch_cpu
+// #cgo CFLAGS: -I ${SRCDIR}/../../cgotorch
+// #cgo LDFLAGS: -L ${SRCDIR}/../../cgotorch -Wl,-rpath ${SRCDIR}/../../cgotorch -lcgotorch
+// #cgo LDFLAGS: -L ${SRCDIR}/../../cgotorch/libtorch/lib -Wl,-rpath ${SRCDIR}/../../cgotorch/libtorch/lib -lc10 -ltorch -ltorch_cpu
 // #include <stdlib.h>
 // #include "../cgotorch/cgotorch.h"
 import "C"
@@ -12,24 +12,22 @@ import (
 	"unsafe"
 
 	"github.com/wangkuiyi/gotorch"
+	"github.com/wangkuiyi/gotorch/vision"
 )
 
-// MNISTDataset wraps C.MNISTDataSet
-type MNISTDataset struct {
+// Dataset wraps C.MNISTDataSet
+type Dataset struct {
 	T C.MNISTDataset
 }
 
-// Transform interface
-type Transform interface{}
-
 // Close the Dataset and release memory.
-func (d *MNISTDataset) Close() {
+func (d *Dataset) Close() {
 	// FIXME: Currently, Dataset corresponds to MNIST dataset.
 	C.MNISTDataset_Close(d.T)
 }
 
-// MNIST corresponds to torchvision.datasets.MNIST.
-func MNIST(dataRoot string, transforms []Transform) *MNISTDataset {
+// NewDataset corresponds to torchvision.datasets.MNIST.
+func NewDataset(dataRoot string, transforms []vision.Transform) *Dataset {
 	dataRoot = cacheDir(dataRoot)
 	if e := downloadMNIST(dataRoot); e != nil {
 		log.Fatalf("Failed to download MNIST dataset: %v", e)
@@ -43,20 +41,20 @@ func MNIST(dataRoot string, transforms []Transform) *MNISTDataset {
 	// cache transforms on dataset
 	for _, v := range transforms {
 		switch t := v.(type) {
-		case *NormalizeTransformer:
+		case *vision.NormalizeTransformer:
 			C.MNISTDataset_Normalize(&dataset,
-				C.double(v.(*NormalizeTransformer).mean),
-				C.double(v.(*NormalizeTransformer).stddev))
+				C.double(v.(*vision.NormalizeTransformer).Mean),
+				C.double(v.(*vision.NormalizeTransformer).Stddev))
 		default:
 			panic(fmt.Sprintf("unsupposed transform type: %T", t))
 		}
 	}
 
-	return &MNISTDataset{dataset}
+	return &Dataset{dataset}
 }
 
-// MNISTLoader struct
-type MNISTLoader struct {
+// Loader struct
+type Loader struct {
 	T     C.MNISTLoader
 	batch *Batch
 	iter  C.MNISTIterator
@@ -68,9 +66,9 @@ type Batch struct {
 	Target gotorch.Tensor
 }
 
-// NewMNISTLoader returns Loader pointer
-func NewMNISTLoader(dataset *MNISTDataset, batchSize int64) *MNISTLoader {
-	return &MNISTLoader{
+// NewLoader returns Loader pointer
+func NewLoader(dataset *Dataset, batchSize int64) *Loader {
+	return &Loader{
 		T: C.CreateMNISTLoader(
 			C.MNISTDataset(dataset.T), C.int64_t(batchSize)),
 		batch: nil,
@@ -79,7 +77,7 @@ func NewMNISTLoader(dataset *MNISTDataset, batchSize int64) *MNISTLoader {
 }
 
 // Close Loader
-func (loader *MNISTLoader) Close() {
+func (loader *Loader) Close() {
 	C.MNISTLoader_Close(loader.T)
 }
 
@@ -97,7 +95,7 @@ func minibatch(iter C.MNISTIterator) *Batch {
 }
 
 // Scan scans the batch from Loader
-func (loader *MNISTLoader) Scan() bool {
+func (loader *Loader) Scan() bool {
 	// make the previous batch object to be unreachable
 	// to release the Tensor memory.
 	loader.batch = nil
@@ -116,6 +114,6 @@ func (loader *MNISTLoader) Scan() bool {
 }
 
 // Batch returns the batch data on the current iteration.
-func (loader *MNISTLoader) Batch() *Batch {
+func (loader *Loader) Batch() *Batch {
 	return loader.batch
 }
