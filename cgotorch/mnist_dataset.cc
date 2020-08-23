@@ -10,7 +10,7 @@
 // FIXME(shendiaomo): including cgotorch.h before torch/torch.h will fail
 #include "cgotorch/cgotorch.h"
 
-const char *Dataset_MNIST(const char *data_root, Dataset *dataset) {
+const char *CreateMNISTDataset(const char *data_root, MNISTDataset *dataset) {
   try {
     dataset->p = new torch::data::datasets::MNIST(std::string(data_root));
     return nullptr;
@@ -19,22 +19,25 @@ const char *Dataset_MNIST(const char *data_root, Dataset *dataset) {
   }
 }
 
-void MNIST_Close(Dataset d) { delete d.p; }
+void MNISTDataset_Close(MNISTDataset d) { delete d.p; }
 
-void Dataset_Normalize(Dataset *dataset, double mean, double stddev) {
+void MNISTDataset_Normalize(MNISTDataset *dataset, double mean, double stddev) {
   dataset->normalize = new torch::data::transforms::Normalize<>(mean, stddev);
 }
 
-using TypeMapDataset = torch::data::datasets::MapDataset<
+using MNISTMapDataset = torch::data::datasets::MapDataset<
     torch::data::datasets::MapDataset<torch::data::datasets::MNIST,
                                       torch::data::transforms::Normalize<>>,
     torch::data::transforms::Stack<torch::data::Example<>>>;
-using TypeDataLoader =
-    torch::data::StatelessDataLoader<TypeMapDataset,
+
+using MNISTDataLoader =
+    torch::data::StatelessDataLoader<MNISTMapDataset,
                                      torch::data::samplers::SequentialSampler>;
 
-using TypeIterator = torch::data::Iterator<TypeDataLoader::BatchType>;
-DataLoader MakeDataLoader(Dataset dataset, int64_t batchsize) {
+using MNISTDataLoaderIterator =
+    torch::data::Iterator<MNISTDataLoader::BatchType>;
+
+MNISTLoader CreateMNISTLoader(MNISTDataset dataset, int64_t batchsize) {
   auto map_dataset = dataset.p->map(*dataset.normalize)
                          .map(torch::data::transforms::Stack<>());
   auto p =
@@ -43,21 +46,22 @@ DataLoader MakeDataLoader(Dataset dataset, int64_t batchsize) {
   return p.release();
 }
 
-Iterator Loader_Begin(DataLoader loader) {
-  return new TypeIterator(static_cast<TypeDataLoader *>(loader)->begin());
+void MNISTLoader_Close(MNISTLoader loader) {
+  delete static_cast<MNISTDataLoader *>(loader);
 }
 
-void Iterator_Batch(Iterator iter, Tensor *data, Tensor *target) {
-  auto i = *static_cast<TypeIterator *>(iter);
+MNISTIterator MNISTLoader_Begin(MNISTDataLoader loader) {
+  return new MNISTDataLoaderIterator(
+      static_cast<MNISTDataLoader *>(loader)->begin());
+}
+
+void MNISTIterator_Batch(MNISTIterator iter, Tensor *data, Tensor *target) {
+  auto i = *static_cast<MNISTDataLoaderIterator *>(iter);
   *data = new at::Tensor(i->data);
   *target = new at::Tensor(i->target);
 }
 
-bool Loader_Next(DataLoader loader, Iterator iter) {
-  return ++*static_cast<TypeIterator *>(iter) !=
-         static_cast<TypeDataLoader *>(loader)->end();
-}
-
-void Loader_Close(DataLoader loader) {
-  delete static_cast<TypeDataLoader *>(loader);
+bool MNISTIterator_Next(Iterator iter, MNISTLoader loader) {
+  return ++*static_cast<MNISTDataLoaderIterator *>(iter) !=
+         static_cast<MNISTDataLoader *>(loader)->end();
 }
