@@ -11,7 +11,7 @@ import (
 	"unsafe"
 )
 
-// Dataset struct
+// Dataset wraps C.DataSet
 type Dataset struct {
 	T C.Dataset
 }
@@ -19,8 +19,8 @@ type Dataset struct {
 // Transform interface
 type Transform interface{}
 
-// Normalize transform struct
-type Normalize struct {
+// NormalizeTransformer implements torchvision.transforms.html#Normalize.
+type NormalizeTransformer struct {
 	mean, stddev float64
 }
 
@@ -49,9 +49,9 @@ func (d *Dataset) Close() {
 	C.MNIST_Close(d.T)
 }
 
-// NewNormalize returns normalize transformer
-func NewNormalize(mean float64, stddev float64) *Normalize {
-	return &Normalize{mean, stddev}
+// Normalize returns normalize transformer
+func Normalize(mean float64, stddev float64) *Normalize {
+	return &NormalizeTransformer{mean, stddev}
 }
 
 // Loader struct
@@ -69,7 +69,7 @@ type Batch struct {
 
 // NewLoader returns Loader pointer
 func NewLoader(dataset *Dataset, batchSize int64) *Loader {
-	loader := C.MakeLoader(C.Dataset(dataset.T), C.int64_t(batchSize))
+	loader := C.MakeDataLoader(C.Dataset(dataset.T), C.int64_t(batchSize))
 	return &Loader{
 		T:     loader,
 		batch: nil,

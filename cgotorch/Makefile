@@ -1,6 +1,9 @@
 all : libcgotorch.so
 
-libcgotorch.so : torch.cc functional.cc init.cc optim.cc cgotorch.h ${LIBTORCH_DIR}
+srcs := $(wildcard *.cc)
+hdrs := $(wildcard *.h)
+
+libcgotorch.so : $(srcs) $(hdrs) ${LIBTORCH_DIR}
 	rm -f libtorch
 	ln -s ${LIBTORCH_DIR} libtorch
 	${CXX} -std=c++14 \
