@@ -26,7 +26,7 @@ The PyTorch build system generates the C++ source code of native functions from
 the YAML file
 [`native_functions.yaml`](https://github.com/pytorch/pytorch/blob/master/aten/src/ATen/native/native_functions.yaml).
 
-In this tutorial, let us try to wrap the following function `mm`, which shorts
+In this tutorial, let us try to wrap the following function `mm`, which is short
 for matrix multiplication and appear in `native_functions.yaml` as the
 following.
 
