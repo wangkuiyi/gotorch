@@ -140,9 +140,13 @@ const char *MM(Tensor a, Tensor b, Tensor *result) {
 
 It runs the following steps, which are in most other wrappers too.
 
-1. It calls the native function `mm`.
-1. It allocates a heap object `*result` to save the result `c`.  This step is
-   necessary because the return of `MM` will destruct `c`.
+1. It calls the native function `mm` and creates the result tensor `c` on the
+   stack.
+1. It allocates a heap object `*result` and **moves** `c` to `*result`.  This
+   step is necessary because the return from `MM` will destruct `c`.  This step
+   doesn't copy the content of `c` because the operator `new` calls the
+   [move](https://en.cppreference.com/w/cpp/language/move_constructor)
+   constructor instead of the copy constructor of `at::Tensor`.
 1. It returns the string-serialization of the exception if there is any, or
    `nullptr`.
 
