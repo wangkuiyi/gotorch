@@ -36,9 +36,6 @@ func (n *MLPMNISTNet) Forward(x torch.Tensor) torch.Tensor {
 }
 
 func ExampleTrainMLPUsingMNIST() {
-	if e := vision.DownloadMNIST(); e != nil {
-		log.Printf("Cannot find or download MNIST dataset: %v", e)
-	}
 	var device torch.Device
 	if torch.IsCUDAAvailable() {
 		log.Println("CUDA is valid")
@@ -47,9 +44,12 @@ func ExampleTrainMLPUsingMNIST() {
 		log.Println("No CUDA found; CPU only")
 		device = torch.NewDevice("cpu")
 	}
+
 	initializer.ManualSeed(1)
-	transforms := []torch.Transform{torch.NewNormalize(0.1307, 0.3081)}
-	mnist := torch.NewMNIST(vision.MNISTDir(), transforms)
+
+	mnist := vision.MNIST("",
+		[]vision.Transform{vision.Normalize(0.1307, 0.3081)})
+
 	net := NewMNISTNet()
 	net.ZeroGrad()
 	net.To(device)
@@ -61,7 +61,7 @@ func ExampleTrainMLPUsingMNIST() {
 	var lastLoss float32
 	iters := 0
 	for epoch := 0; epoch < epochs; epoch++ {
-		trainLoader := torch.NewDataLoader(mnist, 64)
+		trainLoader := vision.NewMNISTLoader(mnist, 64)
 		for trainLoader.Scan() {
 			batch := trainLoader.Batch()
 			data, target := batch.Data.To(device, batch.Data.Dtype()), batch.Target.To(device, batch.Target.Dtype())
@@ -95,9 +95,6 @@ func (s *MLPMNISTSequential) Forward(x torch.Tensor) torch.Tensor {
 }
 
 func ExampleTrainMNISTSequential() {
-	if e := vision.DownloadMNIST(); e != nil {
-		log.Printf("Cannot find or download MNIST dataset: %v", e)
-	}
 	net := &MLPMNISTSequential{Layers: nn.Sequential(
 		nn.Linear(28*28, 512, false),
 		nn.Functional(torch.Tanh),
@@ -106,14 +103,16 @@ func ExampleTrainMNISTSequential() {
 		nn.Linear(512, 10, false))}
 	net.Init(net)
 	net.ZeroGrad()
-	transforms := []torch.Transform{torch.NewNormalize(0.1307, 0.3081)}
-	mnist := torch.NewMNIST(vision.MNISTDir(), transforms)
+
+	mnist := vision.MNIST("",
+		[]vision.Transform{vision.Normalize(0.1307, 0.3081)})
+
 	opt := torch.SGD(0.1, 0.5, 0, 0, false)
 	opt.AddParameters(net.Parameters())
 	epochs := 1
 	startTime := time.Now()
 	for i := 0; i < epochs; i++ {
-		trainLoader := torch.NewDataLoader(mnist, 64)
+		trainLoader := vision.NewMNISTLoader(mnist, 64)
 		for trainLoader.Scan() {
 			batch := trainLoader.Batch()
 			opt.ZeroGrad()
