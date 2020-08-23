@@ -1,6 +1,9 @@
 all : libcgotorch.so
 
-libcgotorch.so : torch.cc functional.cc init.cc optim.cc cgotorch.h ${LIBTORCH_DIR}
+srcs := $(wildcard *.cc)
+hdrs := $(wildcard *.h)
+
+libcgotorch.so : $(srcs) $(hdrs) ${LIBTORCH_DIR}
 	rm -f libtorch
 	ln -s ${LIBTORCH_DIR} libtorch
 	${CXX} -std=c++14 \
@@ -10,7 +13,7 @@ libcgotorch.so : torch.cc functional.cc init.cc optim.cc cgotorch.h ${LIBTORCH_D
 	-L libtorch/lib \
 	-fPIC \
 	-shared \
-	torch.cc functional.cc init.cc optim.cc \
+	$(srcs) \
 	-O -o $@ ${INSTALL_NAME} \
 	-Wl,-rpath,libtorch/lib \
 	-Wl,-${LOAD} libtorch/lib/libc10.${LIB_SUFFIX} \

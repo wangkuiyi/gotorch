@@ -166,30 +166,32 @@ bool IsCUDAAvailable();
 
 const char *Tensor_To(Tensor input, Device device, int8_t dtype,
                       Tensor *output);
+
 ////////////////////////////////////////////////////////////////////////////////
 //  Dataset, DataLoader, and Iterator torch.utils.data
 ////////////////////////////////////////////////////////////////////////////////
 
-typedef struct DatasetMNIST {
+typedef struct {
   MNIST p;
   Normalize normalize;
   double mean, stddev;
-} Dataset;
+} MNISTDataset;
 
-const char *Dataset_MNIST(const char *data_root, Dataset *dataset);
-void MNIST_Close(Dataset d);
+const char *CreateMNISTDataset(const char *data_root, MNISTDataset *dataset);
+void MNISTDataset_Close(MNISTDataset d);
 
-// cache normalize transform on dataset
-void Dataset_Normalize(Dataset *dataset, double mean, double stddev);
+// Set parameters of the normalize transform in dataset
+void MNISTDataset_Normalize(MNISTDataset *dataset, double mean, double stddev);
 
-typedef void *Iterator;
-typedef void *DataLoader;
+typedef void *MNISTLoader;
+typedef void *MNISTIterator;
 
-void Loader_Close(DataLoader loader);
-Iterator Loader_Begin(DataLoader loader);
-void Iterator_Batch(Iterator iter, Tensor *data, Tensor *target);
-bool Loader_Next(DataLoader loader, Iterator iter);
-DataLoader MakeDataLoader(Dataset dataset, int64_t batchsize);
+MNISTLoader CreateMNISTLoader(MNISTDataset dataset, int64_t batchsize);
+void MNISTLoader_Close(MNISTLoader loader);
+
+MNISTIterator MNISTLoader_Begin(MNISTLoader loader);
+void MNISTIterator_Batch(MNISTIterator iter, Tensor *data, Tensor *target);
+bool MNISTIterator_Next(MNISTIterator iter, MNISTLoader loader);
 
 #ifdef __cplusplus
 }

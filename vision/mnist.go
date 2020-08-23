@@ -1,85 +1,121 @@
 package vision
 
+// #cgo CFLAGS: -I ${SRCDIR}/../cgotorch
+// #cgo LDFLAGS: -L ${SRCDIR}/../cgotorch -Wl,-rpath ${SRCDIR}/../cgotorch -lcgotorch
+// #cgo LDFLAGS: -L ${SRCDIR}/../cgotorch/libtorch/lib -Wl,-rpath ${SRCDIR}/../cgotorch/libtorch/lib -lc10 -ltorch -ltorch_cpu
+// #include <stdlib.h>
+// #include "../cgotorch/cgotorch.h"
+import "C"
 import (
-	"compress/gzip"
-	"io"
-	"net/http"
-	"os"
-	"os/user"
-	"path"
+	"fmt"
+	"log"
+	"unsafe"
+
+	"github.com/wangkuiyi/gotorch"
 )
 
-const (
-	images = "train-images-idx3-ubyte"
-	labels = "train-labels-idx1-ubyte"
-	site   = "http://yann.lecun.com/exdb/mnist/"
-)
-
-// DownloadMNIST downloads mnist dataset
-func DownloadMNIST() error {
-	if e := downloadIfNotYet(images); e != nil {
-		return e
-	}
-	if e := downloadIfNotYet(labels); e != nil {
-		return e
-	}
-	return nil
+// MNISTDataset wraps C.MNISTDataSet
+type MNISTDataset struct {
+	T C.MNISTDataset
 }
 
-// MNISTDir returns the directory where mnist dataset is saved
-func MNISTDir() string {
-	u, e := user.Current()
-	if e != nil {
-		return "testdata/mnist"
-	}
-	return path.Join(u.HomeDir, ".cache/mnist")
+// Transform interface
+type Transform interface{}
+
+// Close the Dataset and release memory.
+func (d *MNISTDataset) Close() {
+	// FIXME: Currently, Dataset corresponds to MNIST dataset.
+	C.MNISTDataset_Close(d.T)
 }
 
-func downloadIfNotYet(fn string) error {
-	f := path.Join(MNISTDir(), fn)
-	if !fileExists(f) {
-		if e := download(site+fn+".gz", f); e != nil {
-			return e
+// MNIST corresponds to torchvision.datasets.MNIST.
+func MNIST(dataRoot string, transforms []Transform) *MNISTDataset {
+	dataRoot = cacheDir(dataRoot)
+	if e := downloadMNIST(dataRoot); e != nil {
+		log.Fatalf("Failed to download MNIST dataset: %v", e)
+	}
+
+	var dataset C.MNISTDataset
+	cstr := C.CString(dataRoot)
+	defer C.free(unsafe.Pointer(cstr))
+	gotorch.MustNil(unsafe.Pointer(C.CreateMNISTDataset(cstr, &dataset)))
+
+	// cache transforms on dataset
+	for _, v := range transforms {
+		switch t := v.(type) {
+		case *NormalizeTransformer:
+			C.MNISTDataset_Normalize(&dataset,
+				C.double(v.(*NormalizeTransformer).mean),
+				C.double(v.(*NormalizeTransformer).stddev))
+		default:
+			panic(fmt.Sprintf("unsupposed transform type: %T", t))
 		}
 	}
-	return nil
+
+	return &MNISTDataset{dataset}
 }
 
-func fileExists(fn string) bool {
-	info, e := os.Stat(fn)
-	if os.IsNotExist(e) {
+// MNISTLoader struct
+type MNISTLoader struct {
+	T     C.MNISTLoader
+	batch *Batch
+	iter  C.MNISTIterator
+}
+
+// Batch struct contains data and target
+type Batch struct {
+	Data   gotorch.Tensor
+	Target gotorch.Tensor
+}
+
+// NewMNISTLoader returns Loader pointer
+func NewMNISTLoader(dataset *MNISTDataset, batchSize int64) *MNISTLoader {
+	return &MNISTLoader{
+		T: C.CreateMNISTLoader(
+			C.MNISTDataset(dataset.T), C.int64_t(batchSize)),
+		batch: nil,
+		iter:  nil,
+	}
+}
+
+// Close Loader
+func (loader *MNISTLoader) Close() {
+	C.MNISTLoader_Close(loader.T)
+}
+
+// minibatch returns the batch data as Tensor slice
+func minibatch(iter C.MNISTIterator) *Batch {
+	var data C.Tensor
+	var target C.Tensor
+	C.MNISTIterator_Batch(iter, &data, &target)
+	gotorch.SetTensorFinalizer((*unsafe.Pointer)(&data))
+	gotorch.SetTensorFinalizer((*unsafe.Pointer)(&target))
+	return &Batch{
+		Data:   gotorch.Tensor{(*unsafe.Pointer)(&data)},
+		Target: gotorch.Tensor{(*unsafe.Pointer)(&target)},
+	}
+}
+
+// Scan scans the batch from Loader
+func (loader *MNISTLoader) Scan() bool {
+	// make the previous batch object to be unreachable
+	// to release the Tensor memory.
+	loader.batch = nil
+	gotorch.GC()
+	if loader.iter == nil {
+		loader.iter = C.MNISTLoader_Begin(loader.T)
+		loader.batch = minibatch(loader.iter)
+		return true
+	}
+	// returns false if no next iteration
+	if C.MNISTIterator_Next(loader.iter, loader.T) == false {
 		return false
 	}
-	return !info.IsDir()
+	loader.batch = minibatch(loader.iter)
+	return true
 }
 
-func download(url, fn string) error {
-	resp, e := http.Get(url)
-	if e != nil {
-		return e
-	}
-	defer resp.Body.Close()
-
-	r, e := gzip.NewReader(resp.Body)
-	if e != nil {
-		return e
-	}
-	defer r.Close()
-
-	if e := os.MkdirAll(MNISTDir(), 0744); e != nil {
-		return e
-	}
-
-	f, e := os.Create(fn)
-	if e != nil {
-		return e
-	}
-	defer f.Close()
-
-	_, e = io.Copy(f, r)
-	if e != nil && e != io.EOF {
-		return e
-	}
-
-	return nil
+// Batch returns the batch data on the current iteration.
+func (loader *MNISTLoader) Batch() *Batch {
+	return loader.batch
 }

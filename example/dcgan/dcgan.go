@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 
 	torch "github.com/wangkuiyi/gotorch"
 	nn "github.com/wangkuiyi/gotorch/nn"
@@ -11,7 +10,7 @@ import (
 	"github.com/wangkuiyi/gotorch/vision"
 )
 
-func newGenerator(nz int64) *nn.SequentialModule {
+func generator(nz int64) *nn.SequentialModule {
 	return nn.Sequential(
 		nn.ConvTranspose2d(nz, 256, 4, 1, 0, 0, 1, false, 1, "zero"),
 		nn.BatchNorm2d(256, 1e-5, 0.1, true, true),
@@ -27,7 +26,7 @@ func newGenerator(nz int64) *nn.SequentialModule {
 	)
 }
 
-func newDiscriminator() *nn.SequentialModule {
+func discriminator() *nn.SequentialModule {
 	return nn.Sequential(
 		nn.Conv2d(1, 64, 4, 2, 1, 1, 1, false, "zeros"),
 		nn.Functional(func(in torch.Tensor) torch.Tensor { return torch.LeakyRelu(in, 0.2) }),
@@ -43,17 +42,14 @@ func newDiscriminator() *nn.SequentialModule {
 }
 
 func main() {
-	if e := vision.DownloadMNIST(); e != nil {
-		log.Printf("Cannot find or download MNIST dataset: %v", e)
-	}
-	transforms := []torch.Transform{torch.NewNormalize(0.5, 0.5)}
-	mnist := torch.NewMNIST(vision.MNISTDir(), transforms)
+	mnist := vision.MNIST("",
+		[]vision.Transform{vision.Normalize(0.5, 0.5)})
 
 	nz := int64(100)
 	lr := 0.0002
 
-	netG := newGenerator(nz)
-	netD := newDiscriminator()
+	netG := generator(nz)
+	netD := discriminator()
 
 	optimizerD := torch.Adam(lr, 0.5, 0.5, 0.0)
 	optimizerD.AddParameters(netD.Parameters())
@@ -67,7 +63,7 @@ func main() {
 	batchSize := int64(64)
 	i := 0
 	for epoch := 0; epoch < epochs; epoch++ {
-		trainLoader := torch.NewDataLoader(mnist, batchSize)
+		trainLoader := vision.NewMNISTLoader(mnist, batchSize)
 		for trainLoader.Scan() {
 			// (1) update D network
 			// train with real
