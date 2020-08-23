@@ -25,17 +25,16 @@ void MNISTDataset_Normalize(MNISTDataset *dataset, double mean, double stddev) {
   dataset->normalize = new torch::data::transforms::Normalize<>(mean, stddev);
 }
 
-using MNISTMapDataset = torch::data::datasets::MapDataset<
+namespace detail {
+using Dataset = torch::data::datasets::MapDataset<
     torch::data::datasets::MapDataset<torch::data::datasets::MNIST,
                                       torch::data::transforms::Normalize<>>,
     torch::data::transforms::Stack<torch::data::Example<>>>;
-
-using MNISTDataLoader =
-    torch::data::StatelessDataLoader<MNISTMapDataset,
+using Loader =
+    torch::data::StatelessDataLoader<Dataset,
                                      torch::data::samplers::SequentialSampler>;
-
-using MNISTDataLoaderIterator =
-    torch::data::Iterator<MNISTDataLoader::BatchType>;
+using Iterator = torch::data::Iterator<Loader::BatchType>;
+}  // namespace detail
 
 MNISTLoader CreateMNISTLoader(MNISTDataset dataset, int64_t batchsize) {
   auto map_dataset = dataset.p->map(*dataset.normalize)
@@ -47,21 +46,20 @@ MNISTLoader CreateMNISTLoader(MNISTDataset dataset, int64_t batchsize) {
 }
 
 void MNISTLoader_Close(MNISTLoader loader) {
-  delete static_cast<MNISTDataLoader *>(loader);
+  delete static_cast<detail::Loader *>(loader);
 }
 
-MNISTIterator MNISTLoader_Begin(MNISTDataLoader loader) {
-  return new MNISTDataLoaderIterator(
-      static_cast<MNISTDataLoader *>(loader)->begin());
+MNISTIterator MNISTLoader_Begin(MNISTLoader loader) {
+  return new detail::Iterator(static_cast<detail::Loader *>(loader)->begin());
 }
 
 void MNISTIterator_Batch(MNISTIterator iter, Tensor *data, Tensor *target) {
-  auto i = *static_cast<MNISTDataLoaderIterator *>(iter);
+  auto i = *static_cast<detail::Iterator *>(iter);
   *data = new at::Tensor(i->data);
   *target = new at::Tensor(i->target);
 }
 
-bool MNISTIterator_Next(Iterator iter, MNISTLoader loader) {
-  return ++*static_cast<MNISTDataLoaderIterator *>(iter) !=
-         static_cast<MNISTDataLoader *>(loader)->end();
+bool MNISTIterator_Next(MNISTIterator iter, MNISTLoader loader) {
+  return ++*static_cast<detail::Iterator *>(iter) !=
+         static_cast<detail::Loader *>(loader)->end();
 }
