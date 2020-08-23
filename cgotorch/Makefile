@@ -13,7 +13,7 @@ libcgotorch.so : $(srcs) $(hdrs) ${LIBTORCH_DIR}
 	-L libtorch/lib \
 	-fPIC \
 	-shared \
-	torch.cc functional.cc init.cc optim.cc \
+	$(srcs) \
 	-O -o $@ ${INSTALL_NAME} \
 	-Wl,-rpath,libtorch/lib \
 	-Wl,-${LOAD} libtorch/lib/libc10.${LIB_SUFFIX} \
