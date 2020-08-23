@@ -12,9 +12,9 @@ import (
 	"github.com/wangkuiyi/gotorch/example/resnet/imagenet"
 )
 
-func TestSynthesizer(t *testing.T) {
-	var tgz bytes.Buffer
-	s := imagenet.NewSynthesizer(&tgz)
+func generateColorData(w io.Writer) []string {
+	s := imagenet.NewSynthesizer(w)
+	defer s.Close()
 	colors := []color.Color{
 		color.RGBA{0, 0, 255, 255},
 		color.RGBA{0, 255, 0, 255},
@@ -26,7 +26,12 @@ func TestSynthesizer(t *testing.T) {
 	for i := 0; i < len(fns); i++ {
 		s.AddImage(fns[i], 469, 387, colors[i])
 	}
-	s.Close()
+	return fns
+}
+
+func TestSynthesizer(t *testing.T) {
+	var tgz bytes.Buffer
+	fns := generateColorData(&tgz)
 
 	gr, e := gzip.NewReader(&tgz)
 	assert.NoError(t, e)
@@ -40,5 +45,16 @@ func TestSynthesizer(t *testing.T) {
 		assert.NoError(t, e)
 		assert.Equal(t, fns[i], hdr.Name)
 		i++
+	}
+}
+
+func TestDataloader(t *testing.T) {
+	var tgz bytes.Buffer
+	generateColorData(&tgz)
+	loader, err := imagenet.NewDataLoader(&tgz, 4)
+	assert.NoError(t, err)
+
+	for loader.Scan() {
+		loader.Batch()
 	}
 }
