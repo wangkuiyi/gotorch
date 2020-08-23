@@ -15,19 +15,23 @@ const (
 	site   = "http://yann.lecun.com/exdb/mnist/"
 )
 
-// DownloadMNIST downloads mnist dataset
-func DownloadMNIST() error {
-	if e := downloadIfNotYet(images); e != nil {
+// downloadMNIST downloads mnist dataset
+func downloadMNIST(dir string) error {
+	if e := downloadIfNotYet(images, dir); e != nil {
 		return e
 	}
-	if e := downloadIfNotYet(labels); e != nil {
+	if e := downloadIfNotYet(labels, dir); e != nil {
 		return e
 	}
 	return nil
 }
 
-// MNISTDir returns the directory where mnist dataset is saved
-func MNISTDir() string {
+// cacheDir returns the directory where mnist dataset is saved
+func cacheDir(dir string) string {
+	if dir != "" {
+		return dir
+	}
+
 	u, e := user.Current()
 	if e != nil {
 		return "testdata/mnist"
@@ -35,10 +39,10 @@ func MNISTDir() string {
 	return path.Join(u.HomeDir, ".cache/mnist")
 }
 
-func downloadIfNotYet(fn string) error {
-	f := path.Join(MNISTDir(), fn)
+func downloadIfNotYet(fn, dir string) error {
+	f := path.Join(cacheDir(dir), fn)
 	if !fileExists(f) {
-		if e := download(site+fn+".gz", f); e != nil {
+		if e := download(site+fn+".gz", f, dir); e != nil {
 			return e
 		}
 	}
@@ -53,7 +57,7 @@ func fileExists(fn string) bool {
 	return !info.IsDir()
 }
 
-func download(url, fn string) error {
+func download(url, fn, dir string) error {
 	resp, e := http.Get(url)
 	if e != nil {
 		return e
@@ -66,7 +70,7 @@ func download(url, fn string) error {
 	}
 	defer r.Close()
 
-	if e := os.MkdirAll(MNISTDir(), 0744); e != nil {
+	if e := os.MkdirAll(cacheDir(dir), 0744); e != nil {
 		return e
 	}
 
