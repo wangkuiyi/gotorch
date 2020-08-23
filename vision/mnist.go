@@ -1,14 +1,16 @@
-package data
+package vision
 
-// #cgo CFLAGS: -I ${SRCDIR}/cgotorch
-// #cgo LDFLAGS: -L ${SRCDIR}/cgotorch -Wl,-rpath ${SRCDIR}/cgotorch -lcgotorch
-// #cgo LDFLAGS: -L ${SRCDIR}/cgotorch/libtorch/lib -Wl,-rpath ${SRCDIR}/cgotorch/libtorch/lib -lc10 -ltorch -ltorch_cpu
+// #cgo CFLAGS: -I ${SRCDIR}/../cgotorch
+// #cgo LDFLAGS: -L ${SRCDIR}/../cgotorch -Wl,-rpath ${SRCDIR}/../cgotorch -lcgotorch
+// #cgo LDFLAGS: -L ${SRCDIR}/../cgotorch/libtorch/lib -Wl,-rpath ${SRCDIR}/../cgotorch/libtorch/lib -lc10 -ltorch -ltorch_cpu
 // #include <stdlib.h>
 // #include "../cgotorch/cgotorch.h"
 import "C"
 import (
 	"fmt"
 	"unsafe"
+
+	"github.com/wangkuiyi/gotorch"
 )
 
 // Dataset wraps C.DataSet
@@ -19,39 +21,32 @@ type Dataset struct {
 // Transform interface
 type Transform interface{}
 
-// NormalizeTransformer implements torchvision.transforms.html#Normalize.
-type NormalizeTransformer struct {
-	mean, stddev float64
+// Close the Dataset and release memory.
+func (d *Dataset) Close() {
+	// FIXME: Currently, Dataset corresponds to MNIST dataset.
+	C.MNIST_Close(d.T)
 }
 
-// NewMNIST returns MNIST dataset
-func NewMNIST(dataRoot string, transforms []Transform) *Dataset {
+// MNIST corresponds to torchvision.datasets.MNIST.
+func MNIST(dataRoot string, transforms []Transform) *Dataset {
 	var dataset C.Dataset
 	cstr := C.CString(dataRoot)
 	defer C.free(unsafe.Pointer(cstr))
-	MustNil(unsafe.Pointer(C.Dataset_MNIST(cstr, &dataset)))
+	gotorch.MustNil(unsafe.Pointer(C.Dataset_MNIST(cstr, &dataset)))
 
 	// cache transforms on dataset
 	for _, v := range transforms {
 		switch t := v.(type) {
-		case *Normalize:
-			C.Dataset_Normalize(&dataset, C.double(v.(*Normalize).mean), C.double(v.(*Normalize).stddev))
+		case *NormalizeTransformer:
+			C.Dataset_Normalize(&dataset,
+				C.double(v.(*NormalizeTransformer).mean),
+				C.double(v.(*NormalizeTransformer).stddev))
 		default:
 			panic(fmt.Sprintf("unsupposed transform type: %T", t))
 		}
 	}
 
 	return &Dataset{dataset}
-}
-
-// Close Dataset to release the memory
-func (d *Dataset) Close() {
-	C.MNIST_Close(d.T)
-}
-
-// Normalize returns normalize transformer
-func Normalize(mean float64, stddev float64) *Normalize {
-	return &NormalizeTransformer{mean, stddev}
 }
 
 // Loader struct
@@ -63,8 +58,8 @@ type Loader struct {
 
 // Batch struct contains data and target
 type Batch struct {
-	Data   Tensor
-	Target Tensor
+	Data   gotorch.Tensor
+	Target gotorch.Tensor
 }
 
 // NewLoader returns Loader pointer
@@ -82,16 +77,16 @@ func (loader *Loader) Close() {
 	C.Loader_Close(loader.T)
 }
 
-// NewBatch returns the batch data as Tensor slice
-func NewBatch(iter C.Iterator) *Batch {
+// minibatch returns the batch data as Tensor slice
+func minibatch(iter C.Iterator) *Batch {
 	var data C.Tensor
 	var target C.Tensor
 	C.Iterator_Batch(iter, &data, &target)
-	SetTensorFinalizer((*unsafe.Pointer)(&data))
-	SetTensorFinalizer((*unsafe.Pointer)(&target))
+	gotorch.SetTensorFinalizer((*unsafe.Pointer)(&data))
+	gotorch.SetTensorFinalizer((*unsafe.Pointer)(&target))
 	return &Batch{
-		Data:   Tensor{(*unsafe.Pointer)(&data)},
-		Target: Tensor{(*unsafe.Pointer)(&target)},
+		Data:   gotorch.Tensor{(*unsafe.Pointer)(&data)},
+		Target: gotorch.Tensor{(*unsafe.Pointer)(&target)},
 	}
 }
 
@@ -100,17 +95,17 @@ func (loader *Loader) Scan() bool {
 	// make the previous batch object to be unreachable
 	// to release the Tensor memory.
 	loader.batch = nil
-	GC()
+	gotorch.GC()
 	if loader.iter == nil {
 		loader.iter = C.Loader_Begin(loader.T)
-		loader.batch = NewBatch(loader.iter)
+		loader.batch = minibatch(loader.iter)
 		return true
 	}
 	// returns false if no next iteration
 	if C.Loader_Next(loader.T, loader.iter) == false {
 		return false
 	}
-	loader.batch = NewBatch(loader.iter)
+	loader.batch = minibatch(loader.iter)
 	return true
 }
 
