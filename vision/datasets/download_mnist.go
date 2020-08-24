@@ -1,4 +1,4 @@
-package vision
+package datasets
 
 import (
 	"compress/gzip"

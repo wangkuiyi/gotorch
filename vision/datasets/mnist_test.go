@@ -1,4 +1,4 @@
-package vision_test
+package datasets
 
 import (
 	"os"
@@ -7,12 +7,12 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/wangkuiyi/gotorch"
-	"github.com/wangkuiyi/gotorch/vision"
+	"github.com/wangkuiyi/gotorch/vision/transforms"
 )
 
 func ExampleMNIST() {
-	dataset := vision.MNIST("", []vision.Transform{vision.Normalize(0.1307, 0.3081)})
-	trainLoader := vision.NewMNISTLoader(dataset, 8)
+	dataset := MNIST("", []transforms.Transform{transforms.Normalize(0.1307, 0.3081)})
+	trainLoader := NewMNISTLoader(dataset, 8)
 	for trainLoader.Scan() {
 		_ = trainLoader.Batch()
 	}
@@ -24,7 +24,7 @@ func ExampleMNIST() {
 
 func TestNoPanicMNIST(t *testing.T) {
 	assert.NotPanics(t, func() {
-		vision.MNIST(path.Join(os.TempDir(), "not_yet_exists"),
-			[]vision.Transform{})
+		MNIST(path.Join(os.TempDir(), "not_yet_exists"),
+			[]transforms.Transform{})
 	})
 }

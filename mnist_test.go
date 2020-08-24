@@ -8,7 +8,8 @@ import (
 	nn "github.com/wangkuiyi/gotorch/nn"
 	F "github.com/wangkuiyi/gotorch/nn/functional"
 	"github.com/wangkuiyi/gotorch/nn/initializer"
-	"github.com/wangkuiyi/gotorch/vision"
+	"github.com/wangkuiyi/gotorch/vision/datasets"
+	"github.com/wangkuiyi/gotorch/vision/transforms"
 )
 
 type MLPMNISTNet struct {
@@ -47,8 +48,8 @@ func ExampleTrainMLPUsingMNIST() {
 
 	initializer.ManualSeed(1)
 
-	mnist := vision.MNIST("",
-		[]vision.Transform{vision.Normalize(0.1307, 0.3081)})
+	mnist := datasets.MNIST("",
+		[]transforms.Transform{transforms.Normalize(0.1307, 0.3081)})
 
 	net := NewMNISTNet()
 	net.ZeroGrad()
@@ -61,7 +62,7 @@ func ExampleTrainMLPUsingMNIST() {
 	var lastLoss float32
 	iters := 0
 	for epoch := 0; epoch < epochs; epoch++ {
-		trainLoader := vision.NewMNISTLoader(mnist, 64)
+		trainLoader := datasets.NewMNISTLoader(mnist, 64)
 		for trainLoader.Scan() {
 			batch := trainLoader.Batch()
 			data, target := batch.Data.To(device, batch.Data.Dtype()), batch.Target.To(device, batch.Target.Dtype())
@@ -104,15 +105,15 @@ func ExampleTrainMNISTSequential() {
 	net.Init(net)
 	net.ZeroGrad()
 
-	mnist := vision.MNIST("",
-		[]vision.Transform{vision.Normalize(0.1307, 0.3081)})
+	mnist := datasets.MNIST("",
+		[]transforms.Transform{transforms.Normalize(0.1307, 0.3081)})
 
 	opt := torch.SGD(0.1, 0.5, 0, 0, false)
 	opt.AddParameters(net.Parameters())
 	epochs := 1
 	startTime := time.Now()
 	for i := 0; i < epochs; i++ {
-		trainLoader := vision.NewMNISTLoader(mnist, 64)
+		trainLoader := datasets.NewMNISTLoader(mnist, 64)
 		for trainLoader.Scan() {
 			batch := trainLoader.Batch()
 			opt.ZeroGrad()
