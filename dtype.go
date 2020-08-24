@@ -1,16 +1,16 @@
 package gotorch
 
 import (
+	"fmt"
 	"log"
 	"reflect"
 	"unsafe"
 
+	"github.com/mattn/go-pointer"
 	"github.com/wangkuiyi/gotorch/variadic"
 )
 
 const (
-	// Invalid Dtype
-	Invalid = -1
 	// Byte Dtype 0
 	Byte int8 = iota
 	// Char Dtype 1
@@ -43,6 +43,8 @@ const (
 	QInt32
 	// BFloat16 Dtype 15
 	BFloat16
+	// Invalid Dtype
+	Invalid = -1
 )
 
 // NewTensor creates a tensor from a Go slice.  We use variadic parameters of
@@ -59,9 +61,12 @@ func NewTensor(data interface{}, options ...map[string]interface{}) Tensor {
 	shape, kind := sliceShapeAndElemKind(data)
 	dtype := tensorElemDType(options, kind)
 
-	sliceAddr := unsafe.Pointer(&data)
-	dataAddr := *(*uintptr)(sliceAddr)
-	return FromBlob(unsafe.Pointer(dataAddr), dtype, shape)
+	f := flattenDeep(data)
+	fmt.Println(f)
+	hdr := (*reflect.SliceHeader)(unsafe.Pointer(&f))
+	cptr := pointer.Save(unsafe.Pointer(hdr.Data))
+	defer pointer.Unref(cptr)
+	return FromBlob(cptr, dtype, shape)
 }
 
 func sliceShapeAndElemKind(data interface{}) ([]int64, reflect.Kind) {
@@ -108,3 +113,26 @@ var (
 		reflect.Complex64: ComplexDouble,
 	}
 )
+
+// https://medium.com/@the1mills/flattening-arrays-slices-with-golang-c796905debbe
+// We need to flatten a slice of slice of something into a one-dimensional slice
+// so to pass to FromBlob.
+func flattenDeep(args interface{}) []interface{} {
+	return flattenDeepRecur(nil, reflect.ValueOf(args))
+}
+
+func flattenDeepRecur(args []interface{}, v reflect.Value) []interface{} {
+	if v.Kind() == reflect.Interface {
+		v = v.Elem()
+	}
+
+	if v.Kind() == reflect.Array || v.Kind() == reflect.Slice {
+		for i := 0; i < v.Len(); i++ {
+			args = flattenDeepRecur(args, v.Index(i))
+		}
+	} else {
+		args = append(args, v.Interface())
+	}
+
+	return args
+}

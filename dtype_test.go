@@ -29,36 +29,45 @@ func TestSliceShapeAndElemKind(t *testing.T) {
 }
 
 func TestTensorElemDType(t *testing.T) {
-	data := []int16{1, 2, 3}
-	shape, kind := sliceShapeAndElemKind(data)
-	assert.Equal(t, []int64{3}, shape)
 	{
+		data := []int16{1, 2, 3}
+		shape, kind := sliceShapeAndElemKind(data)
+		assert.Equal(t, []int64{3}, shape)
+
 		dtype := tensorElemDType(
 			[]map[string]interface{}{{"dtype": Bool}}, kind)
 		assert.Equal(t, Bool, dtype) // Half overrides int16
+
+		dtype = tensorElemDType(nil, kind)
+		assert.Equal(t, Half, dtype) // Deriving Half from int16
 	}
 	{
+		data := []float32{1, 2, 3}
+		shape, kind := sliceShapeAndElemKind(data)
+		assert.Equal(t, []int64{3}, shape)
+
 		dtype := tensorElemDType(nil, kind)
-		assert.Equal(t, Half, dtype) // Deriving Half from int16
+		assert.Equal(t, Float, dtype)
 	}
 }
 
 func TestNewTensor(t *testing.T) {
 	{
-		a := NewTensor([]float32{1, 2, 3})
-		assert.Equal(t, []int64{3}, a.Shape())
+		a := NewTensor([][]float32{{1.0, 1.1, 1.2}, {2, 3, 4}})
+		assert.Equal(t, []int64{2, 3}, a.Shape())
 		assert.Equal(t, Float, a.Dtype())
+		t.Log(a.String())
 	}
-	{
-		a := NewTensor([]int16{1, 2, 3},
-			map[string]interface{}{
-				"require_grad": true, "dtype": Half})
-		assert.Equal(t, []int64{3}, a.Shape())
-		assert.Equal(t, Half, a.Dtype())
-	}
-	{
-		a := NewTensor([]int16{1, 2, 3})
-		assert.Equal(t, []int64{3}, a.Shape())
-		assert.Equal(t, Half, a.Dtype())
-	}
+	// {
+	// 	a := NewTensor([]int16{1, 2, 3},
+	// 		map[string]interface{}{
+	// 			"require_grad": true, "dtype": Half})
+	// 	assert.Equal(t, []int64{3}, a.Shape())
+	// 	assert.Equal(t, Half, a.Dtype())
+	// }
+	// {
+	// 	a := NewTensor([]int16{1, 2, 3})
+	// 	assert.Equal(t, []int64{3}, a.Shape())
+	// 	assert.Equal(t, Half, a.Dtype())
+	// }
 }
