@@ -33,13 +33,13 @@ func TestSqueeze(t *testing.T) {
 	assert.NotNil(t, z.T)
 }
 
-func TestItem(t *testing.T) {
+func TestTensorItem(t *testing.T) {
 	x := torch.RandN([]int64{1}, false)
 	r := x.Item()
 	assert.NotNil(t, r)
 }
 
-func TestDetach(t *testing.T) {
+func TestTensorDetach(t *testing.T) {
 	x := torch.RandN([]int64{1}, true)
 	y := x.Detach()
 	assert.NotNil(t, y.T)
@@ -47,7 +47,7 @@ func TestDetach(t *testing.T) {
 	assert.Equal(t, float32(0.0), x.Item())
 }
 
-func TestMean(t *testing.T) {
+func TestTensorMean(t *testing.T) {
 	x := torch.RandN([]int64{2, 3}, true)
 	y := x.Mean()
 	z := y.Item()
@@ -73,4 +73,13 @@ func TestFromBlob(t *testing.T) {
 	data := [2][3]float32{{1.0, 1.1, 1.2}, {2, 3, 4}}
 	out := torch.FromBlob(unsafe.Pointer(&data), torch.Float, []int64{2, 3})
 	assert.Equal(t, []int64{2, 3}, out.Shape())
+}
+
+func TestTensorString(t *testing.T) {
+	data := [2][3]float32{{1.0, 1.1, 1.2}, {2, 3, 4}}
+	out := torch.FromBlob(unsafe.Pointer(&data), torch.Float, []int64{2, 3})
+	g := ` 1.0000  1.1000  1.2000
+ 2.0000  3.0000  4.0000
+[ CPUFloatType{2,3} ]`
+	assert.Equal(t, g, out.String())
 }
