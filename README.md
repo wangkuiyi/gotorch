@@ -69,9 +69,7 @@ executable binary  # x86_64, ARM, CUDA, TPU
 ## Documentation
 
 - [Build and Test](CONTRIBUTING.md)
-
 - Examples
-
   - [MNIST trainining](./mnist_test.go)
-
+  - [Adversarial learning](./example/dcgan)
 - [Design Docs](./doc/design.md)
