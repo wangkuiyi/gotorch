@@ -47,14 +47,3 @@ func TestSynthesizer(t *testing.T) {
 		i++
 	}
 }
-
-func TestDataloader(t *testing.T) {
-	var tgz bytes.Buffer
-	generateColorData(&tgz)
-	loader, err := imagenet.NewDataLoader(&tgz, 4)
-	assert.NoError(t, err)
-
-	for loader.Scan() {
-		loader.Batch()
-	}
-}
