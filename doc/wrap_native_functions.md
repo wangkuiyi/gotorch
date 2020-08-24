@@ -144,9 +144,8 @@ It runs the following steps, which are in most other wrappers too.
    stack.
 1. It allocates a heap object `*result` and **moves** `c` to `*result`.  This
    step is necessary because the return from `MM` will destruct `c`.  This step
-   doesn't copy the content of `c` because the operator `new` calls the
-   [move](https://en.cppreference.com/w/cpp/language/move_constructor)
-   constructor instead of the copy constructor of `at::Tensor`.
+   is highly efficient as it doesn't copy the content of `c`, because
+   `at::Tensor` contains only a smart pointer to the tensor content.
 1. It returns the string-serialization of the exception if there is any, or
    `nullptr`.
 
