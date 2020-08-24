@@ -30,50 +30,44 @@ even slightly shorter than the PyTorch version.
 Go+ has syntax similar to Python.  The Go+ compiler translates Go+ programs into
 Go source programs.
 
-### Benefits
+## Benefits
 
-The primary benefit is **runtime efficiency**.  The benchmark of GoTorch 
-programs shows about 20% performance improvement than their PyTorch counterpart.
+### Higher runtime efficiency
 
-In addition, programming deep learning in a compiled programming language is
-valuable for industrial machine learning systems in the following aspects:
+The benchmark of GoTorch programs shows about 20% performance improvement than
+their PyTorch counterpart.
 
-1. Unifying trainng and prediction in the same language.
+### Unifying trainng and prediction in the same language
 
-   Currently, we program the training system in Python and the online prediction
-   service in C++. Hnece the overhead of generating TensorFlow or ONNX graphs
-   for loading by the prediction service.  However, the most accepted form of
-   computation is not any type of graph, but programs!
+Currently, we program the training system in Python and the online prediction
+service in C++. Hnece the overhead of generating TensorFlow or ONNX graphs for
+loading by the prediction service.  However, the most accepted form of
+computation is not any type of graph, but programs!
 
-1. Unifying the data processing for training and prediction.
+#### Unifying the data processing for training and prediction
 
-   Because training
-   and prediction programs are in different langauges -- Python and C++, we have
-   to write the data processing code twice -- in Python and C++.  For example,
-   to process an image using OpenCV, we need to wrap the OpenCV function into
-   a TensorFlow operator for prediction and write the Python wrapper of the C++
-   operaotr for calling by the training program.
-   
-1. Unifying the way to develop various machine learning paradigms.
-   
-   Please be
-   aware that we can only split the batching learning of supervised models into
-   two stages -- training and prediction, and write them as two systems and in
-   difference languages.
-   
-   There are way more forms of machine learning -- online learning, adversarial
-   learning, reinforcement learning, imitation learning -- none of them could be
-   splitted into two stages.
-   
-1. Unifying the edge and the cloud.
-   
-   To protect user privacy, we want to run
-   federated learning on smart phones.  To make self-driving cars learn from 
-   their drivers, we want to run imitation learning on the cars.  Python focuses
-   on wasting your valuable battery capacity.  We need to program in comppiled
-   langauges.
+Because training and prediction programs are in different langauges -- Python
+and C++, we have to write the data processing code twice -- in Python and C++.
+For example, to process an image using OpenCV, we need to wrap the OpenCV
+function into a TensorFlow operator for prediction and write the Python wrapper
+of the C++ operaotr for calling by the training program.
 
-## Tech Stack
+### Unifying the way to develop various machine learning paradigms
+
+Please be aware that we can only split the batching learning of supervised
+models into two stages -- training and prediction, and write them as two systems
+and in difference languages. There are way more forms of machine learning --
+online learning, adversarial learning, reinforcement learning, imitation
+learning -- none of them could be splitted into two stages.
+
+### Unifying the edge and the cloud
+
+To protect user privacy, we want to run federated learning on smart phones.  To
+make self-driving cars learn from their drivers, we want to run imitation
+learning on the cars.  Python focuses on wasting your valuable battery capacity.
+We need to program in comppiled langauges.
+
+## The Tech Stack
 
 GoTorch work with the following open-source communities to form Go+Torch.
 
