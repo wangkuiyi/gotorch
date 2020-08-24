@@ -1,0 +1,64 @@
+package gotorch
+
+import (
+	"reflect"
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+)
+
+func TestSliceShapeAndElemKind(t *testing.T) {
+	{
+		data := [][]float64{{1, 2}, {3, 4}, {5, 6}}
+		shape, kind := sliceShapeAndElemKind(data)
+		assert.Equal(t, []int64{3, 2}, shape)
+		assert.Equal(t, reflect.Float64, kind)
+	}
+	{
+		data := [][]float32{{1, 2}}
+		shape, kind := sliceShapeAndElemKind(data)
+		assert.Equal(t, []int64{1, 2}, shape)
+		assert.Equal(t, reflect.Float32, kind)
+	}
+	{
+		data := int32(1)
+		shape, kind := sliceShapeAndElemKind(data)
+		assert.Equal(t, 0, len(shape))
+		assert.Equal(t, reflect.Int32, kind)
+	}
+}
+
+func TestTensorElemDType(t *testing.T) {
+	data := []int16{1, 2, 3}
+	shape, kind := sliceShapeAndElemKind(data)
+	assert.Equal(t, []int64{3}, shape)
+	{
+		dtype := tensorElemDType(
+			[]map[string]interface{}{{"dtype": Bool}}, kind)
+		assert.Equal(t, Bool, dtype) // Half overrides int16
+	}
+	{
+		dtype := tensorElemDType(nil, kind)
+		assert.Equal(t, Half, dtype) // Deriving Half from int16
+	}
+}
+
+func TestNewTensor(t *testing.T) {
+	{
+		a := NewTensor([]float32{1, 2, 3})
+		assert.Equal(t, []int64{3}, a.Shape())
+		assert.Equal(t, Float, a.Dtype())
+	}
+	{
+		a := NewTensor([]int16{1, 2, 3},
+			map[string]interface{}{
+				"require_grad": true, "dtype": Half})
+		assert.Equal(t, []int64{3}, a.Shape())
+		assert.Equal(t, Half, a.Dtype())
+	}
+	{
+		a := NewTensor([]int16{1, 2, 3})
+		assert.Equal(t, []int64{3}, a.Shape())
+		assert.Equal(t, Half, a.Dtype())
+	}
+}
