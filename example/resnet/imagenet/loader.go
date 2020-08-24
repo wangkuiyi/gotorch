@@ -28,24 +28,24 @@ type Sample struct {
 //	img, target := imageNet.Batch()
 // }
 type DataLoader struct {
-	batchSize       int64
-	tr              *tar.Reader
-	labelVocabulary map[string]int
-	isEOF           bool
-	samples         []Sample
+	batchSize int64
+	tr        *tar.Reader
+	vocab     map[string]int // the vocabulary of labels.
+	isEOF     bool
+	samples   []Sample
 }
 
 // NewDataLoader returns ImageNet dataDataLoader
-func NewDataLoader(reader io.Reader, labelVob map[string]int, batchSize int64) (*DataLoader, error) {
+func NewDataLoader(reader io.Reader, vocab map[string]int, batchSize int64) (*DataLoader, error) {
 	gr, err := gzip.NewReader(reader)
 	if err != nil {
 		return nil, err
 	}
 	return &DataLoader{
-		batchSize:       batchSize,
-		tr:              tar.NewReader(gr),
-		isEOF:           false,
-		labelVocabulary: labelVob,
+		batchSize: batchSize,
+		tr:        tar.NewReader(gr),
+		isEOF:     false,
+		vocab:     vocab,
 	}, nil
 }
 
@@ -68,7 +68,7 @@ func (p *DataLoader) nextSamples() error {
 			return err
 		}
 		// read target
-		target := p.labelVocabulary[filepath.Base(filepath.Dir(hdr.Name))]
+		target := p.vocab[filepath.Base(filepath.Dir(hdr.Name))]
 		// read image
 		data := make([]byte, hdr.Size)
 		if _, err := p.tr.Read(data); err != io.EOF {
