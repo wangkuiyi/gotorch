@@ -86,9 +86,9 @@ so we need to write a C wrapper for each native function.
 
 There are additional reasons for C wrappers:
 
-1. If a native function returns a tensor, its C wrapper moves the tensor into an
-   object in the heap, so it will not be free up by C++ smart pointers so that
-   the Go code can use it.
+1. If a native function returns a `Tensor`, its C wrapper creates a reference
+   object on the heap that points to the underlying tensor, so it will not be
+   free up by C++ smart pointers so that the Go code can use it.
 1. Encapsulate the C++ class `at::Tensor` by a C type that can be used by Go
    code.
 1. The native functions might throw C++ exceptions.  The C wrappers convert
@@ -142,10 +142,10 @@ It runs the following steps, which are in most other wrappers too.
 
 1. It calls the native function `mm` and creates the result tensor `c` on the
    stack.
-1. It allocates a heap object `*result` and **moves** `c` to `*result`.  This
+1. It allocates a heap object `*result` and **"copies"** `c` to `*result`.  This
    step is necessary because the return from `MM` will destruct `c`.  This step
-   is highly efficient as it doesn't copy the content of `c`, because
-   `at::Tensor` contains only a smart pointer to the tensor content.
+   is highly efficient as it doesn't actually copy the content of `c`, because
+   `at::Tensor` contains only a smart pointer to the underlying tensor content.
 1. It returns the string-serialization of the exception if there is any, or
    `nullptr`.
 
