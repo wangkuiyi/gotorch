@@ -44,7 +44,7 @@ service in C++. Hnece the overhead of generating TensorFlow or ONNX graphs for
 loading by the prediction service.  However, the most accepted form of
 computation is not any type of graph, but programs!
 
-#### Unifying the data processing for training and prediction
+### Unifying the data processing for training and prediction
 
 Because training and prediction programs are in different langauges -- Python
 and C++, we have to write the data processing code twice -- in Python and C++.
