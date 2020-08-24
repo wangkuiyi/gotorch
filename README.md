@@ -69,7 +69,9 @@ executable binary  # x86_64, ARM, CUDA, TPU
 ## Documentation
 
 - [Build and Test](CONTRIBUTING.md)
-- Examples
-  - [MNIST trainining](./mnist_test.go)
-  - [Adversarial learning](./example/dcgan)
 - [Design Docs](./doc/design.md)
+- How To
+  - [Wrap PyTorch Native Functions](./doc/wrap_native_functions.md)
+- Examples
+  - [MNIST Training](./mnist_test.go)
+  - [Adversarial Learning](./example/dcgan)
