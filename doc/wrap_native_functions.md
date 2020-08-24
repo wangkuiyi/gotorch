@@ -108,7 +108,7 @@ func MyExit(x int) {
 ```
 
 We put all C wrappers of native functions in the subdirectory `cgotorch`.  In
-`cgotorch/cgotorch.h`, we can see the wrapper of `at::Tenosr` and `at::mm`.
+`cgotorch/cgotorch.h`, we can see the wrapper of `at::Tensor` and `at::mm`.
 
 ```c
 extern "C" {
@@ -117,7 +117,7 @@ const char *MM(Tensor a, Tensor b, Tensor *result);
 }
 ```
 
-C does not have classes, but C has pointers, so we define C type `Tenosr` as a
+C does not have classes, but C has pointers, so we define C type `Tensor` as a
 pointer to `at::Tensor`.  Go programs can use C pointers as of type
 `unsafe.Pointer`.
 
@@ -153,7 +153,7 @@ It runs the following steps, which are in most other wrappers too.
 ## Go Wrappers and Go Tensor
 
 In package `gotorch`, we define the Go wrappers of native functions, which
-operates the Go type `Tenosr` defined in `tensor.go`.
+operates the Go type `Tensor` defined in `tensor.go`.
 
 ```go
 // Tensor wrappers a pointer to C.Tensor
@@ -168,7 +168,7 @@ Tensor, which is a pointer.
 The literal translation of the C type Tensor into Go is
 
 ```go
-type Tenosr unsafe.Pointer
+type Tensor unsafe.Pointer
 ```
 
 The Go type `unsafe.Pointer` represents any C pointer type.
@@ -210,4 +210,4 @@ It runs the following steps:
    `MustNil` panics if the string is not `nullptr`.
 1. It calls `gotorch.SetTensorFinalizer` to attach the finalizer to the tensor
    returned by `C.MM`.
-1. It returns a value of the Go type `Tenosr` that encapsulates `t`.
+1. It returns a value of the Go type `Tensor` that encapsulates `t`.
