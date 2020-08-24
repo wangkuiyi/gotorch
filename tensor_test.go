@@ -76,8 +76,7 @@ func TestFromBlob(t *testing.T) {
 }
 
 func TestTensorString(t *testing.T) {
-	data := [2][3]float32{{1.0, 1.1, 1.2}, {2, 3, 4}}
-	out := torch.FromBlob(unsafe.Pointer(&data), torch.Float, []int64{2, 3})
+	out := torch.NewTensor([][]float32{{1.0, 1.1, 1.2}, {2, 3, 4}})
 	g := ` 1.0000  1.1000  1.2000
  2.0000  3.0000  4.0000
 [ CPUFloatType{2,3} ]`
