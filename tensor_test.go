@@ -83,3 +83,19 @@ func TestTensorString(t *testing.T) {
 [ CPUFloatType{2,3} ]`
 	assert.Equal(t, g, out.String())
 }
+
+func TestTensorGrad(t *testing.T) {
+	a := torch.RandN([]int64{10, 10}, true)
+	assert.NotNil(t, a.Grad().T)
+
+	// According to libtorch document https://bit.ly/2QnwHrI, either a
+	// tensor that requires grad or not, the grad() method returns a tensor.
+	//
+	/// This function returns an undefined tensor by default and returns a
+	/// defined tensor the first time a call to `backward()` computes
+	/// gradients for this Tensor.  The attribute will then contain the
+	/// gradients computed and future calls to `backward()` will accumulate
+	/// (add) gradients into it.
+	b := torch.RandN([]int64{10, 10}, false)
+	assert.NotNil(t, b.Grad().T)
+}
