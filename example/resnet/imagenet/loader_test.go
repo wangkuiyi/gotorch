@@ -2,6 +2,7 @@ package imagenet_test
 
 import (
 	"bytes"
+	"io"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -9,12 +10,16 @@ import (
 )
 
 func TestDataloader(t *testing.T) {
-	var tgz bytes.Buffer
-	generateColorData(&tgz)
-	loader, err := imagenet.NewDataLoader(&tgz, 4)
+	var tgz1, tgz2 bytes.Buffer
+	w := io.MultiWriter(&tgz1, &tgz2)
+	generateColorData(w)
+	vocab, err := imagenet.BuildLabelVocabulary(&tgz1)
+	assert.NoError(t, err)
+
+	loader, err := imagenet.NewDataLoader(&tgz2, vocab, 4)
 	assert.NoError(t, err)
 
 	for loader.Scan() {
-		loader.Batch()
+		loader.Minibatch()
 	}
 }

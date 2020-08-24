@@ -28,38 +28,29 @@ type Sample struct {
 //	img, target := imageNet.Batch()
 // }
 type DataLoader struct {
-	batchSize  int64
-	tr         *tar.Reader
-	classToIdx map[string]int
-	isEOF      bool
-	samples    []Sample
+	batchSize int64
+	tr        *tar.Reader
+	vocab     map[string]int // the vocabulary of labels.
+	isEOF     bool
+	samples   []Sample
 }
 
 // NewDataLoader returns ImageNet dataDataLoader
-func NewDataLoader(reader io.Reader, batchSize int64) (*DataLoader, error) {
-	// using io.TeeReader to read the input io.Reader twice, the first reading
-	// make a mapping from class name to target index, the second read all images.
-	var buff bytes.Buffer
-	r := io.TeeReader(reader, &buff)
-	classToIdx, err := makeClassToIdx(r)
-	if err != nil {
-		return nil, err
-	}
-
-	gr, err := gzip.NewReader(&buff)
+func NewDataLoader(reader io.Reader, vocab map[string]int, batchSize int64) (*DataLoader, error) {
+	gr, err := gzip.NewReader(reader)
 	if err != nil {
 		return nil, err
 	}
 	return &DataLoader{
-		batchSize:  batchSize,
-		tr:         tar.NewReader(gr),
-		isEOF:      false,
-		classToIdx: classToIdx,
+		batchSize: batchSize,
+		tr:        tar.NewReader(gr),
+		isEOF:     false,
+		vocab:     vocab,
 	}, nil
 }
 
-// Batch returns data and target Tensor
-func (p *DataLoader) Batch() (torch.Tensor, torch.Tensor) {
+// Minibatch returns a minibash with data and label Tensor
+func (p *DataLoader) Minibatch() (torch.Tensor, torch.Tensor) {
 	// TODO(yancey1989): execute transform function sequentially to transfrom the sample
 	// data to Tensors.
 	return torch.RandN([]int64{p.batchSize, 3, 2}, false), torch.RandN([]int64{p.batchSize, 1}, false)
@@ -77,7 +68,7 @@ func (p *DataLoader) nextSamples() error {
 			return err
 		}
 		// read target
-		target := p.classToIdx[filepath.Base(filepath.Dir(hdr.Name))]
+		target := p.vocab[filepath.Base(filepath.Dir(hdr.Name))]
 		// read image
 		data := make([]byte, hdr.Size)
 		if _, err := p.tr.Read(data); err != io.EOF {
@@ -104,7 +95,8 @@ func must(e error) {
 	}
 }
 
-func makeClassToIdx(reader io.Reader) (map[string]int, error) {
+// BuildLabelVocabulary returns a vocabulary which mapping from the class name to index
+func BuildLabelVocabulary(reader io.Reader) (map[string]int, error) {
 	gr, err := gzip.NewReader(reader)
 	if err != nil {
 		return nil, err
