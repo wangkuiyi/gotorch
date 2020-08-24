@@ -66,7 +66,6 @@ func (p *DataLoader) Minibatch() (torch.Tensor, torch.Tensor) {
 		labelArray = append(labelArray, label)
 	}
 	return torch.Stack(dataArray, 0), torch.Stack(labelArray, 0)
-	//return torch.RandN([]int64{p.batchSize, 3, 2}, false), torch.RandN([]int64{p.batchSize, 1}, false)
 }
 
 func (p *DataLoader) nextSamples() error {
