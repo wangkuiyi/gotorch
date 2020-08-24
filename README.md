@@ -12,11 +12,6 @@ This project is in its very early stage.
 
 ## Efficiency
 
-Our emprical study shows the efficiency of programming in Go/Go+ and Python are
-very comparable.
-
-### Go v.s. Python
-
 Developiong in Go is as efficiently as in Python.  You might want to compare the
 DCGAN training program in
 [GoTorch](https://github.com/wangkuiyi/gotorch/blob/develop/example/dcgan/dcgan.go)
@@ -24,8 +19,6 @@ and in
 [PyTorch](https://github.com/pytorch/examples/blob/4b119d735b802453479d739bf823f3f7d8d5d422/dcgan/main.py#L113-L273).
 Both programs use similar API and have program structure.  The GoTorch version is
 even slightly shorter than the PyTorch version.
-
-### Go+ v.s. Python
 
 Go+ has syntax similar to Python.  The Go+ compiler translates Go+ programs into
 Go source programs.
