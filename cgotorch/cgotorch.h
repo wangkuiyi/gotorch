@@ -77,6 +77,8 @@ const char *Tensor_Dim(Tensor tensor, int64_t *dim);
 const char *Tensor_Shape(Tensor tensor, int64_t *dims);
 const char *Tensor_Dtype(Tensor tensor, int8_t *dtype);
 const char *Tensor_SetData(Tensor self, Tensor new_data);
+const char *Tensor_CopyFrom(Tensor self, void *data, int64_t numel,
+                            int64_t elem_size);
 // Backward, Gradient
 void Tensor_Backward(Tensor a);
 Tensor Tensor_Grad(Tensor a);
@@ -166,6 +168,7 @@ bool IsCUDAAvailable();
 
 const char *Tensor_To(Tensor input, Device device, int8_t dtype,
                       Tensor *output);
+const char *Tensor_CastTo(Tensor input, int8_t dtype, Tensor *output);
 
 ////////////////////////////////////////////////////////////////////////////////
 //  Dataset, DataLoader, and Iterator torch.utils.data

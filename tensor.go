@@ -7,6 +7,7 @@ package gotorch
 import "C"
 
 import (
+	"reflect"
 	"runtime"
 	"sync"
 	"unsafe"
@@ -256,9 +257,26 @@ func (a Tensor) To(device Device, dtype int8) Tensor {
 	return Tensor{(*unsafe.Pointer)(&t)}
 }
 
+// CastTo cast tensor dtype
+func (a Tensor) CastTo(dtype int8) Tensor {
+	var t C.Tensor
+	MustNil(unsafe.Pointer(C.Tensor_CastTo(C.Tensor(*a.T), C.int8_t(dtype), &t)))
+	SetTensorFinalizer((*unsafe.Pointer)(&t))
+	return Tensor{(*unsafe.Pointer)(&t)}
+}
+
 // SetData sets the tensor data held by b to a
 func (a Tensor) SetData(b Tensor) {
 	MustNil(unsafe.Pointer(C.Tensor_SetData(C.Tensor(*a.T), C.Tensor(*b.T))))
+}
+
+// CopyFrom return
+func (a Tensor) CopyFrom(slice interface{}) {
+	v := reflect.ValueOf(slice)
+	elemSize := reflect.TypeOf(slice).Size()
+	length := v.Len()
+	MustNil(unsafe.Pointer(C.Tensor_CopyFrom(C.Tensor(*a.T), unsafe.Pointer(v.Pointer()),
+		C.int64_t(length), C.int64_t(elemSize))))
 }
 
 // MM multiplies each element of the input two tensors
@@ -369,12 +387,22 @@ func Transpose(a Tensor, dim0, dim1 int64) Tensor {
 	return Tensor{(*unsafe.Pointer)(&t)}
 }
 
+// Transpose torch.transpose
+func (a Tensor) Transpose(dim0, dim1 int64) Tensor {
+	return Transpose(a, dim0, dim1)
+}
+
 // ExpandAs torch.expand_as
 func ExpandAs(a, other Tensor) Tensor {
 	var t C.Tensor
 	MustNil(unsafe.Pointer(C.ExpandAs(C.Tensor(*a.T), C.Tensor(*other.T), &t)))
 	SetTensorFinalizer((*unsafe.Pointer)(&t))
 	return Tensor{(*unsafe.Pointer)(&t)}
+}
+
+// ExpandAs torch.expand_as
+func (a Tensor) ExpandAs(other Tensor) Tensor {
+	return ExpandAs(a, other)
 }
 
 // Eq torch.eq
@@ -385,12 +413,22 @@ func Eq(a, other Tensor) Tensor {
 	return Tensor{(*unsafe.Pointer)(&t)}
 }
 
+// Eq torch.eq
+func (a Tensor) Eq(other Tensor) Tensor {
+	return Eq(a, other)
+}
+
 // IndexSelect torch.index_select
 func IndexSelect(a Tensor, dim int64, index Tensor) Tensor {
 	var t C.Tensor
 	MustNil(unsafe.Pointer(C.IndexSelect(C.Tensor(*a.T), C.int64_t(dim), C.Tensor(*index.T), &t)))
 	SetTensorFinalizer((*unsafe.Pointer)(&t))
 	return Tensor{(*unsafe.Pointer)(&t)}
+}
+
+// IndexSelect torch.index_select
+func (a Tensor) IndexSelect(dim int64, index Tensor) Tensor {
+	return IndexSelect(a, dim, index)
 }
 
 // Sum returns the sum of all elements in the input tensor
@@ -411,6 +449,11 @@ func SumByDim(a Tensor, dim int64, keepDim bool) Tensor {
 	MustNil(unsafe.Pointer(C.SumByDim(C.Tensor(*a.T), C.int64_t(dim), C.int8_t(k), &t)))
 	SetTensorFinalizer((*unsafe.Pointer)(&t))
 	return Tensor{(*unsafe.Pointer)(&t)}
+}
+
+// SumByDim torch.sum
+func (a Tensor) SumByDim(dim int64, keepDim bool) Tensor {
+	return SumByDim(a, dim, keepDim)
 }
 
 // View returns a new Tensor with the same data but of a different shape

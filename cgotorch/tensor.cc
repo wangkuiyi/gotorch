@@ -89,6 +89,46 @@ const char *Tensor_String(Tensor a) {
   return r;
 }
 
+const char *Tensor_CopyFrom(Tensor self, void *data, int64_t numel,
+                            int64_t elem_size) {
+  try {
+    if (self->device().type() != at::kCPU) {
+      torch::Tensor tmp_tensor = self->to(at::kCPU).contiguous();
+      void *tensor_data = tmp_tensor.data_ptr();
+      memcpy(data, tensor_data, numel * elem_size);
+      return nullptr;
+    } else {
+      auto tmp_tensor = self->contiguous();
+      void *tensor_data = tmp_tensor.data_ptr();
+      memcpy(data, tensor_data, numel * elem_size);
+      return nullptr;
+    }
+  } catch (const std::exception &e) {
+    return exception_str(e.what());
+  }
+}
+
+const char *Tensor_To(Tensor input, Device device, int8_t dtype,
+                      Tensor *output) {
+  try {
+    auto result = input->to(*device, static_cast<at::ScalarType>(dtype));
+    *output = new at::Tensor(result);
+    return nullptr;
+  } catch (const std::exception &e) {
+    return exception_str(e.what());
+  }
+}
+
+const char *Tensor_CastTo(Tensor input, int8_t dtype, Tensor *output) {
+  try {
+    auto result = input->to(static_cast<at::ScalarType>(dtype));
+    *output = new at::Tensor(result);
+    return nullptr;
+  } catch (const std::exception &e) {
+    return exception_str(e.what());
+  }
+}
+
 // Backward, Gradient
 void Tensor_Backward(Tensor a) { a->backward(); }
 Tensor Tensor_Grad(Tensor a) { return new at::Tensor(a->grad()); }

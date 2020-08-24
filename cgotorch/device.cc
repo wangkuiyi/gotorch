@@ -26,14 +26,3 @@ const char *Torch_Device(const char *device_type, Device *device) {
 }
 
 bool IsCUDAAvailable() { return torch::cuda::is_available(); }
-
-const char *Tensor_To(Tensor input, Device device, int8_t dtype,
-                      Tensor *output) {
-  try {
-    auto result = input->to(*device, static_cast<at::ScalarType>(dtype));
-    *output = new at::Tensor(result);
-    return nullptr;
-  } catch (const std::exception &e) {
-    return exception_str(e.what());
-  }
-}
