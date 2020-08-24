@@ -28,17 +28,17 @@ into GoTorch.
 
 1. **Higher runtime efficiency**.  Go programs run as efficiently as C++.
 
-1. **Training and prediction in the same language.** Training in Python and
-   online prediction in C++?  No, all in Go/Go+.  No need for TensorFlow graphs
-   or PyTorch tracing.
+1. **Training and prediction in the same language.** No longer training in
+   Python and online prediction in C++.  All in Go/Go+.  No TensorFlow graphs or
+   PyTorch tracing.
 
-1. **Same data processing code for training and prediction.** Wrap OpenCV
-   functions as TensorFlow operators in C++ for prediction and Python for
-   training?  No, do it once, in Go.
+1. **Same data processing code for training and prediction.** No need to Wrap
+   OpenCV functions into TensorFlow operators in C++ for prediction and Python
+   for training.
 
-1. **A variety of machine learning paradigms.** GoTorch supports online,
-   adversarial, reinforcement, and imitation learning -- those we cannot split
-   into training and prediction.
+1. **Supports many machine learning paradigms.**, including adversarial,
+   reinforcement, and imitation learning -- those we cannot split into training
+   and prediction.
 
 1. **Same program for edge and cloud.** GoTorch programs compile and run on
    phones and self-driving cars as they do on servers and desktops.
