@@ -2,6 +2,7 @@ package gotorch_test
 
 import (
 	"testing"
+	"unsafe"
 
 	"github.com/stretchr/testify/assert"
 	torch "github.com/wangkuiyi/gotorch"
@@ -66,4 +67,10 @@ func TestStack(t *testing.T) {
 	t2 := torch.RandN([]int64{2, 3}, false)
 	out := torch.Stack([]torch.Tensor{t1, t2}, 0)
 	assert.Equal(t, []int64{2, 2, 3}, out.Shape())
+}
+
+func TestFromBlob(t *testing.T) {
+	data := [2][3]float32{{1.0, 1.1, 1.2}, {2, 3, 4}}
+	out := torch.FromBlob(unsafe.Pointer(&data), torch.Float, []int64{2, 3})
+	assert.Equal(t, []int64{2, 3}, out.Shape())
 }

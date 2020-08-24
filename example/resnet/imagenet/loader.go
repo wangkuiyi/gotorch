@@ -6,8 +6,10 @@ import (
 	"compress/gzip"
 	"fmt"
 	"image"
+	"image/draw"
 	"io"
 	"path/filepath"
+	"unsafe"
 
 	torch "github.com/wangkuiyi/gotorch"
 )
@@ -53,7 +55,18 @@ func NewDataLoader(reader io.Reader, vocab map[string]int, batchSize int64) (*Da
 func (p *DataLoader) Minibatch() (torch.Tensor, torch.Tensor) {
 	// TODO(yancey1989): execute transform function sequentially to transfrom the sample
 	// data to Tensors.
-	return torch.RandN([]int64{p.batchSize, 3, 2}, false), torch.RandN([]int64{p.batchSize, 1}, false)
+	dataArray := []torch.Tensor{}
+	labelArray := []torch.Tensor{}
+	for _, sample := range p.samples {
+		data, err := ToTensor(sample.image)
+		must(err)
+		label, err := ToTensor(sample.target)
+		must(err)
+		dataArray = append(dataArray, data)
+		labelArray = append(labelArray, label)
+	}
+	return torch.Stack(dataArray, 0), torch.Stack(labelArray, 0)
+	//return torch.RandN([]int64{p.batchSize, 3, 2}, false), torch.RandN([]int64{p.batchSize, 1}, false)
 }
 
 func (p *DataLoader) nextSamples() error {
@@ -74,8 +87,10 @@ func (p *DataLoader) nextSamples() error {
 		if _, err := p.tr.Read(data); err != io.EOF {
 			return fmt.Errorf("has not read a complete image")
 		}
-		image, _, err := image.Decode(bytes.NewReader(data))
-		p.samples = append(p.samples, Sample{image, target})
+		src, _, err := image.Decode(bytes.NewReader(data))
+		m := image.NewRGBA(image.Rect(0, 0, src.Bounds().Dx(), src.Bounds().Dy()))
+		draw.Draw(m, m.Bounds(), src, image.ZP, draw.Src)
+		p.samples = append(p.samples, Sample{m, target})
 	}
 	return nil
 }
@@ -86,6 +101,9 @@ func (p *DataLoader) Scan() bool {
 		return false
 	}
 	must(p.nextSamples())
+	if p.isEOF && len(p.samples) == 0 {
+		return false
+	}
 	return true
 }
 
@@ -119,4 +137,37 @@ func BuildLabelVocabulary(reader io.Reader) (map[string]int, error) {
 		}
 	}
 	return classToIdx, nil
+}
+
+// ToTensor returns a torch.Tensor from the given object
+func ToTensor(obj interface{}) (torch.Tensor, error) {
+	switch v := obj.(type) {
+	case image.Image:
+		return imageToTensor(obj.(image.Image)), nil
+	case int:
+		return intToTensor(obj.(int)), nil
+	default:
+		return torch.Tensor{}, fmt.Errorf("ToTensor transform does not support type: %T", v)
+	}
+}
+
+func imageToTensor(img image.Image) torch.Tensor {
+	width, height := img.Bounds().Max.X, img.Bounds().Max.Y
+	array := make([][][3]float32, height)
+
+	for x := 0; x < height; x++ {
+		row := make([][3]float32, width)
+		for y := 0; y < width; y++ {
+			c := img.(*image.RGBA).RGBAAt(x, y)
+			row[y] = [3]float32{float32(c.R / 255.0), float32(c.G / 255.0), float32(c.B / 255.0)}
+		}
+		array[x] = row
+	}
+	return torch.FromBlob(unsafe.Pointer(&array[0][0][0]), torch.Float, []int64{int64(width), int64(height), 3})
+}
+
+func intToTensor(x int) torch.Tensor {
+	array := make([]int, 1)
+	array[0] = x
+	return torch.FromBlob(unsafe.Pointer(&array[0]), torch.Int, []int64{1})
 }

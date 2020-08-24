@@ -446,3 +446,10 @@ func Stack(tensors []Tensor, dim int64) Tensor {
 	SetTensorFinalizer((*unsafe.Pointer)(&t))
 	return Tensor{(*unsafe.Pointer)(&t)}
 }
+
+// FromBlob creating a Tensor with the give data memory
+func FromBlob(data unsafe.Pointer, dtype int8, sizes []int64) Tensor {
+	var t C.Tensor
+	C.Tensor_FromBlob(data, C.int8_t(dtype), (*C.int64_t)(unsafe.Pointer(&sizes[0])), C.int64_t(len(sizes)), &t)
+	return Tensor{(*unsafe.Pointer)(&t)}
+}
