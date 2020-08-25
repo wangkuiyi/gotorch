@@ -1,6 +1,7 @@
 package nn
 
 import (
+	"log"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -160,4 +161,18 @@ func TestNewModuleWithoutInit(t *testing.T) {
 	assert.Panics(t, func() { n.ZeroGrad() })
 	assert.Panics(t, func() { n.NamedParameters() })
 	assert.Panics(t, func() { n.NamedBuffers() })
+}
+
+func TestModuleToDevice(t *testing.T) {
+	var device torch.Device
+	if torch.IsCUDAAvailable() {
+		log.Println("CUDA is valid")
+		device = torch.NewDevice("cuda")
+	} else {
+		log.Println("No CUDA found; CPU only")
+		device = torch.NewDevice("cpu")
+	}
+
+	hn := newHierarchicalNet()
+	assert.NotPanics(t, func() { hn.To(device) })
 }
