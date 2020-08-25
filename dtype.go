@@ -80,13 +80,13 @@ func sliceShapeAndElemKind(data interface{}) ([]int64, reflect.Kind) {
 	return nil, reflect.Invalid
 }
 
-func tensorElemDType(options []map[string]interface{}, k reflect.Kind) int8 {
+func tensorElemDType(opts []map[string]interface{}, k reflect.Kind) int8 {
 	// The user specified DType, if there is any, overrides the one derived
 	// from Go reflection.
 	//
 	// TODO(wangkuiyi): Check the size of the specified Dtype matches that
 	// of the Go element type.
-	if dtype, ok := variadic.Lookup(options, "dtype"); ok {
+	if dtype, ok := variadic.Lookup(opts, "dtype"); ok {
 		return dtype.(int8)
 	}
 	dtype, ok := goTypeToTorch[k]
