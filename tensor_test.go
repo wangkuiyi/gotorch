@@ -90,9 +90,7 @@ func TestSave(t *testing.T) {
 	a.Save(file.Name())
 	b := torch.Load(file.Name())
 
-	as := a.Shape()
-	bs := b.Shape()
-	assert.EqualValues(t, as, bs)
+	assert.EqualValues(t, a.Shape(), b.Shape())
 	assert.Equal(t, a.Dtype(), b.Dtype())
 	assert.Equal(t, a.String(), b.String())
 }
