@@ -50,8 +50,7 @@ func accuracy(output, target torch.Tensor, topk []int64) []float32 {
 
 	res := []float32{}
 	for _, k := range topk {
-		kt := torch.Empty([]int64{k}, false).CastTo(torch.Long)
-		kt.CopyFrom(rangeI(k))
+		kt := torch.NewTensor(rangeI(k))
 		correctK := correct.IndexSelect(0, kt).View([]int64{-1}).CastTo(torch.Float).SumByDim(0, true)
 		res = append(res, correctK.Item()*100/float32(batchSize))
 	}

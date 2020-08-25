@@ -89,25 +89,6 @@ const char *Tensor_String(Tensor a) {
   return r;
 }
 
-const char *Tensor_CopyFrom(Tensor self, void *data, int64_t numel,
-                            int64_t elem_size) {
-  try {
-    if (self->device().type() != at::kCPU) {
-      torch::Tensor tmp_tensor = self->to(at::kCPU).contiguous();
-      void *tensor_data = tmp_tensor.data_ptr();
-      memcpy(data, tensor_data, numel * elem_size);
-      return nullptr;
-    } else {
-      auto tmp_tensor = self->contiguous();
-      void *tensor_data = tmp_tensor.data_ptr();
-      memcpy(data, tensor_data, numel * elem_size);
-      return nullptr;
-    }
-  } catch (const std::exception &e) {
-    return exception_str(e.what());
-  }
-}
-
 const char *Tensor_To(Tensor input, Device device, int8_t dtype,
                       Tensor *output) {
   try {
@@ -136,6 +117,18 @@ Tensor Tensor_Grad(Tensor a) { return new at::Tensor(a->grad()); }
 const char *Tensor_SetData(Tensor self, Tensor new_data) {
   try {
     self->set_data(*new_data);
+    return nullptr;
+  } catch (const std::exception &e) {
+    return exception_str(e.what());
+  }
+}
+
+const char *Tensor_FromBlob(void *data, int8_t dtype, int64_t *sizes_data,
+                            int64_t sizes_data_len, Tensor *result) {
+  try {
+    auto t = at::from_blob(data, at::IntArrayRef(sizes_data, sizes_data_len),
+                           torch::dtype(at::ScalarType(dtype)));
+    *result = new at::Tensor(t);
     return nullptr;
   } catch (const std::exception &e) {
     return exception_str(e.what());

@@ -77,11 +77,13 @@ const char *Tensor_Dim(Tensor tensor, int64_t *dim);
 const char *Tensor_Shape(Tensor tensor, int64_t *dims);
 const char *Tensor_Dtype(Tensor tensor, int8_t *dtype);
 const char *Tensor_SetData(Tensor self, Tensor new_data);
-const char *Tensor_CopyFrom(Tensor self, void *data, int64_t numel,
-                            int64_t elem_size);
+const char *Tensor_FromBlob(void *data, int8_t dtype, int64_t *sizes_data,
+                            int64_t sizes_data_len, Tensor *result);
 // Backward, Gradient
 void Tensor_Backward(Tensor a);
 Tensor Tensor_Grad(Tensor a);
+const char *Tensor_FromBlob(void *data, int8_t dtype, int64_t *sizes_data,
+                            int64_t sizes_data_len, Tensor *result);
 
 ////////////////////////////////////////////////////////////////////////////////
 // torch.nn.init

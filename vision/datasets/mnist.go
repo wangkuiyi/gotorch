@@ -1,10 +1,10 @@
-package vision
+package datasets
 
-// #cgo CFLAGS: -I ${SRCDIR}/../cgotorch
-// #cgo LDFLAGS: -L ${SRCDIR}/../cgotorch -Wl,-rpath ${SRCDIR}/../cgotorch -lcgotorch
-// #cgo LDFLAGS: -L ${SRCDIR}/../cgotorch/libtorch/lib -Wl,-rpath ${SRCDIR}/../cgotorch/libtorch/lib -lc10 -ltorch -ltorch_cpu
+// #cgo CFLAGS: -I ${SRCDIR}/../../cgotorch
+// #cgo LDFLAGS: -L ${SRCDIR}/../../cgotorch -Wl,-rpath ${SRCDIR}/../../cgotorch -lcgotorch
+// #cgo LDFLAGS: -L ${SRCDIR}/../../cgotorch/libtorch/lib -Wl,-rpath ${SRCDIR}/../../cgotorch/libtorch/lib -lc10 -ltorch -ltorch_cpu
 // #include <stdlib.h>
-// #include "../cgotorch/cgotorch.h"
+// #include "../../cgotorch/cgotorch.h"
 import "C"
 import (
 	"fmt"
@@ -12,15 +12,13 @@ import (
 	"unsafe"
 
 	"github.com/wangkuiyi/gotorch"
+	"github.com/wangkuiyi/gotorch/vision/transforms"
 )
 
 // MNISTDataset wraps C.MNISTDataSet
 type MNISTDataset struct {
 	T C.MNISTDataset
 }
-
-// Transform interface
-type Transform interface{}
 
 // Close the Dataset and release memory.
 func (d *MNISTDataset) Close() {
@@ -29,7 +27,7 @@ func (d *MNISTDataset) Close() {
 }
 
 // MNIST corresponds to torchvision.datasets.MNIST.
-func MNIST(dataRoot string, transforms []Transform) *MNISTDataset {
+func MNIST(dataRoot string, trans []transforms.Transform) *MNISTDataset {
 	dataRoot = cacheDir(dataRoot)
 	if e := downloadMNIST(dataRoot); e != nil {
 		log.Fatalf("Failed to download MNIST dataset: %v", e)
@@ -41,12 +39,12 @@ func MNIST(dataRoot string, transforms []Transform) *MNISTDataset {
 	gotorch.MustNil(unsafe.Pointer(C.CreateMNISTDataset(cstr, &dataset)))
 
 	// cache transforms on dataset
-	for _, v := range transforms {
+	for _, v := range trans {
 		switch t := v.(type) {
-		case *NormalizeTransformer:
+		case *transforms.NormalizeTransformer:
 			C.MNISTDataset_Normalize(&dataset,
-				C.double(v.(*NormalizeTransformer).mean),
-				C.double(v.(*NormalizeTransformer).stddev))
+				C.double(v.(*transforms.NormalizeTransformer).Mean),
+				C.double(v.(*transforms.NormalizeTransformer).Stddev))
 		default:
 			panic(fmt.Sprintf("unsupposed transform type: %T", t))
 		}

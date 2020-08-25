@@ -7,7 +7,6 @@ package gotorch
 import "C"
 
 import (
-	"reflect"
 	"runtime"
 	"sync"
 	"unsafe"
@@ -270,15 +269,6 @@ func (a Tensor) SetData(b Tensor) {
 	MustNil(unsafe.Pointer(C.Tensor_SetData(C.Tensor(*a.T), C.Tensor(*b.T))))
 }
 
-// CopyFrom return
-func (a Tensor) CopyFrom(slice interface{}) {
-	v := reflect.ValueOf(slice)
-	elemSize := reflect.TypeOf(slice).Size()
-	length := v.Len()
-	MustNil(unsafe.Pointer(C.Tensor_CopyFrom(C.Tensor(*a.T), unsafe.Pointer(v.Pointer()),
-		C.int64_t(length), C.int64_t(elemSize))))
-}
-
 // MM multiplies each element of the input two tensors
 func MM(a, b Tensor) Tensor {
 	var t C.Tensor
@@ -405,7 +395,8 @@ func (a Tensor) ExpandAs(other Tensor) Tensor {
 	return ExpandAs(a, other)
 }
 
-// Eq torch.eq
+// Eq wraps torch.eq, which does element-wise comparison between two tensors and returns
+// a tensor of the same size as the operands.
 func Eq(a, other Tensor) Tensor {
 	var t C.Tensor
 	MustNil(unsafe.Pointer(C.Eq(C.Tensor(*a.T), C.Tensor(*other.T), &t)))
@@ -487,5 +478,12 @@ func Stack(tensors []Tensor, dim int64) Tensor {
 	var t C.Tensor
 	MustNil(unsafe.Pointer(C.Stack(p, C.int64_t(len(CT)), C.int64_t(dim), &t)))
 	SetTensorFinalizer((*unsafe.Pointer)(&t))
+	return Tensor{(*unsafe.Pointer)(&t)}
+}
+
+// FromBlob creating a Tensor with the give data memory
+func FromBlob(data unsafe.Pointer, dtype int8, sizes []int64) Tensor {
+	var t C.Tensor
+	C.Tensor_FromBlob(data, C.int8_t(dtype), (*C.int64_t)(unsafe.Pointer(&sizes[0])), C.int64_t(len(sizes)), &t)
 	return Tensor{(*unsafe.Pointer)(&t)}
 }
