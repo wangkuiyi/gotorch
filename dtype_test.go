@@ -92,6 +92,7 @@ func TestNewTensorUnsupportGoTypes(t *testing.T) {
 	assert.Panics(t, func() { NewTensor([]uint32{1, 0}) })
 	assert.Panics(t, func() { NewTensor([]uint64{1, 0}) })
 	assert.Panics(t, func() { NewTensor([]uintptr{1, 0}) })
+	assert.Panics(t, func() { NewTensor([]int{1, 0}) })
 
 	// TODO(wangkuiyi): Need to support complex64
 	assert.Panics(t, func() { NewTensor([]complex64{1 + 1i, -1 - 1i}) })
