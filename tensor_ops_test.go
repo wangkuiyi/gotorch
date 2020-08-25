@@ -42,9 +42,7 @@ func TestStack(t *testing.T) {
 //         [1.0000, 0.5000]])
 func TestRelu(t *testing.T) {
 	r := torch.Relu(torch.NewTensor([][]float32{{-0.5, -1}, {1, 0.5}}))
-	g := ` 0.0000  0.0000
- 1.0000  0.5000
-[ CPUFloatType{2,2} ]`
+	g := " 0.0000  0.0000\n 1.0000  0.5000\n[ CPUFloatType{2,2} ]"
 	assert.Equal(t, g, r.String())
 }
 
@@ -54,9 +52,7 @@ func TestRelu(t *testing.T) {
 func TestLeakyRelu(t *testing.T) {
 	r := torch.LeakyRelu(torch.NewTensor([][]float32{{-0.5, -1}, {1, 0.5}}),
 		0.01)
-	g := `-0.0050 -0.0100
- 1.0000  0.5000
-[ CPUFloatType{2,2} ]`
+	g := "-0.0050 -0.0100\n 1.0000  0.5000\n[ CPUFloatType{2,2} ]"
 	assert.Equal(t, g, r.String())
 }
 
@@ -65,19 +61,16 @@ func TestLeakyRelu(t *testing.T) {
 //         [0.7311, 0.6225]])
 func TestSigmoid(t *testing.T) {
 	r := torch.Sigmoid(torch.NewTensor([][]float32{{-0.5, -1}, {1, 0.5}}))
-	g := ` 0.3775  0.2689
- 0.7311  0.6225
-[ CPUFloatType{2,2} ]`
+	g := " 0.3775  0.2689\n 0.7311  0.6225\n[ CPUFloatType{2,2} ]"
 	assert.Equal(t, g, r.String())
 }
 
 // >>> torch.mean(torch.tensor([[-0.5, -1.], [1., 0.5]]))
 // tensor(0.)
 func TestMean(t *testing.T) {
-	r := torch.NewTensor([][]float32{{-0.5, -1}, {1, 0.5}}).Mean()
+	r := torch.Mean(torch.NewTensor([][]float32{{-0.5, -1}, {1, 0.5}}))
 	// BUG: The result should be 0.
-	g := `0
-[ CPUFloatType{} ]`
+	g := "0\n[ CPUFloatType{} ]"
 	assert.Equal(t, g, r.String())
 }
 
@@ -87,9 +80,7 @@ func TestMean(t *testing.T) {
 func TestLogSoftmax(t *testing.T) {
 	r := torch.LogSoftmax(torch.NewTensor([][]float32{{-0.5, -1}, {1, 0.5}}),
 		1)
-	g := `-0.4741 -0.9741
--0.4741 -0.9741
-[ CPUFloatType{2,2} ]`
+	g := "-0.4741 -0.9741\n-0.4741 -0.9741\n[ CPUFloatType{2,2} ]"
 	assert.Equal(t, g, r.String())
 }
 
@@ -102,9 +93,7 @@ func TestAdd(t *testing.T) {
 	r := torch.NewTensor([][]float32{{-0.5, -1}, {1, 0.5}})
 	s := torch.NewTensor([][]float32{{-0.5, -1}, {1, 0.5}})
 	q := r.Add(s, 1)
-	g := `-1 -2
- 2  1
-[ CPUFloatType{2,2} ]`
+	g := "-1 -2\n 2  1\n[ CPUFloatType{2,2} ]"
 	assert.Equal(t, g, q.String())
 }
 
@@ -114,9 +103,7 @@ func TestAdd(t *testing.T) {
 func TestTranspose(t *testing.T) {
 	r := torch.Transpose(torch.NewTensor([][]float32{{-0.5, -1}, {1, 0.5}}),
 		0, 1)
-	g := `-0.5000  1.0000
--1.0000  0.5000
-[ CPUFloatType{2,2} ]`
+	g := "-0.5000  1.0000\n-1.0000  0.5000\n[ CPUFloatType{2,2} ]"
 	assert.Equal(t, g, r.String())
 }
 
@@ -125,10 +112,45 @@ func TestTranspose(t *testing.T) {
 func TestFlatten(t *testing.T) {
 	r := torch.Flatten(torch.NewTensor([][]float32{{-0.5, -1}, {1, 0.5}}),
 		0, 1)
-	g := `-0.5000
--1.0000
- 1.0000
- 0.5000
-[ CPUFloatType{4} ]`
+	g := "-0.5000\n-1.0000\n 1.0000\n 0.5000\n[ CPUFloatType{4} ]"
 	assert.Equal(t, g, r.String())
+}
+
+// >>> torch.topk(torch.tensor([[-0.5, -1.], [1., 0.5]]), 1, 1, True, True)
+// torch.return_types.topk(
+// values=tensor([[-0.5000],
+//         [ 1.0000]]),
+// indices=tensor([[0],
+//         [0]]))
+func TestTopK(t *testing.T) {
+	r, i := torch.TopK(torch.NewTensor([][]float64{{-0.5, -1}, {1, 0.5}}),
+		1, 1, true, true)
+	gr := "-0.5000\n 1.0000\n[ CPUDoubleType{2,1} ]"
+	gi := " 0\n 0\n[ CPULongType{2,1} ]"
+	assert.Equal(t, gr, r.String())
+	assert.Equal(t, gi, i.String())
+}
+
+// >>> s = torch.tensor([1,2])
+// >>> t = torch.tensor([[1,2],[3,4]])
+// >>> s.expand_as(t)
+// tensor([[1, 2],
+//         [1, 2]])
+func TestExpandAs(t *testing.T) {
+	a := torch.NewTensor([]int8{'a', 'b'})
+	b := torch.NewTensor([][]int8{{1, 2}, {3, 4}})
+	c := torch.ExpandAs(a, b)
+	g := " 97  98\n 97  98\n[ CPUCharType{2,2} ]"
+	assert.Equal(t, g, c.String())
+}
+
+// >>> torch.eq(torch.tensor([[1, 2], [3, 4]]), torch.tensor([[1, 1], [4, 4]]))
+// tensor([[ True, False],
+//         [False, True]])
+func TestEq(t *testing.T) {
+	a := torch.NewTensor([][]int16{{1, 2}, {3, 4}})
+	b := torch.NewTensor([][]int16{{1, 3}, {2, 4}})
+	c := torch.Eq(a, b)
+	g := " 1  0\n 0  1\n[ CPUBoolType{2,2} ]"
+	assert.Equal(t, g, c.String())
 }
