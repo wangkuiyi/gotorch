@@ -79,3 +79,11 @@ func TestSigmoid(t *testing.T) {
 [ CPUFloatType{2,2} ]`
 	assert.Equal(t, g, r.String())
 }
+
+// >>> torch.mean(torch.tensor([[-0.5, -1.], [1., 0.5]]))
+func TestMean(t *testing.T) {
+	r := torch.Sigmoid(torch.NewTensor([][]float32{{-0.5, -1}, {1, 0.5}})).Mean()
+	g := `0.5
+[ CPUFloatType{} ]`
+	assert.Equal(t, g, r.String())
+}
