@@ -71,8 +71,8 @@ func TestIndexSelect(t *testing.T) {
 	x := torch.RandN([]int64{3, 4}, false)
 	indices := torch.NewTensor([]int64{0, 2})
 	y := torch.IndexSelect(x, 0, indices)
-	assert.Equal(t, 2, y.Shape()[0])
-	assert.Equal(t, 4, y.Shape()[1])
+	assert.Equal(t, int64(2), y.Shape()[0])
+	assert.Equal(t, int64(4), y.Shape()[1])
 }
 
 // >>> torch.nn.functional.leaky_relu(torch.tensor([[-0.5, -1.], [1., 0.5]]))
