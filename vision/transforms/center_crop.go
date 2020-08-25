@@ -18,15 +18,11 @@ func CenterCrop(width, height int) *CenterCropTransformer {
 }
 
 // Run execute the center crop function and returns the cropped image object.
-func (t *CenterCropTransformer) Run(input interface{}) (interface{}, error) {
-	i, ok := input.(image.Image)
-	if !ok {
-		return nil, fmt.Errorf("input should be image.Image type")
-	}
-	if t.width > i.Bounds().Max.X || t.height > i.Bounds().Max.Y {
-		return nil, fmt.Errorf("crop size (%d, %d) should be within image size (%d, %d)",
-			t.width, t.height, i.Bounds().Max.X, i.Bounds().Max.Y)
+func (t *CenterCropTransformer) Run(input image.Image) image.Image {
+	if t.width > input.Bounds().Max.X || t.height > input.Bounds().Max.Y {
+		panic(fmt.Sprintf("crop size (%d, %d) should be within image size (%d, %d)",
+			t.width, t.height, input.Bounds().Max.X, input.Bounds().Max.Y))
 	}
 
-	return imaging.CropCenter(i, t.width, t.height), nil
+	return imaging.CropCenter(input, t.width, t.height)
 }

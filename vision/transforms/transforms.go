@@ -19,34 +19,34 @@ func Normalize(mean float64, stddev float64) *NormalizeTransformer {
 	return &NormalizeTransformer{mean, stddev}
 }
 
-// ComposeTransforms composes transforms together
-type ComposeTransforms struct {
+// ComposeTransformer composes transforms together
+type ComposeTransformer struct {
 	// Transform function should implement a `Do` method, which accepts any argument type
 	// and returns a value.
 	Transforms []interface{}
 }
 
-// Compose returns a ComposeTransforms
-func Compose(transforms ...interface{}) *ComposeTransforms {
-	return &ComposeTransforms{Transforms: transforms}
+// Compose returns a ComposeTransformer
+func Compose(transforms ...interface{}) *ComposeTransformer {
+	return &ComposeTransformer{Transforms: transforms}
 }
 
-// Do executes the transforms sequentially
-func (t *ComposeTransforms) Do(inputs ...interface{}) interface{} {
+// Run executes the transforms sequentially
+func (t *ComposeTransformer) Run(inputs ...interface{}) interface{} {
 	if len(t.Transforms) == 0 {
-		panic("Cannot call Do() on an empty ComposeTransforms")
+		panic("Cannot call Run() on an empty ComposeTransformer")
 	}
-	do := reflect.ValueOf(t.Transforms[0]).MethodByName("Do")
-	if !do.IsValid() {
-		panic(fmt.Sprintf("GoTorch required exporting `Do` receiver on %s", reflect.TypeOf(t.Transforms[0])))
+	run := reflect.ValueOf(t.Transforms[0]).MethodByName("Run")
+	if !run.IsValid() {
+		panic(fmt.Sprintf("GoTorch required exporting `Run` receiver on %s", reflect.TypeOf(t.Transforms[0])))
 	}
-	input := getInterfaceInputs(do.Call(getReflectInputs(inputs)))
+	input := getInterfaceInputs(run.Call(getReflectInputs(inputs)))
 	for i := 1; i < len(t.Transforms); i++ {
-		do := reflect.ValueOf(t.Transforms[i]).MethodByName("Do")
-		if !do.IsValid() {
-			panic(fmt.Sprintf("GoTorch required exporting `Do` receiver on %s", reflect.TypeOf(t.Transforms[0])))
+		run := reflect.ValueOf(t.Transforms[i]).MethodByName("Run")
+		if !run.IsValid() {
+			panic(fmt.Sprintf("GoTorch required exporting `Run` receiver on %s", reflect.TypeOf(t.Transforms[0])))
 		}
-		input = getInterfaceInputs(do.Call(getReflectInputs(input)))
+		input = getInterfaceInputs(run.Call(getReflectInputs(input)))
 	}
 	if len(input) != 1 {
 		panic("The last transfrom in Compose must have exactly one return value")

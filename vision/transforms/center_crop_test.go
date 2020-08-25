@@ -11,15 +11,13 @@ func TestCenterCrop(t *testing.T) {
 	a := assert.New(t)
 
 	i := generateRandImage(image.Rect(0, 0, 200, 200))
-	trans := CenterCrop(50, 250)
-	_, err := trans.Run(100)
-	a.Error(err)
-	_, err = trans.Run(i)
-	a.Error(err)
+	a.Panics(func() {
+		trans := CenterCrop(50, 250)
+		trans.Run(i)
+	})
 
-	trans = CenterCrop(50, 50)
-	o, err := trans.Run(i)
-	a.NoError(err)
+	trans := CenterCrop(50, 50)
+	o := trans.Run(i)
 	outImage := o.(image.Image)
 	a.Equal(50, outImage.Bounds().Max.X)
 	startX := (200 - 50) / 2

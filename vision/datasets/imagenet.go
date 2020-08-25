@@ -9,9 +9,9 @@ import (
 	"image/draw"
 	"io"
 	"path/filepath"
-	"unsafe"
 
 	torch "github.com/wangkuiyi/gotorch"
+	"github.com/wangkuiyi/gotorch/vision/transforms"
 )
 
 // Sample represents a dataset sample which contains
@@ -35,10 +35,11 @@ type ImageNetLoader struct {
 	vocab     map[string]int // the vocabulary of labels.
 	isEOF     bool
 	samples   []Sample
+	trans     *transforms.ComposeTransformer
 }
 
 // ImageNet returns ImageNet dataDataLoader
-func ImageNet(reader io.Reader, vocab map[string]int, batchSize int64) (*ImageNetLoader, error) {
+func ImageNet(reader io.Reader, vocab map[string]int, trans *transforms.ComposeTransformer, batchSize int64) (*ImageNetLoader, error) {
 	gr, err := gzip.NewReader(reader)
 	if err != nil {
 		return nil, err
@@ -48,6 +49,7 @@ func ImageNet(reader io.Reader, vocab map[string]int, batchSize int64) (*ImageNe
 		tr:        tar.NewReader(gr),
 		isEOF:     false,
 		vocab:     vocab,
+		trans:     trans,
 	}, nil
 }
 
@@ -58,11 +60,9 @@ func (p *ImageNetLoader) Minibatch() Batch {
 	dataArray := []torch.Tensor{}
 	labelArray := []torch.Tensor{}
 	for _, sample := range p.samples {
-		data, err := ToTensor(sample.image)
-		must(err)
-		label, err := ToTensor(sample.target)
-		must(err)
-		dataArray = append(dataArray, data)
+		data := p.trans.Run(sample.image)
+		label := transforms.ToTensor().Run(sample.target)
+		dataArray = append(dataArray, data.(torch.Tensor))
 		labelArray = append(labelArray, label)
 	}
 	return Batch{torch.Stack(dataArray, 0), torch.Stack(labelArray, 0)}
@@ -136,41 +136,4 @@ func BuildLabelVocabulary(reader io.Reader) (map[string]int, error) {
 		}
 	}
 	return classToIdx, nil
-}
-
-// ToTensor returns a torch.Tensor from the given object
-func ToTensor(obj interface{}) (torch.Tensor, error) {
-	switch v := obj.(type) {
-	case image.Image:
-		return imageToTensor(obj.(image.Image)), nil
-	case int:
-		return intToTensor(obj.(int)), nil
-	default:
-		return torch.Tensor{}, fmt.Errorf("ToTensor transform does not support type: %T", v)
-	}
-}
-
-// ToTensor transform c.f. https://github.com/pytorch/vision/blob/ba1b22125723f3719a3c38a2fe7cd6fb77657c57/torchvision/transforms/functional.py#L45
-func imageToTensor(img image.Image) torch.Tensor {
-	width, height := img.Bounds().Max.X, img.Bounds().Max.Y
-	// put pixel values with HWC format
-	array := make([][][3]float32, height)
-
-	for x := 0; x < height; x++ {
-		row := make([][3]float32, width)
-		for y := 0; y < width; y++ {
-			// ResNet need the 3 channels image, here we should convert to RGB format.
-			// The division by 255.0 is applied to convert RGB pixel values from [0, 255] to [0.0, 1.0] range
-			c := img.(*image.RGBA).RGBAAt(x, y)
-			row[y] = [3]float32{float32(c.R / 255.0), float32(c.G / 255.0), float32(c.B / 255.0)}
-		}
-		array[x] = row
-	}
-	return torch.FromBlob(unsafe.Pointer(&array[0][0][0]), torch.Float, []int64{int64(width), int64(height), 3})
-}
-
-func intToTensor(x int) torch.Tensor {
-	array := make([]int, 1)
-	array[0] = x
-	return torch.FromBlob(unsafe.Pointer(&array[0]), torch.Int, []int64{1})
 }
