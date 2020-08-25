@@ -1,6 +1,7 @@
 package transforms
 
 import (
+	"fmt"
 	"reflect"
 )
 
@@ -20,6 +21,8 @@ func Normalize(mean float64, stddev float64) *NormalizeTransformer {
 
 // SequentialTransform indicates executing the transform functions sequentially
 type SequentialTransform struct {
+	// Transform function should implement a `Do` method, which accepts any argument type
+	// and returns a value.
 	Transforms []interface{}
 }
 
@@ -35,9 +38,15 @@ func (t *SequentialTransform) Do(inputs ...interface{}) interface{} {
 		panic("Cannot call Do() on an empty SequentialTransforms")
 	}
 	do := reflect.ValueOf(t.Transforms[0]).MethodByName("Do")
+	if !do.IsValid() {
+		panic(fmt.Sprintf("GoTorch required exporting `Do` receiver on %s", reflect.TypeOf(t.Transforms[0])))
+	}
 	input := getInterfaceInputs(do.Call(getReflectInputs(inputs)))
 	for i := 1; i < len(t.Transforms); i++ {
 		do := reflect.ValueOf(t.Transforms[i]).MethodByName("Do")
+		if !do.IsValid() {
+			panic(fmt.Sprintf("GoTorch required exporting `Do` receiver on %s", reflect.TypeOf(t.Transforms[0])))
+		}
 		input = getInterfaceInputs(do.Call(getReflectInputs(input)))
 	}
 	if len(input) != 1 {
