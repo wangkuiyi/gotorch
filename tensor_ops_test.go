@@ -132,3 +132,22 @@ func TestFlatten(t *testing.T) {
 [ CPUFloatType{4} ]`
 	assert.Equal(t, g, r.String())
 }
+
+// >>> torch.topk(torch.tensor([[-0.5, -1.], [1., 0.5]]), 1, 1, True, True)
+// torch.return_types.topk(
+// values=tensor([[-0.5000],
+//         [ 1.0000]]),
+// indices=tensor([[0],
+//         [0]]))
+func TestTopK(t *testing.T) {
+	r, i := torch.TopK(torch.NewTensor([][]float64{{-0.5, -1}, {1, 0.5}}),
+		1, 1, true, true)
+	gr := `-0.5000
+ 1.0000
+[ CPUDoubleType{2,1} ]`
+	gi := ` 0
+ 0
+[ CPULongType{2,1} ]`
+	assert.Equal(t, gr, r.String())
+	assert.Equal(t, gi, i.String())
+}
