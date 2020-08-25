@@ -28,14 +28,14 @@ func (n *myNet) Forward(x torch.Tensor) torch.Tensor {
 	return x
 }
 
-type myNet2 struct {
+type myNetWithBuffer struct {
 	Module
 	Weight torch.Tensor `gotorch:"buffer"`
 	L1     *LinearModule
 }
 
-func newMyNet2() *myNet2 {
-	n := &myNet2{
+func newMyNetWithBuffer() *myNetWithBuffer {
+	n := &myNetWithBuffer{
 		Weight: torch.RandN([]int64{100, 200}, false),
 		L1:     Linear(100, 200, false),
 	}
@@ -44,7 +44,7 @@ func newMyNet2() *myNet2 {
 }
 
 // Forward executes the calculation
-func (n *myNet2) Forward(x torch.Tensor) torch.Tensor {
+func (n *myNetWithBuffer) Forward(x torch.Tensor) torch.Tensor {
 	x = n.L1.Forward(x)
 	return x
 }
@@ -103,10 +103,10 @@ func TestModule(t *testing.T) {
 	assert.Contains(t, namedParams, "myNet.L1.Weight")
 	assert.Contains(t, namedParams, "myNet.L2.Weight")
 
-	n2 := newMyNet2()
+	n2 := newMyNetWithBuffer()
 	namedParams2 := n2.NamedParameters()
 	assert.Equal(t, 1, len(namedParams2))
-	assert.Contains(t, namedParams2, "myNet2.L1.Weight")
+	assert.Contains(t, namedParams2, "myNetWithBuffer.L1.Weight")
 
 	hn := newHierarchyNet()
 	hnNamedParams := hn.NamedParameters()
