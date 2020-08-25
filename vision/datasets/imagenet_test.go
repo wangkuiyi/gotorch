@@ -21,7 +21,7 @@ func TestImgNetLoader(t *testing.T) {
 	assert.NoError(t, err)
 
 	for loader.Scan() {
-		data, label := loader.Minibatch().Data, loader.Minibatch().Target
+		data, label := loader.Minibatch()
 		assert.Equal(t, []int64{2, 224, 224, 3}, data.Shape())
 		assert.Equal(t, []int64{2, 1}, label.Shape())
 	}

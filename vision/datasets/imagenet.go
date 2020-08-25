@@ -54,7 +54,7 @@ func ImageNet(reader io.Reader, vocab map[string]int, trans *transforms.ComposeT
 }
 
 // Minibatch returns a minibash with data and label Tensor
-func (p *ImageNetLoader) Minibatch() Batch {
+func (p *ImageNetLoader) Minibatch() (torch.Tensor, torch.Tensor) {
 	// TODO(yancey1989): execute transform function sequentially to transfrom the sample
 	// data to Tensors.
 	dataArray := []torch.Tensor{}
@@ -65,7 +65,7 @@ func (p *ImageNetLoader) Minibatch() Batch {
 		dataArray = append(dataArray, data.(torch.Tensor))
 		labelArray = append(labelArray, label)
 	}
-	return Batch{torch.Stack(dataArray, 0), torch.Stack(labelArray, 0)}
+	return torch.Stack(dataArray, 0), torch.Stack(labelArray, 0)
 }
 
 func (p *ImageNetLoader) nextSamples() error {
