@@ -157,6 +157,12 @@ func TestSum(t *testing.T) {
 	assert.Equal(t, float32(14), z)
 }
 
+func TestTanh(t *testing.T) {
+	a := torch.RandN([]int64{4})
+	b := torch.Tanh(b)
+	assert.NotNil(b.T)
+}
+
 // >>> torch.topk(torch.tensor([[-0.5, -1.], [1., 0.5]]), 1, 1, True, True)
 // torch.return_types.topk(
 // values=tensor([[-0.5000],
