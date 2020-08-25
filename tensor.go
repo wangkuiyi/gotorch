@@ -60,6 +60,14 @@ func (a Tensor) Save(path string) {
 	C.Tensor_Save(C.Tensor(*a.T), C.CString(path))
 }
 
+// Load tensor from a file
+func Load(path string) Tensor {
+	var t C.Tensor
+	MustNil(unsafe.Pointer(C.Tensor_Load(C.CString(path), &t)))
+	SetTensorFinalizer((*unsafe.Pointer)(&t))
+	return Tensor{(*unsafe.Pointer)(&t)}
+}
+
 // Dim returns dim
 func (a Tensor) Dim() int64 {
 	var dim int64
