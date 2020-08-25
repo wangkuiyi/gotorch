@@ -73,5 +73,5 @@ executable binary  # x86_64, ARM, CUDA, TPU
 - How To
   - [Wrap PyTorch Native Functions](./doc/wrap_native_functions.md)
 - Examples
-  - [MNIST Training](./mnist_test.go)
+  - [MNIST Training](./example/mnist/mnist.go)
   - [Adversarial Learning](./example/dcgan)
