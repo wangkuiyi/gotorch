@@ -16,12 +16,6 @@ func ExampleTensor() {
 	// Output:
 }
 
-func TestTensorItem(t *testing.T) {
-	x := torch.RandN([]int64{1}, false)
-	r := x.Item()
-	assert.NotNil(t, r)
-}
-
 func TestTensorDetach(t *testing.T) {
 	x := torch.RandN([]int64{1}, true)
 	y := x.Detach()
@@ -59,4 +53,10 @@ func TestTensorGrad(t *testing.T) {
 	/// (add) gradients into it.
 	b := torch.RandN([]int64{10, 10}, false)
 	assert.NotNil(t, b.Grad().T)
+}
+
+func TestCastTo(t *testing.T) {
+	a := torch.NewTensor([]int64{1, 2})
+	b := a.CastTo(torch.Float)
+	assert.Equal(t, torch.Float, b.Dtype())
 }
