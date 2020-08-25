@@ -95,10 +95,10 @@ func TestFlattenSlice(t *testing.T) {
 		assert.Equal(t, []bool{true, false, false, true}, f)
 	}
 	{
-		d := []int{1, 2}
+		d := []int64{1, 2}
 		f := flattenSliceInt(nil, reflect.ValueOf(d))
 		assert.Equal(t, 2, len(f))
-		assert.Equal(t, []int{1, 2}, f)
+		assert.Equal(t, []int64{1, 2}, f)
 	}
 	{
 		d := [][]uint16{{1, 2}, {3, 4}}

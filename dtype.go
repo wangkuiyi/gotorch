@@ -99,7 +99,7 @@ func tensorElemDType(opts []map[string]interface{}, k reflect.Kind) int8 {
 var (
 	goTypeToTorch = map[reflect.Kind]int8{
 		reflect.Bool:    Bool,
-		reflect.Int:     Int,
+		reflect.Int64:   Long,
 		reflect.Int8:    Byte,
 		reflect.Uint16:  Half,
 		reflect.Float32: Float,
@@ -117,8 +117,8 @@ func flattenSlice(slc interface{}, kind reflect.Kind) unsafe.Pointer {
 	case reflect.Bool:
 		f := flattenSliceBool(nil, reflect.ValueOf(slc))
 		return unsafe.Pointer((*reflect.SliceHeader)(unsafe.Pointer(&f)).Data)
-	case reflect.Int:
-		f := flattenSliceInt(nil, reflect.ValueOf(slc))
+	case reflect.Int64:
+		f := flattenSliceInt64(nil, reflect.ValueOf(slc))
 		return unsafe.Pointer((*reflect.SliceHeader)(unsafe.Pointer(&f)).Data)
 	case reflect.Int8:
 		f := flattenSliceInt8(nil, reflect.ValueOf(slc))
@@ -192,13 +192,13 @@ func flattenSliceBool(args []bool, v reflect.Value) []bool {
 	return args
 }
 
-func flattenSliceInt(args []int, v reflect.Value) []int {
+func flattenSliceInt64(args []int, v reflect.Value) []int {
 	if v.Kind() == reflect.Interface {
 		v = v.Elem()
 	}
 	if v.Kind() == reflect.Array || v.Kind() == reflect.Slice {
 		for i := 0; i < v.Len(); i++ {
-			args = flattenSliceInt(args, v.Index(i))
+			args = flattenSliceInt64(args, v.Index(i))
 		}
 	} else {
 		args = append(args, int(v.Int()))
