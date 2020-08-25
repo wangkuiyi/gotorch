@@ -1,4 +1,4 @@
-package imagenet_test
+package datasets_test
 
 import (
 	"archive/tar"
@@ -9,11 +9,11 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/wangkuiyi/gotorch/example/resnet/imagenet"
+	"github.com/wangkuiyi/gotorch/vision/datasets"
 )
 
 func generateColorData(w io.Writer) []string {
-	s := imagenet.NewSynthesizer(w)
+	s := datasets.NewSynthesizer(w)
 	defer s.Close()
 	colors := []color.Color{
 		color.RGBA{0, 0, 255, 255},

@@ -1,4 +1,4 @@
-package imagenet
+package datasets
 
 import (
 	"archive/tar"

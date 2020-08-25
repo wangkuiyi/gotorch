@@ -1,4 +1,4 @@
-package imagenet
+package datasets
 
 import (
 	"archive/tar"
@@ -21,15 +21,15 @@ type Sample struct {
 	target int
 }
 
-// DataLoader provides a convenient interface to reader
+// ImageNetLoader provides a convenient interface to reader
 // batch from ImageNet dataset.
 // Usage:
 //
-// DataLoader := imagenet.DataLoader("/imagenet/train.tar.gz", 32)
-// for range imageNet.Scan() {
-//	img, target := imageNet.Batch()
+// loader := datasets.ImageNet("/imagenet/train.tar.gz", 32)
+// for range loader.Scan() {
+//	img, target := imageNet.Minibatch().Data, loader.Minibatch().Target
 // }
-type DataLoader struct {
+type ImageNetLoader struct {
 	batchSize int64
 	tr        *tar.Reader
 	vocab     map[string]int // the vocabulary of labels.
@@ -37,13 +37,13 @@ type DataLoader struct {
 	samples   []Sample
 }
 
-// NewDataLoader returns ImageNet dataDataLoader
-func NewDataLoader(reader io.Reader, vocab map[string]int, batchSize int64) (*DataLoader, error) {
+// ImageNet returns ImageNet dataDataLoader
+func ImageNet(reader io.Reader, vocab map[string]int, batchSize int64) (*ImageNetLoader, error) {
 	gr, err := gzip.NewReader(reader)
 	if err != nil {
 		return nil, err
 	}
-	return &DataLoader{
+	return &ImageNetLoader{
 		batchSize: batchSize,
 		tr:        tar.NewReader(gr),
 		isEOF:     false,
@@ -52,7 +52,7 @@ func NewDataLoader(reader io.Reader, vocab map[string]int, batchSize int64) (*Da
 }
 
 // Minibatch returns a minibash with data and label Tensor
-func (p *DataLoader) Minibatch() (torch.Tensor, torch.Tensor) {
+func (p *ImageNetLoader) Minibatch() Batch {
 	// TODO(yancey1989): execute transform function sequentially to transfrom the sample
 	// data to Tensors.
 	dataArray := []torch.Tensor{}
@@ -65,10 +65,10 @@ func (p *DataLoader) Minibatch() (torch.Tensor, torch.Tensor) {
 		dataArray = append(dataArray, data)
 		labelArray = append(labelArray, label)
 	}
-	return torch.Stack(dataArray, 0), torch.Stack(labelArray, 0)
+	return Batch{torch.Stack(dataArray, 0), torch.Stack(labelArray, 0)}
 }
 
-func (p *DataLoader) nextSamples() error {
+func (p *ImageNetLoader) nextSamples() error {
 	p.samples = []Sample{}
 	for i := int64(0); i < p.batchSize; i++ {
 		hdr, err := p.tr.Next()
@@ -95,7 +95,7 @@ func (p *DataLoader) nextSamples() error {
 }
 
 // Scan return false if no more data
-func (p *DataLoader) Scan() bool {
+func (p *ImageNetLoader) Scan() bool {
 	if p.isEOF {
 		return false
 	}
