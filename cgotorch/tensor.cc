@@ -50,6 +50,16 @@ const char *Tensor_Save(Tensor tensor, const char *path) {
   }
 }
 
+const char *Tensor_Load(const char *path, Tensor *tensor) {
+  try {
+    *tensor = new at::Tensor();
+    torch::load(**tensor, path);
+    return nullptr;
+  } catch (const std::exception &e) {
+    return exception_str(e.what());
+  }
+}
+
 const char *Tensor_Dim(Tensor tensor, int64_t *dim) {
   try {
     *dim = tensor->dim();

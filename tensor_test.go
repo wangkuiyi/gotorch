@@ -1,6 +1,8 @@
 package gotorch_test
 
 import (
+	"io/ioutil"
+	"os"
 	"testing"
 	"unsafe"
 
@@ -77,4 +79,18 @@ func TestShape(t *testing.T) {
 	a := torch.RandN([]int64{2, 3}, false)
 	assert.Equal(t, int64(2), a.Shape()[0])
 	assert.Equal(t, int64(3), a.Shape()[1])
+}
+
+func TestSave(t *testing.T) {
+	file, e := ioutil.TempFile("", "gotroch-test-save-*")
+	assert.NoError(t, e)
+	defer os.Remove(file.Name())
+	
+	a := torch.RandN([]int64{2, 3}, false)
+	a.Save(file.Name())
+	b := torch.Load(file.Name())
+
+	assert.EqualValues(t, a.Shape(), b.Shape())
+	assert.Equal(t, a.Dtype(), b.Dtype())
+	assert.Equal(t, a.String(), b.String())
 }

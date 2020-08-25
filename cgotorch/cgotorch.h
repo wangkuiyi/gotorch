@@ -73,6 +73,7 @@ void Tensor_Print(Tensor a);
 void Tensor_Close(Tensor a);
 void FreeString(const char *s);
 const char *Tensor_Save(Tensor tensor, const char *path);
+const char *Tensor_Load(const char *path, Tensor *result);
 const char *Tensor_Dim(Tensor tensor, int64_t *dim);
 const char *Tensor_Shape(Tensor tensor, int64_t *dims);
 const char *Tensor_Dtype(Tensor tensor, int8_t *dtype);
