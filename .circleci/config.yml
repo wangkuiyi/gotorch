@@ -9,8 +9,7 @@ jobs:
     steps:
       - checkout
       - run: pre-commit run -a
-      - run: cgotorch/build.sh
-      - run: go get -v -t -d ./...
-      - run: LD_LIBRARY_PATH=$CIRCLE_WORKING_DIRECTORY/cgotorch/libtorch/lib
+      - run: export LD_LIBRARY_PATH=$CIRCLE_WORKING_DIRECTORY/cgotorch/libtorch/lib
+      - run: go generate ./...
       - run: go test -race -coverprofile=coverage.txt -covermode=atomic -v ./...
       - run: bash <(curl -s https://codecov.io/bash)
