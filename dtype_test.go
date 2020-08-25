@@ -96,7 +96,7 @@ func TestFlattenSlice(t *testing.T) {
 	}
 	{
 		d := []int64{1, 2}
-		f := flattenSliceInt(nil, reflect.ValueOf(d))
+		f := flattenSliceInt64(nil, reflect.ValueOf(d))
 		assert.Equal(t, 2, len(f))
 		assert.Equal(t, []int64{1, 2}, f)
 	}
