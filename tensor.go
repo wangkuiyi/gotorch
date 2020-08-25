@@ -377,7 +377,8 @@ func ExpandAs(a, other Tensor) Tensor {
 	return Tensor{(*unsafe.Pointer)(&t)}
 }
 
-// Eq torch.eq
+// Eq wraps torch.eq, which does element-wise comparison between two tensors and returns
+// a tensor of the same size as the operands.
 func Eq(a, other Tensor) Tensor {
 	var t C.Tensor
 	MustNil(unsafe.Pointer(C.Eq(C.Tensor(*a.T), C.Tensor(*other.T), &t)))
