@@ -1,3 +1,5 @@
+//go:generate cgotorch/build.sh
+
 package gotorch
 
 // #cgo CFLAGS: -I ${SRCDIR}/cgotorch
