@@ -133,32 +133,3 @@ func FromBlob(data unsafe.Pointer, dtype int8, sizes []int64) Tensor {
 	C.Tensor_FromBlob(data, C.int8_t(dtype), (*C.int64_t)(unsafe.Pointer(&sizes[0])), C.int64_t(len(sizes)), &t)
 	return Tensor{(*unsafe.Pointer)(&t)}
 }
-
-// ConvTranspose2d does 2d-fractionally-strided convolution
-func ConvTranspose2d(
-	input, weight, bias Tensor,
-	stride, padding, outputPadding []int,
-	groups int, dilation []int) Tensor {
-
-	var cbias, t C.Tensor
-	if bias.T != nil {
-		cbias = *bias.T
-	}
-
-	mustNil(C.ConvTranspose2d(
-		*input.T,
-		*weight.T,
-		cbias,
-		(*C.int64_t)(unsafe.Pointer(&stride[0])),
-		C.int64_t(len(stride)),
-		(*C.int64_t)(unsafe.Pointer(&padding[0])),
-		C.int64_t(len(padding)),
-		(*C.int64_t)(unsafe.Pointer(&outputPadding[0])),
-		C.int64_t(len(outputPadding)),
-		C.int64_t(groups),
-		(*C.int64_t)(unsafe.Pointer(&dilation[0])),
-		C.int64_t(len(dilation)),
-		&t))
-	setTensorFinalizer(&t)
-	return Tensor{&t}
-}
