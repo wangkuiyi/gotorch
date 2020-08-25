@@ -75,6 +75,12 @@ func TestIndexSelect(t *testing.T) {
 	assert.Equal(t, int64(4), y.Shape()[1])
 }
 
+func TestItem(t *testing.T) {
+	x := torch.NewTensor([]int64{1})
+	y := x.Item()
+	assert.Equal(t, int64(1), y)
+}
+
 // >>> torch.nn.functional.leaky_relu(torch.tensor([[-0.5, -1.], [1., 0.5]]))
 // tensor([[-0.0050, -0.0100],
 //         [ 1.0000,  0.5000]])
@@ -142,6 +148,13 @@ func TestSqueeze(t *testing.T) {
 	assert.NotNil(t, y.T)
 	z := torch.Squeeze(x, 1)
 	assert.NotNil(t, z.T)
+}
+
+func TestSum(t *testing.T) {
+	x := torch.NewTensor([]int64{1, 2, 4, 7})
+	y := torch.Sum(x)
+	z := y.Item()
+	assert.Equal(t, int64(14), z)
 }
 
 // >>> torch.topk(torch.tensor([[-0.5, -1.], [1., 0.5]]), 1, 1, True, True)
