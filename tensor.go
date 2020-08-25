@@ -264,6 +264,14 @@ func (a Tensor) CastTo(dtype int8) Tensor {
 	return Tensor{(*unsafe.Pointer)(&t)}
 }
 
+// CopyTo cast tensor dtype
+func (a Tensor) CopyTo(device Device) Tensor {
+	var t C.Tensor
+	MustNil(unsafe.Pointer(C.Tensor_CopyTo(C.Tensor(*a.T), device.T, &t)))
+	SetTensorFinalizer((*unsafe.Pointer)(&t))
+	return Tensor{(*unsafe.Pointer)(&t)}
+}
+
 // SetData sets the tensor data held by b to a
 func (a Tensor) SetData(b Tensor) {
 	MustNil(unsafe.Pointer(C.Tensor_SetData(C.Tensor(*a.T), C.Tensor(*b.T))))

@@ -12,6 +12,8 @@ import (
 	"github.com/wangkuiyi/gotorch/vision/models"
 )
 
+var device torch.Device
+
 func max(array []int64) int64 {
 	max := array[0]
 	for _, v := range array {
@@ -50,7 +52,7 @@ func accuracy(output, target torch.Tensor, topk []int64) []float32 {
 
 	res := []float32{}
 	for _, k := range topk {
-		kt := torch.NewTensor(rangeI(k))
+		kt := torch.NewTensor(rangeI(k)).CopyTo(device)
 		correctK := correct.IndexSelect(0, kt).View([]int64{-1}).CastTo(torch.Float).SumByDim(0, true)
 		res = append(res, correctK.Item()*100/float32(batchSize))
 	}
@@ -90,7 +92,6 @@ func main() {
 	momentum := 0.9
 	weightDecay := 1e-4
 
-	var device torch.Device
 	if torch.IsCUDAAvailable() {
 		log.Println("CUDA is valid")
 		device = torch.NewDevice("cuda")
