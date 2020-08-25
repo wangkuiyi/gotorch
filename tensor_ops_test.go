@@ -158,9 +158,9 @@ func TestSum(t *testing.T) {
 }
 
 func TestTanh(t *testing.T) {
-	a := torch.RandN([]int64{4})
-	b := torch.Tanh(b)
-	assert.NotNil(b.T)
+	a := torch.RandN([]int64{4}, false)
+	b := torch.Tanh(a)
+	assert.NotNil(t, b.T)
 }
 
 // >>> torch.topk(torch.tensor([[-0.5, -1.], [1., 0.5]]), 1, 1, True, True)
