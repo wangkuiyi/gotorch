@@ -24,7 +24,7 @@ func (t ToTensorTransformer) Run(obj interface{}) torch.Tensor {
 	case int:
 		return intToTensor(obj.(int))
 	default:
-		panic(fmt.Sprintf("ToTensor transform does not support type: %T", v))
+		panic(fmt.Sprintf("ToTensorTransformer can not transform the input type: %T", v))
 	}
 }
 
