@@ -151,10 +151,10 @@ func TestSqueeze(t *testing.T) {
 }
 
 func TestSum(t *testing.T) {
-	x := torch.NewTensor([]int64{1, 2, 4, 7})
+	x := torch.NewTensor([]float32{1, 2, 4, 7})
 	y := torch.Sum(x)
 	z := y.Item()
-	assert.Equal(t, int64(14), z)
+	assert.Equal(t, float32(14), z)
 }
 
 // >>> torch.topk(torch.tensor([[-0.5, -1.], [1., 0.5]]), 1, 1, True, True)
