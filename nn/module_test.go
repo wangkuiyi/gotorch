@@ -149,10 +149,13 @@ func TestModuleTrain(t *testing.T) {
 }
 
 func TestNewModuleWithoutInit(t *testing.T) {
-	newMyNetWithoutInit := func() *myNet {
-		return &myNet{
-			L1: Linear(100, 200, false),
-			L2: Linear(200, 10, false),
+	newMyNetWithoutInit := func() *hierarchicalNet {
+		return &hierarchicalNet{
+			L1: newMyNet(),
+			L2: []*LinearModule{
+				Linear(10, 10, false),
+				Linear(10, 5, false),
+			},
 		}
 	}
 	n := newMyNetWithoutInit()
