@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/x448/float16"
 )
 
 func TestSliceShapeAndElemKind(t *testing.T) {
@@ -51,65 +52,49 @@ func TestTensorElemDType(t *testing.T) {
 	}
 }
 
-func TestNewTensor(t *testing.T) {
-	{
-		a := NewTensor([][]float32{{1.0, 1.1, 1.2}, {2, 3, 4}})
-		assert.Equal(t, []int64{2, 3}, a.Shape())
-		assert.Equal(t, Float, a.Dtype())
-	}
-	{
-		a := NewTensor([][]uint16{{1, 2}, {3, 4}})
-		assert.Equal(t, []int64{2, 2}, a.Shape())
-		assert.Equal(t, Half, a.Dtype())
-	}
-	{
-		a := NewTensor([]int8{1, 2, 3})
-		assert.Equal(t, []int64{3}, a.Shape())
-		assert.Equal(t, Byte, a.Dtype())
-	}
-	{
-		assert.Panics(t, func() {
-			// int16 cannot be converted into PyTorch type
-			NewTensor([][]int16{{1, 2}, {3, 4}})
-		})
-	}
+func f16(x float32) uint16 {
+	return float16.Fromfloat32(x).Bits()
 }
 
-func TestFlattenSlice(t *testing.T) {
-	{
-		d := [][]float32{{1, 2, 3}, {4, 5, 6}}
-		f := flattenSliceFloat32(nil, reflect.ValueOf(d))
-		assert.Equal(t, 6, len(f))
-		assert.Equal(t, []float32{1, 2, 3, 4, 5, 6}, f)
-	}
-	{
-		d := [][]float64{{1, 2}, {3, 4}, {5, 6}}
-		f := flattenSliceFloat64(nil, reflect.ValueOf(d))
-		assert.Equal(t, 6, len(f))
-		assert.Equal(t, []float64{1, 2, 3, 4, 5, 6}, f)
-	}
-	{
-		d := [][]bool{{true, false}, {false, true}}
-		f := flattenSliceBool(nil, reflect.ValueOf(d))
-		assert.Equal(t, 4, len(f))
-		assert.Equal(t, []bool{true, false, false, true}, f)
-	}
-	{
-		d := []int64{1, 2}
-		f := flattenSliceInt64(nil, reflect.ValueOf(d))
-		assert.Equal(t, 2, len(f))
-		assert.Equal(t, []int64{1, 2}, f)
-	}
-	{
-		d := [][]uint16{{1, 2}, {3, 4}}
-		f := flattenSliceUint16(nil, reflect.ValueOf(d))
-		assert.Equal(t, 4, len(f))
-		assert.Equal(t, []uint16{1, 2, 3, 4}, f)
-	}
-	{
-		d := [][]int8{{1, 2, 3}, {4, 5, 6}}
-		f := flattenSliceInt8(nil, reflect.ValueOf(d))
-		assert.Equal(t, 6, len(f))
-		assert.Equal(t, []int8{1, 2, 3, 4, 5, 6}, f)
-	}
+func TestNewTensor(t *testing.T) {
+	assert.Equal(t, " 1  0\n 0  1\n[ CPUBoolType{2,2} ]",
+		NewTensor([][]bool{{true, false}, {false, true}}).String())
+
+	assert.Equal(t, " 1  0\n 0  1\n[ CPUByteType{2,2} ]",
+		NewTensor([][]uint8{{1, 0}, {0, 1}}).String())
+
+	assert.Equal(t, " 1  0\n 0  1\n[ CPUByteType{2,2} ]",
+		NewTensor([][]byte{{1, 0}, {0, 1}}).String())
+
+	assert.Equal(t, " 1  0\n 0  1\n[ CPUCharType{2,2} ]",
+		NewTensor([][]int8{{1, 0}, {0, 1}}).String())
+
+	assert.Equal(t, " 1  0\n 0  1\n[ CPUShortType{2,2} ]",
+		NewTensor([][]int16{{1, 0}, {0, 1}}).String())
+
+	assert.Equal(t, " 1  0\n 0  1\n[ CPUIntType{2,2} ]",
+		NewTensor([][]int32{{1, 0}, {0, 1}}).String())
+
+	assert.Equal(t, " 1  0\n 0  1\n[ CPULongType{2,2} ]",
+		NewTensor([][]int64{{1, 0}, {0, 1}}).String())
+
+	assert.Equal(t, " 1  0\n 0  1\n[ CPUHalfType{2,2} ]",
+		NewTensor([][]uint16{{f16(1), f16(0)}, {f16(0), f16(1)}}).String())
+
+	assert.Equal(t, " 1  0\n 0  1\n[ CPUFloatType{2,2} ]",
+		NewTensor([][]float32{{1, 0}, {0, 1}}).String())
+
+	assert.Equal(t, " 1  0\n 0  1\n[ CPUDoubleType{2,2} ]",
+		NewTensor([][]float64{{1, 0}, {0, 1}}).String())
+}
+
+func TestNewTensorUnsupportGoTypes(t *testing.T) {
+	assert.Panics(t, func() { NewTensor([]uint32{1, 0}) })
+	assert.Panics(t, func() { NewTensor([]uint64{1, 0}) })
+	assert.Panics(t, func() { NewTensor([]uintptr{1, 0}) })
+	assert.Panics(t, func() { NewTensor([]int{1, 0}) })
+
+	// TODO(wangkuiyi): Need to support complex64
+	assert.Panics(t, func() { NewTensor([]complex64{1 + 1i, -1 - 1i}) })
+	assert.Panics(t, func() { NewTensor([]complex128{1 + 1i, -1 - 1i}) })
 }

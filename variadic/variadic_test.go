@@ -11,12 +11,14 @@ func TestHas(t *testing.T) {
 	assert.True(t, variadic.Has(opts, "dtype"))
 	assert.True(t, variadic.Has(opts, "requires_grad"))
 	assert.False(t, variadic.Has(opts, "RequiresGrad"))
+	assert.False(t, variadic.Has(nil, "anything"))
 }
 
 func TestGet(t *testing.T) {
 	assert.Equal(t, 111, variadic.Get(opts, "dtype"))
 	assert.Equal(t, false, variadic.Get(opts, "requires_grad"))
 	assert.Equal(t, nil, variadic.Get(opts, "RequiresGrad"))
+	assert.Equal(t, nil, variadic.Get(nil, "anything"))
 }
 
 func TestLookup(t *testing.T) {
@@ -29,6 +31,10 @@ func TestLookup(t *testing.T) {
 	assert.True(t, ok)
 
 	v, ok = variadic.Lookup(opts, "RequiresGrad")
+	assert.Equal(t, nil, v)
+	assert.False(t, ok)
+
+	v, ok = variadic.Lookup(nil, "anything")
 	assert.Equal(t, nil, v)
 	assert.False(t, ok)
 }

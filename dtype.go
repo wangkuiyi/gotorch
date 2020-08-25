@@ -97,11 +97,15 @@ func tensorElemDType(opts []map[string]interface{}, k reflect.Kind) int8 {
 }
 
 var (
+	// https://pytorch.org/docs/stable/tensors.html#torch-tensor
 	goTypeToTorch = map[reflect.Kind]int8{
 		reflect.Bool:    Bool,
+		reflect.Uint8:   Byte, // There is no reflect.Byte
+		reflect.Int8:    Char,
+		reflect.Int16:   Short,
+		reflect.Int32:   Int,
 		reflect.Int64:   Long,
-		reflect.Int8:    Byte,
-		reflect.Uint16:  Half,
+		reflect.Uint16:  Half, // TODO: add Bfloat16.
 		reflect.Float32: Float,
 		reflect.Float64: Double,
 	}
@@ -117,11 +121,20 @@ func flattenSlice(slc interface{}, kind reflect.Kind) unsafe.Pointer {
 	case reflect.Bool:
 		f := flattenSliceBool(nil, reflect.ValueOf(slc))
 		return unsafe.Pointer((*reflect.SliceHeader)(unsafe.Pointer(&f)).Data)
-	case reflect.Int64:
-		f := flattenSliceInt64(nil, reflect.ValueOf(slc))
+	case reflect.Uint8:
+		f := flattenSliceByte(nil, reflect.ValueOf(slc))
 		return unsafe.Pointer((*reflect.SliceHeader)(unsafe.Pointer(&f)).Data)
 	case reflect.Int8:
-		f := flattenSliceInt8(nil, reflect.ValueOf(slc))
+		f := flattenSliceChar(nil, reflect.ValueOf(slc))
+		return unsafe.Pointer((*reflect.SliceHeader)(unsafe.Pointer(&f)).Data)
+	case reflect.Int16:
+		f := flattenSliceShort(nil, reflect.ValueOf(slc))
+		return unsafe.Pointer((*reflect.SliceHeader)(unsafe.Pointer(&f)).Data)
+	case reflect.Int32:
+		f := flattenSliceInt(nil, reflect.ValueOf(slc))
+		return unsafe.Pointer((*reflect.SliceHeader)(unsafe.Pointer(&f)).Data)
+	case reflect.Int64:
+		f := flattenSliceLong(nil, reflect.ValueOf(slc))
 		return unsafe.Pointer((*reflect.SliceHeader)(unsafe.Pointer(&f)).Data)
 	case reflect.Uint16:
 		f := flattenSliceUint16(nil, reflect.ValueOf(slc))
@@ -136,10 +149,84 @@ func flattenSlice(slc interface{}, kind reflect.Kind) unsafe.Pointer {
 	return nil
 }
 
-func flattenSliceFloat32(args []float32, v reflect.Value) []float32 {
-	if v.Kind() == reflect.Interface {
-		v = v.Elem()
+func flattenSliceBool(args []bool, v reflect.Value) []bool {
+	if v.Kind() == reflect.Array || v.Kind() == reflect.Slice {
+		for i := 0; i < v.Len(); i++ {
+			args = flattenSliceBool(args, v.Index(i))
+		}
+	} else {
+		args = append(args, v.Bool())
 	}
+	return args
+}
+
+func flattenSliceByte(args []uint8, v reflect.Value) []uint8 {
+	if v.Kind() == reflect.Array || v.Kind() == reflect.Slice {
+		for i := 0; i < v.Len(); i++ {
+			args = flattenSliceByte(args, v.Index(i))
+		}
+	} else {
+		args = append(args, uint8(v.Uint()))
+	}
+	return args
+}
+
+func flattenSliceChar(args []int8, v reflect.Value) []int8 {
+	if v.Kind() == reflect.Array || v.Kind() == reflect.Slice {
+		for i := 0; i < v.Len(); i++ {
+			args = flattenSliceChar(args, v.Index(i))
+		}
+	} else {
+		args = append(args, int8(v.Int()))
+	}
+	return args
+}
+
+func flattenSliceShort(args []int16, v reflect.Value) []int16 {
+	if v.Kind() == reflect.Array || v.Kind() == reflect.Slice {
+		for i := 0; i < v.Len(); i++ {
+			args = flattenSliceShort(args, v.Index(i))
+		}
+	} else {
+		args = append(args, int16(v.Int()))
+	}
+	return args
+}
+
+func flattenSliceInt(args []int32, v reflect.Value) []int32 {
+	if v.Kind() == reflect.Array || v.Kind() == reflect.Slice {
+		for i := 0; i < v.Len(); i++ {
+			args = flattenSliceInt(args, v.Index(i))
+		}
+	} else {
+		args = append(args, int32(v.Int()))
+	}
+	return args
+}
+
+func flattenSliceLong(args []int64, v reflect.Value) []int64 {
+	if v.Kind() == reflect.Array || v.Kind() == reflect.Slice {
+		for i := 0; i < v.Len(); i++ {
+			args = flattenSliceLong(args, v.Index(i))
+		}
+	} else {
+		args = append(args, v.Int())
+	}
+	return args
+}
+
+func flattenSliceUint16(args []uint16, v reflect.Value) []uint16 {
+	if v.Kind() == reflect.Array || v.Kind() == reflect.Slice {
+		for i := 0; i < v.Len(); i++ {
+			args = flattenSliceUint16(args, v.Index(i))
+		}
+	} else {
+		args = append(args, uint16(v.Uint()))
+	}
+	return args
+}
+
+func flattenSliceFloat32(args []float32, v reflect.Value) []float32 {
 	if v.Kind() == reflect.Array || v.Kind() == reflect.Slice {
 		for i := 0; i < v.Len(); i++ {
 			args = flattenSliceFloat32(args, v.Index(i))
@@ -151,71 +238,12 @@ func flattenSliceFloat32(args []float32, v reflect.Value) []float32 {
 }
 
 func flattenSliceFloat64(args []float64, v reflect.Value) []float64 {
-	if v.Kind() == reflect.Interface {
-		v = v.Elem()
-	}
 	if v.Kind() == reflect.Array || v.Kind() == reflect.Slice {
 		for i := 0; i < v.Len(); i++ {
 			args = flattenSliceFloat64(args, v.Index(i))
 		}
 	} else {
 		args = append(args, v.Float())
-	}
-	return args
-}
-
-func flattenSliceUint16(args []uint16, v reflect.Value) []uint16 {
-	if v.Kind() == reflect.Interface {
-		v = v.Elem()
-	}
-	if v.Kind() == reflect.Array || v.Kind() == reflect.Slice {
-		for i := 0; i < v.Len(); i++ {
-			args = flattenSliceUint16(args, v.Index(i))
-		}
-	} else {
-		args = append(args, uint16(v.Uint()))
-	}
-	return args
-}
-
-func flattenSliceBool(args []bool, v reflect.Value) []bool {
-	if v.Kind() == reflect.Interface {
-		v = v.Elem()
-	}
-	if v.Kind() == reflect.Array || v.Kind() == reflect.Slice {
-		for i := 0; i < v.Len(); i++ {
-			args = flattenSliceBool(args, v.Index(i))
-		}
-	} else {
-		args = append(args, v.Bool())
-	}
-	return args
-}
-
-func flattenSliceInt64(args []int, v reflect.Value) []int {
-	if v.Kind() == reflect.Interface {
-		v = v.Elem()
-	}
-	if v.Kind() == reflect.Array || v.Kind() == reflect.Slice {
-		for i := 0; i < v.Len(); i++ {
-			args = flattenSliceInt64(args, v.Index(i))
-		}
-	} else {
-		args = append(args, int(v.Int()))
-	}
-	return args
-}
-
-func flattenSliceInt8(args []int8, v reflect.Value) []int8 {
-	if v.Kind() == reflect.Interface {
-		v = v.Elem()
-	}
-	if v.Kind() == reflect.Array || v.Kind() == reflect.Slice {
-		for i := 0; i < v.Len(); i++ {
-			args = flattenSliceInt8(args, v.Index(i))
-		}
-	} else {
-		args = append(args, int8(v.Int()))
 	}
 	return args
 }
