@@ -49,14 +49,14 @@ func (n *myNetWithBuffer) Forward(x torch.Tensor) torch.Tensor {
 	return x
 }
 
-type hierarchyNet struct {
+type hierarchicalNet struct {
 	Module
 	L1 *myNet
 	L2 *LinearModule
 }
 
-func newHierarchyNet() *hierarchyNet {
-	n := &hierarchyNet{
+func newHierarchicalNet() *hierarchicalNet {
+	n := &hierarchicalNet{
 		L1: newMyNet(),
 		L2: Linear(200, 10, false),
 	}
@@ -65,7 +65,7 @@ func newHierarchyNet() *hierarchyNet {
 }
 
 // Forward executes the calculation
-func (n *hierarchyNet) Forward(x torch.Tensor) torch.Tensor {
+func (n *hierarchicalNet) Forward(x torch.Tensor) torch.Tensor {
 	x = n.L1.Forward(x)
 	x = n.L2.Forward(x)
 	return x
@@ -108,12 +108,12 @@ func TestModule(t *testing.T) {
 	assert.Equal(t, 1, len(namedParams2))
 	assert.Contains(t, namedParams2, "myNetWithBuffer.L1.Weight")
 
-	hn := newHierarchyNet()
+	hn := newHierarchicalNet()
 	hnNamedParams := hn.NamedParameters()
 	assert.Equal(t, 3, len(hnNamedParams))
-	assert.Contains(t, hnNamedParams, "hierarchyNet.L1.L1.Weight")
-	assert.Contains(t, hnNamedParams, "hierarchyNet.L1.L2.Weight")
-	assert.Contains(t, hnNamedParams, "hierarchyNet.L2.Weight")
+	assert.Contains(t, hnNamedParams, "hierarchicalNet.L1.L1.Weight")
+	assert.Contains(t, hnNamedParams, "hierarchicalNet.L1.L2.Weight")
+	assert.Contains(t, hnNamedParams, "hierarchicalNet.L2.Weight")
 }
 
 func TestModuleTrain(t *testing.T) {
@@ -123,7 +123,7 @@ func TestModuleTrain(t *testing.T) {
 	assert.False(t, n.L1.IsTraining())
 	assert.False(t, n.L2.IsTraining())
 
-	hn := newHierarchyNet()
+	hn := newHierarchicalNet()
 	hn.Train(false)
 	assert.False(t, hn.IsTraining())
 	assert.False(t, hn.L2.IsTraining())
