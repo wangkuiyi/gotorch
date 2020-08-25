@@ -9,13 +9,6 @@ import (
 	"github.com/wangkuiyi/gotorch/nn/initializer"
 )
 
-func ExampleTensor() {
-	t := torch.RandN([]int64{10, 100}, false)
-	t.Close()
-	t.Close()
-	// Output:
-}
-
 func TestTensorDetach(t *testing.T) {
 	x := torch.RandN([]int64{1}, true)
 	y := x.Detach()
