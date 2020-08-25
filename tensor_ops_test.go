@@ -166,3 +166,11 @@ func TestExpandAs(t *testing.T) {
 [ CPUByteType{2,2} ]`
 	assert.Equal(t, g, c.String())
 }
+
+// >>> torch.eq(torch.tensor([[1, 2], [3, 4]]), torch.tensor([[1, 1], [4, 4]]))
+// tensor([[ True, False],
+//         [False, True]])
+func TestEq(t *testing.T) {
+	a := torch.NewTensor([][]int{{1, 2}, {3, 4}})
+	t.Log(a.String())
+}
