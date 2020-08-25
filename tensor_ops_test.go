@@ -76,9 +76,9 @@ func TestIndexSelect(t *testing.T) {
 }
 
 func TestItem(t *testing.T) {
-	x := torch.NewTensor([]int64{1})
+	x := torch.NewTensor([]float32{1})
 	y := x.Item()
-	assert.Equal(t, int64(1), y)
+	assert.Equal(t, float32(1), y)
 }
 
 // >>> torch.nn.functional.leaky_relu(torch.tensor([[-0.5, -1.], [1., 0.5]]))
