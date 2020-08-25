@@ -65,3 +65,9 @@ func TestDim(t *testing.T) {
 	a := torch.RandN([]int64{2, 3}, false)
 	assert.Equal(t, int64(2), a.Dim())
 }
+
+func TestShape(t *testing.T) {
+	a := torch.RandN([]int64{2, 3}, false)
+	assert.Equal(t, int64(2), a.Shape()[0])
+	assert.Equal(t, int64(3), a.Shape()[1])
+}
