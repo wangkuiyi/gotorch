@@ -151,3 +151,18 @@ func TestTopK(t *testing.T) {
 	assert.Equal(t, gr, r.String())
 	assert.Equal(t, gi, i.String())
 }
+
+// >>> s = torch.tensor([1,2])
+// >>> t = torch.tensor([[1,2],[3,4]])
+// >>> s.expand_as(t)
+// tensor([[1, 2],
+//         [1, 2]])
+func TestExpandAs(t *testing.T) {
+	a := torch.NewTensor([]int8{'a', 'b'})
+	b := torch.NewTensor([][]int8{{1, 2}, {3, 4}})
+	c := torch.ExpandAs(a, b)
+	g := ` 97  98
+ 97  98
+[ CPUByteType{2,2} ]`
+	assert.Equal(t, g, c.String())
+}
