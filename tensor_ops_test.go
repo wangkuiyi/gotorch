@@ -74,7 +74,7 @@ func TestSigmoid(t *testing.T) {
 // >>> torch.mean(torch.tensor([[-0.5, -1.], [1., 0.5]]))
 // tensor(0.)
 func TestMean(t *testing.T) {
-	r := torch.NewTensor([][]float32{{-0.5, -1}, {1, 0.5}}).Mean()
+	r := torch.Mean(torch.NewTensor([][]float32{{-0.5, -1}, {1, 0.5}}))
 	// BUG: The result should be 0.
 	g := `0
 [ CPUFloatType{} ]`
