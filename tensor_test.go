@@ -60,3 +60,8 @@ func TestCastTo(t *testing.T) {
 	b := a.CastTo(torch.Float)
 	assert.Equal(t, torch.Float, b.Dtype())
 }
+
+func TestDim(t *testing.T) {
+	a := torch.RandN([]int64{2, 3}, false)
+	assert.Equal(t, int64(2), a.Dim())
+}
