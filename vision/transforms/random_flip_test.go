@@ -13,13 +13,10 @@ func TestRandomFlip(t *testing.T) {
 	width := i.Bounds().Max.X
 
 	trans := RandomFlip()
-	_, err := trans.Run(100)
-	a.Error(err)
 
 	// Run 10 times to cover random cases
 	for j := 0; j < 10; j++ {
-		o, err := trans.Run(i)
-		a.NoError(err)
+		o := trans.Run(i)
 		outImage := o.(*image.NRGBA)
 		inImage := i.(*image.NRGBA)
 		a.True(inImage.At(0, 0) == outImage.At(0, 0) || inImage.At(0, 0) == outImage.At(width-1, 0))
