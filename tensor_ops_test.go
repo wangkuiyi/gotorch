@@ -107,3 +107,28 @@ func TestAdd(t *testing.T) {
 [ CPUFloatType{2,2} ]`
 	assert.Equal(t, g, q.String())
 }
+
+// >>> torch.transpose(torch.tensor([[-0.5, -1.], [1., 0.5]]), 0, 1)
+// tensor([[-0.5000,  1.0000],
+//         [-1.0000,  0.5000]])
+func TestTranspose(t *testing.T) {
+	r := torch.Transpose(torch.NewTensor([][]float32{{-0.5, -1}, {1, 0.5}}),
+		0, 1)
+	g := `-0.5000  1.0000
+-1.0000  0.5000
+[ CPUFloatType{2,2} ]`
+	assert.Equal(t, g, r.String())
+}
+
+// >>> torch.flatten(torch.tensor([[-0.5, -1.], [1., 0.5]]), 0, 1)
+// tensor([-0.5000, -1.0000,  1.0000,  0.5000])
+func TestFlatten(t *testing.T) {
+	r := torch.Flatten(torch.NewTensor([][]float32{{-0.5, -1}, {1, 0.5}}),
+		0, 1)
+	g := `-0.5000
+-1.0000
+ 1.0000
+ 0.5000
+[ CPUFloatType{4} ]`
+	assert.Equal(t, g, r.String())
+}
