@@ -111,6 +111,8 @@ func TestModule(t *testing.T) {
 	namedParams2 := n2.NamedParameters()
 	assert.Equal(t, 1, len(namedParams2))
 	assert.Contains(t, namedParams2, "myNetWithBuffer.L1.Weight")
+	assert.Equal(t, 1, len(n2.Parameters()))
+	assert.Equal(t, 1, len(n2.Buffers()))
 
 	hn := newHierarchicalNet()
 	hnNamedParams := hn.NamedParameters()
@@ -119,6 +121,8 @@ func TestModule(t *testing.T) {
 	assert.Contains(t, hnNamedParams, "hierarchicalNet.L1.L2.Weight")
 	assert.Contains(t, hnNamedParams, "hierarchicalNet.L2[0].Weight")
 	assert.Contains(t, hnNamedParams, "hierarchicalNet.L2[1].Weight")
+	assert.Equal(t, 4, len(hn.Parameters()))
+	assert.Equal(t, 0, len(hn.Buffers()))
 }
 
 func TestModuleTrain(t *testing.T) {
