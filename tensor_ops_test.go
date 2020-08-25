@@ -7,15 +7,6 @@ import (
 	torch "github.com/wangkuiyi/gotorch"
 )
 
-func TestLogSoftmax(t *testing.T) {
-	a := assert.New(t)
-	x := torch.RandN([]int64{1, 6}, false)
-	out := x.LogSoftmax(1)
-	// TODO(yancey1989): convert torchTensor as Go slice, that we can
-	// check the value.
-	a.NotNil(out.T)
-}
-
 func TestSqueeze(t *testing.T) {
 	x := torch.RandN([]int64{2, 1, 2, 1, 2}, false)
 	y := torch.Squeeze(x)
@@ -81,9 +72,23 @@ func TestSigmoid(t *testing.T) {
 }
 
 // >>> torch.mean(torch.tensor([[-0.5, -1.], [1., 0.5]]))
+// tensor(0.)
 func TestMean(t *testing.T) {
 	r := torch.Sigmoid(torch.NewTensor([][]float32{{-0.5, -1}, {1, 0.5}})).Mean()
+	// BUG: The result should be 0.
 	g := `0.5
 [ CPUFloatType{} ]`
+	assert.Equal(t, g, r.String())
+}
+
+// >>> torch.nn.functional.log_softmax(torch.tensor([[-0.5, -1.], [1., 0.5]]), dim=1)
+// tensor([[-0.4741, -0.9741],
+//         [-0.4741, -0.9741]])
+func TestLogSoftmax(t *testing.T) {
+	r := torch.LogSoftmax(torch.NewTensor([][]float32{{-0.5, -1}, {1, 0.5}}),
+		1)
+	g := `-0.4741 -0.9741
+-0.4741 -0.9741
+[ CPUFloatType{2,2} ]`
 	assert.Equal(t, g, r.String())
 }
