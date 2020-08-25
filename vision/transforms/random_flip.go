@@ -1,7 +1,6 @@
 package transforms
 
 import (
-	"fmt"
 	"image"
 	"math/rand"
 	"time"
@@ -19,14 +18,10 @@ func RandomFlip() *RandomFlipTransformer {
 }
 
 // Run execute the random flip function and returns the flipped image object.
-func (t *RandomFlipTransformer) Run(input interface{}) (interface{}, error) {
-	i, ok := input.(image.Image)
-	if !ok {
-		return nil, fmt.Errorf("input should be image.Image type")
-	}
+func (t *RandomFlipTransformer) Run(input image.Image) image.Image {
 	rand.Seed(time.Now().UnixNano())
 	if rand.Float32() >= 0.5 {
-		return imaging.FlipH(i), nil
+		return imaging.FlipH(input)
 	}
-	return i, nil
+	return input
 }

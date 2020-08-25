@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 
 	torch "github.com/wangkuiyi/gotorch"
 	nn "github.com/wangkuiyi/gotorch/nn"
@@ -10,6 +11,8 @@ import (
 	"github.com/wangkuiyi/gotorch/vision/datasets"
 	"github.com/wangkuiyi/gotorch/vision/transforms"
 )
+
+var device torch.Device
 
 func generator(nz int64) *nn.SequentialModule {
 	return nn.Sequential(
@@ -43,6 +46,14 @@ func discriminator() *nn.SequentialModule {
 }
 
 func main() {
+	if torch.IsCUDAAvailable() {
+		log.Println("CUDA is valid")
+		device = torch.NewDevice("cuda")
+	} else {
+		log.Println("No CUDA found; CPU only")
+		device = torch.NewDevice("cpu")
+	}
+
 	mnist := datasets.MNIST("",
 		[]transforms.Transform{transforms.Normalize(0.5, 0.5)})
 
@@ -50,7 +61,9 @@ func main() {
 	lr := 0.0002
 
 	netG := generator(nz)
+	netG.To(device)
 	netD := discriminator()
+	netD.To(device)
 
 	optimizerD := torch.Adam(lr, 0.5, 0.5, 0.0)
 	optimizerD.AddParameters(netD.Parameters())
@@ -59,7 +72,7 @@ func main() {
 	optimizerG.AddParameters(netG.Parameters())
 
 	epochs := 30
-	checkpointStep := 200
+	checkpointStep := 1000
 	checkpointCount := 1
 	batchSize := int64(64)
 	i := 0
@@ -68,16 +81,18 @@ func main() {
 		for trainLoader.Scan() {
 			// (1) update D network
 			// train with real
-			batch := trainLoader.Batch()
 			optimizerD.ZeroGrad()
-			label := torch.Empty([]int64{batch.Data.Shape()[0]}, false)
+
+			batch := trainLoader.Batch()
+			data := batch.Data.CopyTo(device)
+			label := torch.Empty([]int64{batch.Data.Shape()[0]}, false).CopyTo(device)
 			initializer.Uniform(&label, 0.8, 1.0)
-			output := netD.Forward(batch.Data).(torch.Tensor).View([]int64{-1, 1}).Squeeze(1)
+			output := netD.Forward(data).(torch.Tensor).View([]int64{-1, 1}).Squeeze(1)
 			errDReal := F.BinaryCrossEntropy(output, label, torch.Tensor{}, "mean")
 			errDReal.Backward()
 
 			// train with fake
-			noise := torch.RandN([]int64{batch.Data.Shape()[0], nz, 1, 1}, false)
+			noise := torch.RandN([]int64{batch.Data.Shape()[0], nz, 1, 1}, false).CopyTo(device)
 			fake := netG.Forward(noise).(torch.Tensor)
 			initializer.Zeros(&label)
 			output = netD.Forward(fake.Detach()).(torch.Tensor).View([]int64{-1, 1}).Squeeze(1)
@@ -97,7 +112,7 @@ func main() {
 			fmt.Printf("[%d/%d][%d] D_Loss: %f G_Loss: %f\n",
 				epoch, epochs, i, errD, errG.Item())
 			if i%checkpointStep == 0 {
-				samples := netG.Forward(torch.RandN([]int64{10, nz, 1, 1}, false)).(torch.Tensor)
+				samples := netG.Forward(torch.RandN([]int64{10, nz, 1, 1}, false).CopyTo(device)).(torch.Tensor)
 				ckName := fmt.Sprintf("dcgan-sample-%d.pt", checkpointCount)
 				samples.Detach().Save(ckName)
 				checkpointCount++
