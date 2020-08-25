@@ -61,6 +61,13 @@ func TestCastTo(t *testing.T) {
 	assert.Equal(t, torch.Float, b.Dtype())
 }
 
+func TestCopyTo(t *testing.T) {
+	device := torch.NewDevice("cpu")
+	a := torch.NewTensor([]int64{1, 2})
+	b := a.CopyTo(device)
+	assert.True(t, torch.Equal(a, b))
+}
+
 func TestDim(t *testing.T) {
 	a := torch.RandN([]int64{2, 3}, false)
 	assert.Equal(t, int64(2), a.Dim())
