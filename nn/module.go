@@ -21,8 +21,9 @@ type IModule interface {
 	// ZeroGrad corresponds to torch.nn.Module.zero_grad(). It recursively
 	// zeros out the `grad` value of each registered parameter.
 	ZeroGrad()
+	// TODO(shendiaomo): Implement this.
 	// String is for printing modules prettily.
-	String() string
+	// String() string
 }
 
 // Module contains default implementation of `Module`s
@@ -186,11 +187,11 @@ func (m *Module) ZeroGrad() {
 	}
 }
 
+// TODO(shendiaomo): to be implemented
 // String is for printing modules prettily
-func (m *Module) String() string {
-	// TODO(shendiaomo): to be implemented
-	return m.name
-}
+// func (m *Module) String() string {
+// 	return m.name
+// }
 
 // NamedParameters returns trainable parameters (recursively) with their names
 func (m *Module) NamedParameters() map[string]torch.Tensor {
