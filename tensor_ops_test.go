@@ -22,7 +22,7 @@ func TestTensorMean(t *testing.T) {
 	assert.NotNil(t, z)
 }
 
-func TestAdd(t *testing.T) {
+func TestAddI(t *testing.T) {
 	x := torch.RandN([]int64{2, 3}, false)
 	y := torch.RandN([]int64{2, 3}, false)
 	z := torch.Add(x, y, 1)
@@ -91,4 +91,19 @@ func TestLogSoftmax(t *testing.T) {
 -0.4741 -0.9741
 [ CPUFloatType{2,2} ]`
 	assert.Equal(t, g, r.String())
+}
+
+// >>> t = torch.tensor([[-0.5, -1.], [1., 0.5]])
+// >>> s = torch.tensor([[-0.5, -1.], [1., 0.5]])
+// >>> t+s
+// tensor([[-1., -2.],
+//         [ 2.,  1.]])
+func TestAdd(t *testing.T) {
+	r := torch.NewTensor([][]float32{{-0.5, -1}, {1, 0.5}})
+	s := torch.NewTensor([][]float32{{-0.5, -1}, {1, 0.5}})
+	q := r.Add(s, 1)
+	g := `-1 -2
+ 2  1
+[ CPUFloatType{2,2} ]`
+	assert.Equal(t, g, q.String())
 }
