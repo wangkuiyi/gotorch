@@ -74,3 +74,42 @@ func TestNewTensor(t *testing.T) {
 		})
 	}
 }
+
+func TestFlattenSlice(t *testing.T) {
+	{
+		d := [][]float32{{1, 2, 3}, {4, 5, 6}}
+		f := flattenSliceFloat32(nil, reflect.ValueOf(d))
+		assert.Equal(t, 6, len(f))
+		assert.Equal(t, []float32{1, 2, 3, 4, 5, 6}, f)
+	}
+	{
+		d := [][]float64{{1, 2}, {3, 4}, {5, 6}}
+		f := flattenSliceFloat64(nil, reflect.ValueOf(d))
+		assert.Equal(t, 6, len(f))
+		assert.Equal(t, []float64{1, 2, 3, 4, 5, 6}, f)
+	}
+	{
+		d := [][]bool{{true, false}, {false, true}}
+		f := flattenSliceBool(nil, reflect.ValueOf(d))
+		assert.Equal(t, 4, len(f))
+		assert.Equal(t, []bool{true, false, false, true}, f)
+	}
+	{
+		d := []int{1, 2}
+		f := flattenSliceInt(nil, reflect.ValueOf(d))
+		assert.Equal(t, 2, len(f))
+		assert.Equal(t, []int{1, 2}, f)
+	}
+	{
+		d := [][]uint16{{1, 2}, {3, 4}}
+		f := flattenSliceUint16(nil, reflect.ValueOf(d))
+		assert.Equal(t, 4, len(f))
+		assert.Equal(t, []uint16{1, 2, 3, 4}, f)
+	}
+	{
+		d := [][]int8{{1, 2, 3}, {4, 5, 6}}
+		f := flattenSliceInt8(nil, reflect.ValueOf(d))
+		assert.Equal(t, 6, len(f))
+		assert.Equal(t, []int8{1, 2, 3, 4, 5, 6}, f)
+	}
+}
