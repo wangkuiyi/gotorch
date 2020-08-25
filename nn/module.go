@@ -10,15 +10,18 @@ import (
 
 // IModule is the interface of `Module`s
 type IModule interface {
-	// Train enables "training" mode
+	// Train corresponds to torch.nn.Module.train(bool). It effects only
+	// certain modules like Dropout and BatchNorm.
 	Train(on bool)
 	// IsTraining returns true if the module is in training mode
 	IsTraining() bool
-	// To recursively casts all parameters to the given `dtype` and `device`.
+	// To corresponds to torch.nn.Module.to().  It recursively casts all
+	// parameters to the given `dtype` and `device`.
 	To(device torch.Device)
-	// ZeroGrad recursively zeros out the `grad` value of each registered parameter.
+	// ZeroGrad corresponds to torch.nn.Module.zero_grad(). It recursively
+	// zeros out the `grad` value of each registered parameter.
 	ZeroGrad()
-	// String is for printing modules prettily
+	// String is for printing modules prettily.
 	String() string
 }
 
