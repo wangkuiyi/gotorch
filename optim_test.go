@@ -4,18 +4,21 @@ import (
 	"fmt"
 
 	torch "github.com/wangkuiyi/gotorch"
+	nn "github.com/wangkuiyi/gotorch/nn"
 )
 
 type myNet struct {
-	L1, L2 torch.Module
+	nn.Module
+	L1, L2 *nn.LinearModule
 }
 
 // MyNet returns a MyNet instance
-func MyNet() torch.Module {
+func newMyNet() *myNet {
 	n := &myNet{
-		L1: torch.Linear(100, 200, false),
-		L2: torch.Linear(200, 10, false),
+		L1: nn.Linear(100, 200, false),
+		L2: nn.Linear(200, 10, false),
 	}
+	n.Init(n)
 	return n
 }
 
@@ -27,16 +30,16 @@ func (n *myNet) Forward(x torch.Tensor) torch.Tensor {
 }
 
 func ExampleSGD() {
-	net := MyNet()
-	np := torch.GetNamedParameters(net)
+	net := newMyNet()
+	np := net.NamedParameters()
 	fmt.Println(len(np))
 
 	opt := torch.SGD(0.1, 0, 0, 0, false)
-	opt.AddParameters(torch.GetParameters(net))
+	opt.AddParameters(net.Parameters())
 
 	for i := 0; i < 100; i++ {
 		torch.GC()
-		data := torch.RandN([]int{32, 100}, false)
+		data := torch.RandN([]int64{32, 100}, false)
 		pre := net.Forward(data)
 		loss := torch.Sum(pre)
 
@@ -46,8 +49,6 @@ func ExampleSGD() {
 	}
 	torch.FinishGC()
 	opt.Close()
-	torch.CloseModule(net)
-
 	// Output:
 	// 2
 }

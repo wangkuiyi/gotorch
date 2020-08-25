@@ -6,7 +6,6 @@ package gotorch
 // #include "cgotorch.h"
 import "C"
 import (
-	"reflect"
 	"runtime"
 	"unsafe"
 )
@@ -37,12 +36,12 @@ func Adam(lr, beta1, beta2, weightDecay float64) Optimizer {
 
 // AddParameters adds parameters
 func (opt Optimizer) AddParameters(tensors []Tensor) {
-	CT := []unsafe.Pointer{}
+	CT := []C.Tensor{}
 	for _, t := range tensors {
-		CT = append(CT, unsafe.Pointer(*t.T))
+		CT = append(CT, C.Tensor(*t.T))
 	}
-	p := (*reflect.SliceHeader)(unsafe.Pointer(&CT)).Data
-	C.Optimizer_AddParameters(*opt.Opt, (*C.Tensor)(unsafe.Pointer(p)), C.int64_t(len(CT)))
+	p := (*C.Tensor)(unsafe.Pointer(&CT[0]))
+	C.Optimizer_AddParameters(*opt.Opt, p, C.int64_t(len(CT)))
 }
 
 // ZeroGrad reset gradients to zero
@@ -53,6 +52,11 @@ func (opt Optimizer) ZeroGrad() {
 // Step updates parameters
 func (opt Optimizer) Step() {
 	C.Optimizer_Step(*opt.Opt)
+}
+
+// SetLR sets learning rate
+func (opt Optimizer) SetLR(lr float64) {
+	C.Optimizer_SetLR(*opt.Opt, C.double(lr))
 }
 
 // Close the optimizer

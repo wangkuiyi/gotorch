@@ -6,3 +6,7 @@ libcgotorch.so
 .vscode
 data
 *.test
+.DS_store
+*.png
+*.pt
+trace.out

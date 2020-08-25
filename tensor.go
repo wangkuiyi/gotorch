@@ -7,113 +7,34 @@ package gotorch
 import "C"
 
 import (
-	"runtime"
-	"sync"
 	"unsafe"
 )
 
-var (
-	tensorFinalizersWG = &sync.WaitGroup{}
-	gcPrepared         = false
-)
-
-func setTensorFinalizer(t *C.Tensor) {
-	// We don't want the following conditional and the finalizer using
-	// different gcPrepared values, so we leverage p and closure here.
-	p := gcPrepared
-	if p {
-		tensorFinalizersWG.Add(1)
-	}
-	runtime.SetFinalizer(t, func(t *C.Tensor) {
-		go func() {
-			C.Tensor_Close(*t)
-			if p {
-				tensorFinalizersWG.Done()
-			}
-		}()
-	})
+// Tensor wrappers a pointer to C.Tensor
+type Tensor struct {
+	T *unsafe.Pointer
 }
 
-// FinishGC should be called right after a train/predict loop
-func FinishGC() {
-	GC()
-	gcPrepared = false
-}
-
-// GC should be called at the beginning inside a train/predict loop
-func GC() {
-	runtime.GC()
-	if !gcPrepared {
-		gcPrepared = true
-		return
-	}
-	tensorFinalizersWG.Wait()
-}
-
-func mustNil(err *C.char) {
+// MustNil asserts error to be nil
+func MustNil(err unsafe.Pointer) {
 	if err != nil {
-		msg := C.GoString(err)
-		C.FreeString(err)
+		msg := C.GoString((*C.char)(err))
+		C.FreeString((*C.char)(err))
 		panic(msg)
 	}
 }
 
-// Tensor wrappers a pointer to C.Tensor
-type Tensor struct {
-	T *C.Tensor
-}
-
-// RandN returns a tensor filled with standard normal distribution, torch.randn
-func RandN(shape []int, requireGrad bool) Tensor {
-	rg := 0
-	if requireGrad {
-		rg = 1
-	}
+// Detach tensor.detach
+func (a *Tensor) Detach() Tensor {
 	var t C.Tensor
-	mustNil(C.RandN((*C.int64_t)(unsafe.Pointer(&shape[0])), C.int64_t(len(shape)), C.int64_t(rg), &t))
-	setTensorFinalizer(&t)
-	return Tensor{&t}
-}
-
-// Empty returns a tensor filled with random number, torch.empty
-func Empty(shape []int, requireGrad bool) Tensor {
-	rg := 0
-	if requireGrad {
-		rg = 1
-	}
-	var t C.Tensor
-	mustNil(C.Empty((*C.int64_t)(unsafe.Pointer(&shape[0])), C.int64_t(len(shape)), C.int64_t(rg), &t))
-	setTensorFinalizer(&t)
-	return Tensor{&t}
-}
-
-// Zeros initialization, torch.nn.init.zeros_
-func Zeros(a Tensor) Tensor {
-	var t C.Tensor
-	mustNil(C.Zeros_(*a.T, &t))
-	setTensorFinalizer(&t)
-	return Tensor{&t}
-}
-
-// Uniform initialization, torch.nn.init.uniform_
-func Uniform(a Tensor) Tensor {
-	var t C.Tensor
-	mustNil(C.Uniform_(*a.T, &t))
-	setTensorFinalizer(&t)
-	return Tensor{&t}
-}
-
-// KaimingUniform initialization, torch.nn.init.kaiming_uniform_
-func KaimingUniform(input Tensor, a float64, fanMode string, nonLinearity string) Tensor {
-	var t C.Tensor
-	mustNil(C.KaimingUniform_(*input.T, C.double(a), C.CString(fanMode), C.CString(nonLinearity), &t))
-	setTensorFinalizer(&t)
-	return Tensor{&t}
+	MustNil(unsafe.Pointer(C.Tensor_Detach(C.Tensor(*a.T), &t)))
+	SetTensorFinalizer((*unsafe.Pointer)(&t))
+	return Tensor{(*unsafe.Pointer)(&t)}
 }
 
 // String returns the Tensor as a string
 func (a Tensor) String() string {
-	s := C.Tensor_String(*a.T)
+	s := C.Tensor_String(C.Tensor(*a.T))
 	r := C.GoString(s)
 	C.FreeString(s)
 	return r
@@ -121,133 +42,96 @@ func (a Tensor) String() string {
 
 // Print the tensor
 func (a Tensor) Print() {
-	C.Tensor_Print(*a.T)
+	C.Tensor_Print(C.Tensor(*a.T))
 }
 
 // Close the tensor
 func (a *Tensor) Close() {
 	if a.T != nil {
-		C.Tensor_Close(*a.T)
+		C.Tensor_Close(C.Tensor(*a.T))
 		a.T = nil
 	}
 }
 
-// Relu returns relu of the tensor
-func (a *Tensor) Relu() Tensor {
-	var t C.Tensor
-	mustNil(C.Relu(*a.T, &t))
-	setTensorFinalizer(&t)
-	return Tensor{&t}
+// Save the tensor to a file
+func (a Tensor) Save(path string) {
+	C.Tensor_Save(C.Tensor(*a.T), C.CString(path))
 }
 
-// LeakyRelu returns leaky relu of the tensor according to negativeSlope
-func (a *Tensor) LeakyRelu(negativeSlope float64) Tensor {
-	var t C.Tensor
-	mustNil(C.LeakyRelu(*a.T, C.double(negativeSlope), &t))
-	setTensorFinalizer(&t)
-	return Tensor{&t}
+// Dim returns dim
+func (a Tensor) Dim() int64 {
+	var dim int64
+	MustNil(unsafe.Pointer(C.Tensor_Dim(C.Tensor(*a.T), (*C.int64_t)(&dim))))
+	return dim
 }
 
-// Tanh returns tanh of the current tensor
-func (a Tensor) Tanh() Tensor {
-	var t C.Tensor
-	mustNil(C.Tanh(*a.T, &t))
-	setTensorFinalizer(&t)
-	return Tensor{&t}
+// Shape returns shape
+func (a Tensor) Shape() []int64 {
+	shape := make([]int64, a.Dim())
+	MustNil(unsafe.Pointer(C.Tensor_Shape(C.Tensor(*a.T), (*C.int64_t)(unsafe.Pointer(&shape[0])))))
+	return shape
 }
 
-// Sigmoid returns sigmoid of the current tensor
-func (a Tensor) Sigmoid() Tensor {
-	var t C.Tensor
-	mustNil(C.Sigmoid(*a.T, &t))
-	setTensorFinalizer(&t)
-	return Tensor{&t}
+// Dtype returns data type
+func (a Tensor) Dtype() int8 {
+	var t int8
+	MustNil(unsafe.Pointer(C.Tensor_Dtype(C.Tensor(*a.T), (*C.int8_t)(unsafe.Pointer(&t)))))
+	return t
 }
 
 // Backward compute the gradient of current tensor
 func (a Tensor) Backward() {
-	C.Tensor_Backward(*a.T)
+	C.Tensor_Backward(C.Tensor(*a.T))
 }
 
 // Grad returns a reference of the gradient
 func (a Tensor) Grad() Tensor {
-	t := C.Tensor_Grad(*a.T)
-	setTensorFinalizer(&t)
-	return Tensor{&t}
+	t := C.Tensor_Grad(C.Tensor(*a.T))
+	SetTensorFinalizer((*unsafe.Pointer)(&t))
+	return Tensor{(*unsafe.Pointer)(&t)}
 }
 
-// MM multiplies each element of the input two tensors
-func MM(a, b Tensor) Tensor {
+// To returns a Tensor on the specified device with the same content as the a.
+// If the specified device doesn't exist, To panics.
+func (a Tensor) To(device Device, dtype int8) Tensor {
 	var t C.Tensor
-	mustNil(C.MM(*a.T, *b.T, &t))
-	setTensorFinalizer(&t)
-	return Tensor{&t}
+	MustNil(unsafe.Pointer(C.Tensor_To(C.Tensor(*a.T), device.T, C.int8_t(dtype), &t)))
+	SetTensorFinalizer((*unsafe.Pointer)(&t))
+	return Tensor{(*unsafe.Pointer)(&t)}
 }
 
-// LeakyRelu returns leaky relu of the tensor according to negativeSlope
-func LeakyRelu(t Tensor, negativeSlope float64) Tensor {
-	return t.LeakyRelu(negativeSlope)
-}
-
-// Relu returns relu of the tensor
-func Relu(t Tensor) Tensor {
-	return t.Relu()
-}
-
-// Tanh returns tanh of the current tensor
-func Tanh(t Tensor) Tensor {
-	return t.Tanh()
-}
-
-// Sigmoid returns sigmoid of the current tensor
-func Sigmoid(t Tensor) Tensor {
-	return t.Sigmoid()
-}
-
-// Sum returns the sum of all elements in the input tensor
-func Sum(a Tensor) Tensor {
+// CastTo cast tensor dtype
+func (a Tensor) CastTo(dtype int8) Tensor {
 	var t C.Tensor
-	mustNil(C.Sum(*a.T, &t))
-	setTensorFinalizer(&t)
-	return Tensor{&t}
+	MustNil(unsafe.Pointer(C.Tensor_CastTo(C.Tensor(*a.T), C.int8_t(dtype), &t)))
+	SetTensorFinalizer((*unsafe.Pointer)(&t))
+	return Tensor{(*unsafe.Pointer)(&t)}
 }
 
-// Conv2d does 2d-convolution
-func Conv2d(input Tensor, weight Tensor, bias Tensor, stride []int,
-	padding []int, dilation []int, groups int) Tensor {
+// CopyTo cast tensor dtype
+func (a Tensor) CopyTo(device Device) Tensor {
 	var t C.Tensor
-	if bias.T == nil {
-		mustNil(
-			C.Conv2d(
-				*input.T,
-				*weight.T,
-				nil,
-				(*C.int64_t)(unsafe.Pointer(&stride[0])),
-				C.int64_t(len(stride)),
-				(*C.int64_t)(unsafe.Pointer(&padding[0])),
-				C.int64_t(len(padding)),
-				(*C.int64_t)(unsafe.Pointer(&dilation[0])),
-				C.int64_t(len(dilation)),
-				C.int64_t(groups),
-				&t))
-		setTensorFinalizer(&t)
-		return Tensor{&t}
-	}
-	mustNil(
-		C.Conv2d(
-			*input.T,
-			*weight.T,
-			*bias.T,
-			(*C.int64_t)(unsafe.Pointer(&stride[0])),
-			C.int64_t(len(stride)),
-			(*C.int64_t)(unsafe.Pointer(&padding[0])),
-			C.int64_t(len(padding)),
-			(*C.int64_t)(unsafe.Pointer(&dilation[0])),
-			C.int64_t(len(dilation)),
-			C.int64_t(groups),
-			&t))
-	setTensorFinalizer(&t)
-	return Tensor{&t}
+	MustNil(unsafe.Pointer(C.Tensor_CopyTo(C.Tensor(*a.T), device.T, &t)))
+	SetTensorFinalizer((*unsafe.Pointer)(&t))
+	return Tensor{(*unsafe.Pointer)(&t)}
+}
+
+// SetData sets the tensor data held by b to a
+func (a Tensor) SetData(b Tensor) {
+	MustNil(unsafe.Pointer(C.Tensor_SetData(C.Tensor(*a.T), C.Tensor(*b.T))))
+}
+
+// To returns a Tensor on the specified device with the same content as the a.
+// If the specified device doesn't exist, To panics.
+func To(a Tensor, device Device, dtype int8) Tensor {
+	return a.To(device, dtype)
+}
+
+// FromBlob creating a Tensor with the give data memory
+func FromBlob(data unsafe.Pointer, dtype int8, sizes []int64) Tensor {
+	var t C.Tensor
+	C.Tensor_FromBlob(data, C.int8_t(dtype), (*C.int64_t)(unsafe.Pointer(&sizes[0])), C.int64_t(len(sizes)), &t)
+	return Tensor{(*unsafe.Pointer)(&t)}
 }
 
 // ConvTranspose2d does 2d-fractionally-strided convolution

@@ -2,29 +2,79 @@ package gotorch_test
 
 import (
 	"testing"
+	"unsafe"
 
 	"github.com/stretchr/testify/assert"
 	torch "github.com/wangkuiyi/gotorch"
+	"github.com/wangkuiyi/gotorch/nn/initializer"
 )
 
 func ExampleTensor() {
-	t := torch.RandN([]int{10, 100}, false)
+	t := torch.RandN([]int64{10, 100}, false)
 	t.Close()
 	t.Close()
 	// Output:
 }
 
-func TestTranspose2d(t *testing.T) {
-	input := torch.RandN([]int{1, 1, 1}, false)
-	weight := torch.RandN([]int{1, 3, 3}, false)
-	var bias torch.Tensor
-	stride := []int{1}
-	padding := []int{0}
-	outputPadding := []int{0}
-	groups := 1
-	dilation := []int{1}
-	out := torch.ConvTranspose2d(input, weight, bias,
-		stride, padding, outputPadding, groups, dilation)
-	a := assert.New(t)
-	a.NotNil(out.T)
+func TestTensorDetach(t *testing.T) {
+	x := torch.RandN([]int64{1}, true)
+	y := x.Detach()
+	assert.NotNil(t, y.T)
+	initializer.Zeros(&y)
+	assert.Equal(t, float32(0.0), x.Item())
+}
+
+func TestFromBlob(t *testing.T) {
+	data := [2][3]float32{{1.0, 1.1, 1.2}, {2, 3, 4}}
+	out := torch.FromBlob(unsafe.Pointer(&data), torch.Float, []int64{2, 3})
+	assert.Equal(t, []int64{2, 3}, out.Shape())
+}
+
+func TestTensorString(t *testing.T) {
+	data := [2][3]float32{{1.0, 1.1, 1.2}, {2, 3, 4}}
+	out := torch.FromBlob(unsafe.Pointer(&data), torch.Float, []int64{2, 3})
+	g := ` 1.0000  1.1000  1.2000
+ 2.0000  3.0000  4.0000
+[ CPUFloatType{2,3} ]`
+	assert.Equal(t, g, out.String())
+}
+
+func TestTensorGrad(t *testing.T) {
+	a := torch.RandN([]int64{10, 10}, true)
+	assert.NotNil(t, a.Grad().T)
+
+	// According to libtorch document https://bit.ly/2QnwHrI, either a
+	// tensor that requires grad or not, the grad() method returns a tensor.
+	//
+	/// This function returns an undefined tensor by default and returns a
+	/// defined tensor the first time a call to `backward()` computes
+	/// gradients for this Tensor.  The attribute will then contain the
+	/// gradients computed and future calls to `backward()` will accumulate
+	/// (add) gradients into it.
+	b := torch.RandN([]int64{10, 10}, false)
+	assert.NotNil(t, b.Grad().T)
+}
+
+func TestCastTo(t *testing.T) {
+	a := torch.NewTensor([]int64{1, 2})
+	b := a.CastTo(torch.Float)
+	assert.Equal(t, torch.Float, b.Dtype())
+}
+
+func TestCopyTo(t *testing.T) {
+	device := torch.NewDevice("cpu")
+	a := torch.NewTensor([]int64{1, 2})
+	b := a.CopyTo(device)
+	assert.True(t, torch.Equal(a, b))
+}
+
+func TestDim(t *testing.T) {
+	a := torch.RandN([]int64{2, 3}, false)
+	assert.Equal(t, int64(2), a.Dim())
+}
+
+func TestShape(t *testing.T) {
+	a := torch.RandN([]int64{2, 3}, false)
+	assert.Equal(t, int64(2), a.Shape()[0])
+	assert.Equal(t, int64(3), a.Shape()[1])
 }
