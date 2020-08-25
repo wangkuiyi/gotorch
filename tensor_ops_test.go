@@ -68,3 +68,14 @@ func TestLeakyRelu(t *testing.T) {
 [ CPUFloatType{2,2} ]`
 	assert.Equal(t, g, r.String())
 }
+
+// >>> torch.sigmoid(torch.tensor([[-0.5, -1.], [1., 0.5]]))
+// tensor([[0.3775, 0.2689],
+//         [0.7311, 0.6225]])
+func TestSigmoid(t *testing.T) {
+	r := torch.Sigmoid(torch.NewTensor([][]float32{{-0.5, -1}, {1, 0.5}}))
+	g := ` 0.3775  0.2689
+ 0.7311  0.6225
+[ CPUFloatType{2,2} ]`
+	assert.Equal(t, g, r.String())
+}
