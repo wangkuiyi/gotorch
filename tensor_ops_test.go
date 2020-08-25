@@ -39,6 +39,14 @@ func TestEq(t *testing.T) {
 	assert.Equal(t, g, c.String())
 }
 
+func TestTensorEq(t *testing.T) {
+	a := torch.NewTensor([][]int16{{1, 2}, {3, 4}})
+	b := torch.NewTensor([][]int16{{1, 3}, {2, 4}})
+	c := a.Eq(b)
+	g := " 1  0\n 0  1\n[ CPUBoolType{2,2} ]"
+	assert.Equal(t, g, c.String())
+}
+
 func TestEqual(t *testing.T) {
 	a := torch.NewTensor([]int64{1, 2})
 	b := torch.NewTensor([]int64{1, 2})
@@ -54,6 +62,14 @@ func TestExpandAs(t *testing.T) {
 	a := torch.NewTensor([]int8{'a', 'b'})
 	b := torch.NewTensor([][]int8{{1, 2}, {3, 4}})
 	c := torch.ExpandAs(a, b)
+	g := " 97  98\n 97  98\n[ CPUCharType{2,2} ]"
+	assert.Equal(t, g, c.String())
+}
+
+func TestTensorExpandAs(t *testing.T) {
+	a := torch.NewTensor([]int8{'a', 'b'})
+	b := torch.NewTensor([][]int8{{1, 2}, {3, 4}})
+	c := a.ExpandAs(b)
 	g := " 97  98\n 97  98\n[ CPUCharType{2,2} ]"
 	assert.Equal(t, g, c.String())
 }
