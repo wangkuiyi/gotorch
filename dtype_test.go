@@ -30,7 +30,7 @@ func TestSliceShapeAndElemKind(t *testing.T) {
 
 func TestTensorElemDType(t *testing.T) {
 	{
-		data := []int16{1, 2, 3}
+		data := []uint16{1, 2, 3}
 		shape, kind := sliceShapeAndElemKind(data)
 		assert.Equal(t, []int64{3}, shape)
 
@@ -56,18 +56,21 @@ func TestNewTensor(t *testing.T) {
 		a := NewTensor([][]float32{{1.0, 1.1, 1.2}, {2, 3, 4}})
 		assert.Equal(t, []int64{2, 3}, a.Shape())
 		assert.Equal(t, Float, a.Dtype())
-		t.Log(a.String())
 	}
-	// {
-	// 	a := NewTensor([]int16{1, 2, 3},
-	// 		map[string]interface{}{
-	// 			"require_grad": true, "dtype": Half})
-	// 	assert.Equal(t, []int64{3}, a.Shape())
-	// 	assert.Equal(t, Half, a.Dtype())
-	// }
-	// {
-	// 	a := NewTensor([]int16{1, 2, 3})
-	// 	assert.Equal(t, []int64{3}, a.Shape())
-	// 	assert.Equal(t, Half, a.Dtype())
-	// }
+	{
+		a := NewTensor([][]uint16{{1, 2}, {3, 4}})
+		assert.Equal(t, []int64{2, 2}, a.Shape())
+		assert.Equal(t, Half, a.Dtype())
+	}
+	{
+		a := NewTensor([]int8{1, 2, 3})
+		assert.Equal(t, []int64{3}, a.Shape())
+		assert.Equal(t, Byte, a.Dtype())
+	}
+	{
+		assert.Panics(t, func() {
+			// int16 cannot be converted into PyTorch type
+			NewTensor([][]int16{{1, 2}, {3, 4}})
+		})
+	}
 }
