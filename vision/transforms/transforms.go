@@ -19,23 +19,22 @@ func Normalize(mean float64, stddev float64) *NormalizeTransformer {
 	return &NormalizeTransformer{mean, stddev}
 }
 
-// SequentialTransform indicates executing the transform functions sequentially
-type SequentialTransform struct {
+// ComposeTransforms composes transforms together
+type ComposeTransforms struct {
 	// Transform function should implement a `Do` method, which accepts any argument type
 	// and returns a value.
 	Transforms []interface{}
 }
 
-// Sequential returns a SequentialTransform
-func Sequential(transforms ...interface{}) *SequentialTransform {
-	t := &SequentialTransform{Transforms: transforms}
-	return t
+// Compose returns a ComposeTransforms
+func Compose(transforms ...interface{}) *ComposeTransforms {
+	return &ComposeTransforms{Transforms: transforms}
 }
 
 // Do executes the transforms sequentially
-func (t *SequentialTransform) Do(inputs ...interface{}) interface{} {
+func (t *ComposeTransforms) Do(inputs ...interface{}) interface{} {
 	if len(t.Transforms) == 0 {
-		panic("Cannot call Do() on an empty SequentialTransforms")
+		panic("Cannot call Do() on an empty ComposeTransforms")
 	}
 	do := reflect.ValueOf(t.Transforms[0]).MethodByName("Do")
 	if !do.IsValid() {
@@ -50,7 +49,7 @@ func (t *SequentialTransform) Do(inputs ...interface{}) interface{} {
 		input = getInterfaceInputs(do.Call(getReflectInputs(input)))
 	}
 	if len(input) != 1 {
-		panic("The last transfrom in Sequential must have exactly one return value")
+		panic("The last transfrom in Compose must have exactly one return value")
 	}
 	return input[0]
 }

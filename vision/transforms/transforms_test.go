@@ -25,7 +25,7 @@ func (t div) Do(a int) float32 {
 type invalidTransform struct{}
 
 func TestSequentialTransform(t *testing.T) {
-	transforms := Sequential(&plus{10}, &div{2})
+	transforms := Compose(&plus{10}, &div{2})
 	// (2 + 10) / 2
 	out := transforms.Do(2)
 	assert.Equal(t, out, float32(6.0))
@@ -34,7 +34,7 @@ func TestSequentialTransform(t *testing.T) {
 func TestSequentialTransformPanic(t *testing.T) {
 	a := assert.New(t)
 	a.Panics(func() {
-		transforms := Sequential(&invalidTransform{})
+		transforms := Compose(&invalidTransform{})
 		transforms.Do(10)
 	}, "TestSequentialTransformPanic should panics")
 }
