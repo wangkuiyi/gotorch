@@ -251,19 +251,6 @@ func (a Tensor) Tanh() Tensor {
 	return Tensor{(*unsafe.Pointer)(&t)}
 }
 
-// Transpose torch.transpose
-func Transpose(a Tensor, dim0, dim1 int64) Tensor {
-	var t C.Tensor
-	MustNil(unsafe.Pointer(C.Transpose(C.Tensor(*a.T), C.int64_t(dim0), C.int64_t(dim1), &t)))
-	SetTensorFinalizer((*unsafe.Pointer)(&t))
-	return Tensor{(*unsafe.Pointer)(&t)}
-}
-
-// Transpose torch.transpose
-func (a Tensor) Transpose(dim0, dim1 int64) Tensor {
-	return Transpose(a, dim0, dim1)
-}
-
 // TopK torch.topk
 func TopK(a Tensor, k, dim int64, largest, sorted bool) (Tensor, Tensor) {
 	var values, indices C.Tensor
@@ -278,6 +265,19 @@ func TopK(a Tensor, k, dim int64, largest, sorted bool) (Tensor, Tensor) {
 	MustNil(unsafe.Pointer(C.TopK(C.Tensor(*a.T), C.int64_t(k), C.int64_t(dim),
 		C.int8_t(l), C.int8_t(s), &values, &indices)))
 	return Tensor{(*unsafe.Pointer)(&values)}, Tensor{(*unsafe.Pointer)(&indices)}
+}
+
+// Transpose torch.transpose
+func Transpose(a Tensor, dim0, dim1 int64) Tensor {
+	var t C.Tensor
+	MustNil(unsafe.Pointer(C.Transpose(C.Tensor(*a.T), C.int64_t(dim0), C.int64_t(dim1), &t)))
+	SetTensorFinalizer((*unsafe.Pointer)(&t))
+	return Tensor{(*unsafe.Pointer)(&t)}
+}
+
+// Transpose torch.transpose
+func (a Tensor) Transpose(dim0, dim1 int64) Tensor {
+	return Transpose(a, dim0, dim1)
 }
 
 // View returns a new Tensor with the same data but of a different shape
