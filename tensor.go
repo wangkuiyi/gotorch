@@ -79,18 +79,6 @@ func (a Tensor) Dtype() int8 {
 	return t
 }
 
-// Item torch.item
-func (a Tensor) Item() float32 {
-	var t float32
-	MustNil(unsafe.Pointer(C.Item(C.Tensor(*a.T), (*C.float)(&t))))
-	return t
-}
-
-// View returns a new Tensor with the same data but of a different shape
-func (a Tensor) View(shape []int64) Tensor {
-	return View(a, shape)
-}
-
 // Backward compute the gradient of current tensor
 func (a Tensor) Backward() {
 	C.Tensor_Backward(C.Tensor(*a.T))
@@ -112,6 +100,22 @@ func (a Tensor) To(device Device, dtype int8) Tensor {
 	return Tensor{(*unsafe.Pointer)(&t)}
 }
 
+// CastTo cast tensor dtype
+func (a Tensor) CastTo(dtype int8) Tensor {
+	var t C.Tensor
+	MustNil(unsafe.Pointer(C.Tensor_CastTo(C.Tensor(*a.T), C.int8_t(dtype), &t)))
+	SetTensorFinalizer((*unsafe.Pointer)(&t))
+	return Tensor{(*unsafe.Pointer)(&t)}
+}
+
+// CopyTo cast tensor dtype
+func (a Tensor) CopyTo(device Device) Tensor {
+	var t C.Tensor
+	MustNil(unsafe.Pointer(C.Tensor_CopyTo(C.Tensor(*a.T), device.T, &t)))
+	SetTensorFinalizer((*unsafe.Pointer)(&t))
+	return Tensor{(*unsafe.Pointer)(&t)}
+}
+
 // SetData sets the tensor data held by b to a
 func (a Tensor) SetData(b Tensor) {
 	MustNil(unsafe.Pointer(C.Tensor_SetData(C.Tensor(*a.T), C.Tensor(*b.T))))
@@ -121,13 +125,6 @@ func (a Tensor) SetData(b Tensor) {
 // If the specified device doesn't exist, To panics.
 func To(a Tensor, device Device, dtype int8) Tensor {
 	return a.To(device, dtype)
-}
-
-// Equal compares two tensors by their content.
-func Equal(a, b Tensor) bool {
-	var r int64
-	MustNil(unsafe.Pointer(C.Equal(C.Tensor(*a.T), C.Tensor(*b.T), (*C.int64_t)(&r))))
-	return r != 0
 }
 
 // FromBlob creating a Tensor with the give data memory

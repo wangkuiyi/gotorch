@@ -170,6 +170,8 @@ bool IsCUDAAvailable();
 
 const char *Tensor_To(Tensor input, Device device, int8_t dtype,
                       Tensor *output);
+const char *Tensor_CastTo(Tensor input, int8_t dtype, Tensor *output);
+const char *Tensor_CopyTo(Tensor input, Device device, Tensor *output);
 
 ////////////////////////////////////////////////////////////////////////////////
 //  Dataset, DataLoader, and Iterator torch.utils.data

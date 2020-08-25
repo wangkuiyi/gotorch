@@ -89,6 +89,37 @@ const char *Tensor_String(Tensor a) {
   return r;
 }
 
+const char *Tensor_To(Tensor input, Device device, int8_t dtype,
+                      Tensor *output) {
+  try {
+    auto result = input->to(*device, static_cast<at::ScalarType>(dtype));
+    *output = new at::Tensor(result);
+    return nullptr;
+  } catch (const std::exception &e) {
+    return exception_str(e.what());
+  }
+}
+
+const char *Tensor_CastTo(Tensor input, int8_t dtype, Tensor *output) {
+  try {
+    auto result = input->to(static_cast<at::ScalarType>(dtype));
+    *output = new at::Tensor(result);
+    return nullptr;
+  } catch (const std::exception &e) {
+    return exception_str(e.what());
+  }
+}
+
+const char *Tensor_CopyTo(Tensor input, Device device, Tensor *output) {
+  try {
+    auto result = input->to(*device);
+    *output = new at::Tensor(result);
+    return nullptr;
+  } catch (const std::exception &e) {
+    return exception_str(e.what());
+  }
+}
+
 // Backward, Gradient
 void Tensor_Backward(Tensor a) { a->backward(); }
 Tensor Tensor_Grad(Tensor a) { return new at::Tensor(a->grad()); }

@@ -16,12 +16,6 @@ func ExampleTensor() {
 	// Output:
 }
 
-func TestTensorItem(t *testing.T) {
-	x := torch.RandN([]int64{1}, false)
-	r := x.Item()
-	assert.NotNil(t, r)
-}
-
 func TestTensorDetach(t *testing.T) {
 	x := torch.RandN([]int64{1}, true)
 	y := x.Detach()
@@ -59,4 +53,28 @@ func TestTensorGrad(t *testing.T) {
 	/// (add) gradients into it.
 	b := torch.RandN([]int64{10, 10}, false)
 	assert.NotNil(t, b.Grad().T)
+}
+
+func TestCastTo(t *testing.T) {
+	a := torch.NewTensor([]int64{1, 2})
+	b := a.CastTo(torch.Float)
+	assert.Equal(t, torch.Float, b.Dtype())
+}
+
+func TestCopyTo(t *testing.T) {
+	device := torch.NewDevice("cpu")
+	a := torch.NewTensor([]int64{1, 2})
+	b := a.CopyTo(device)
+	assert.True(t, torch.Equal(a, b))
+}
+
+func TestDim(t *testing.T) {
+	a := torch.RandN([]int64{2, 3}, false)
+	assert.Equal(t, int64(2), a.Dim())
+}
+
+func TestShape(t *testing.T) {
+	a := torch.RandN([]int64{2, 3}, false)
+	assert.Equal(t, int64(2), a.Shape()[0])
+	assert.Equal(t, int64(3), a.Shape()[1])
 }
