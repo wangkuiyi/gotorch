@@ -14,8 +14,8 @@ func TestRandomCrop(t *testing.T) {
 	m := drawImage(image.Rect(0, 0, 2, 2), color.RGBA{0, 0, 255, 255})
 	trans := RandomCrop(1, 2)
 	cropped := trans.Run(m)
-	a.Equal(1, cropped.Bounds().Max.X)
-	a.Equal(2, cropped.Bounds().Max.Y)
+	a.Equal(2, cropped.Bounds().Max.X)
+	a.Equal(1, cropped.Bounds().Max.Y)
 }
 
 func TestRandomCropSizePanics(t *testing.T) {

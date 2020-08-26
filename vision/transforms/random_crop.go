@@ -30,8 +30,8 @@ func (t *RandomCropTransformer) Run(input image.Image) image.Image {
 	if h := input.Bounds().Max.Y; t.height > h {
 		log.Panicf("RandomCrop: wanted height %d larger than image height %d", t.height, h)
 	}
-	x := rand.Intn(input.Bounds().Max.X - t.width)
-	y := rand.Intn(input.Bounds().Max.Y - t.height)
+	x := rand.Intn(input.Bounds().Max.X - t.width + 1)
+	y := rand.Intn(input.Bounds().Max.Y - t.height + 1)
 
 	rect := image.Rectangle{
 		Min: image.Point{X: x, Y: y},
