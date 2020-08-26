@@ -32,7 +32,7 @@ type ImageNetLoader struct {
 	mbSize  int
 	tr      *tar.Reader
 	vocab   map[string]int // the vocabulary of labels.
-	isEOF   bool
+	eof     bool
 	samples []Sample
 	trans   *transforms.ComposeTransformer
 }
@@ -46,7 +46,7 @@ func ImageNet(reader io.Reader, vocab map[string]int, trans *transforms.ComposeT
 	return &ImageNetLoader{
 		mbSize: mbSize,
 		tr:     tar.NewReader(gr),
-		isEOF:  false,
+		eof:    false,
 		vocab:  vocab,
 		trans:  trans,
 	}, nil
@@ -71,7 +71,7 @@ func (p *ImageNetLoader) nextSamples() error {
 	for {
 		hdr, err := p.tr.Next()
 		if err == io.EOF {
-			p.isEOF = true
+			p.eof = true
 			break
 		}
 		if err != nil {
@@ -98,11 +98,11 @@ func (p *ImageNetLoader) nextSamples() error {
 
 // Scan return false if no more data
 func (p *ImageNetLoader) Scan() bool {
-	if p.isEOF {
+	if p.eof {
 		return false
 	}
 	must(p.nextSamples())
-	if p.isEOF && len(p.samples) == 0 {
+	if p.eof && len(p.samples) == 0 {
 		return false
 	}
 	return true
