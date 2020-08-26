@@ -32,7 +32,7 @@ type ImageNetLoader struct {
 	mbSize  int
 	tr      *tar.Reader
 	vocab   map[string]int // the vocabulary of labels.
-	eof     bool
+	err     error
 	samples []sample
 	trans   *transforms.ComposeTransformer
 }
@@ -46,7 +46,7 @@ func ImageNet(r io.Reader, vocab map[string]int, trans *transforms.ComposeTransf
 	return &ImageNetLoader{
 		mbSize: mbSize,
 		tr:     tgz,
-		eof:    false,
+		err:    nil,
 		vocab:  vocab,
 		trans:  trans,
 	}, nil
@@ -66,16 +66,13 @@ func (p *ImageNetLoader) Minibatch() (torch.Tensor, torch.Tensor) {
 	return torch.Stack(dataArray, 0), torch.NewTensor(labelArray)
 }
 
-func (p *ImageNetLoader) nextSamples() error {
+func (p *ImageNetLoader) nextSamples() {
 	p.samples = []sample{}
 	for {
 		hdr, err := p.tr.Next()
-		if err == io.EOF {
-			p.eof = true
-			break
-		}
 		if err != nil {
-			return err
+			p.err = err
+			break
 		}
 		if !strings.HasSuffix(strings.ToUpper(hdr.Name), "JPEG") {
 			continue
@@ -84,7 +81,8 @@ func (p *ImageNetLoader) nextSamples() error {
 		target := p.vocab[filepath.Base(filepath.Dir(hdr.Name))]
 		src, _, err := image.Decode(p.tr)
 		if err != nil {
-			return err
+			p.err = err
+			break
 		}
 		m := image.NewRGBA(image.Rect(0, 0, src.Bounds().Dx(), src.Bounds().Dy()))
 		draw.Draw(m, m.Bounds(), src, image.ZP, draw.Src)
@@ -93,36 +91,38 @@ func (p *ImageNetLoader) nextSamples() error {
 			break
 		}
 	}
-	return nil
 }
 
 // Scan return false if no more data
 func (p *ImageNetLoader) Scan() bool {
-	if p.eof {
+	if p.err == io.EOF {
 		return false
 	}
-	must(p.nextSamples())
-	if p.eof && len(p.samples) == 0 {
+	p.nextSamples()
+	if p.err != nil && len(p.samples) == 0 {
 		return false
 	}
 	return true
 }
 
-func must(e error) {
-	if e != nil {
-		panic(e)
+// Err returns the error during the scan process, if there is any. io.EOF is not
+// considered an error.
+func (p *ImageNetLoader) Err() error {
+	if p.err == io.EOF {
+		return nil
 	}
+	return p.err
 }
 
-// BuildLabelVocabulary returns a vocabulary which mapping from the class name to index.
-// A generica images are arranged in this way:
+// BuildLabelVocabulary returns a vocabulary which mapping from the class name
+// to index.  A generica images are arranged in this way:
 //
 //   blue/xxx.jpeg
 //   blue/yyy.jpeg
 //   green/zzz.jpeg
 //
-// this function would scan all sub-directories of root, building an index from the class name
-// to it's index.
+// this function would scan all sub-directories of root, building an index from
+// the class name to it's index.
 func BuildLabelVocabulary(reader io.Reader) (map[string]int, error) {
 	tr, e := newTarGzReader(reader)
 	if e != nil {
