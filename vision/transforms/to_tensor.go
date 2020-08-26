@@ -37,10 +37,8 @@ func imageToTensor(img image.Image) torch.Tensor {
 	for x := 0; x < height; x++ {
 		row := make([][3]float32, width)
 		for y := 0; y < width; y++ {
-			// ResNet need the 3 channels image, here we should convert to RGB format.
-			// The division by 255.0 is applied to convert RGB pixel values from [0, 255] to [0.0, 1.0] range
-			c := img.(*image.NRGBA).NRGBAAt(x, y)
-			row[y] = [3]float32{float32(c.R) / 255.0, float32(c.G) / 255.0, float32(c.B) / 255.0}
+			r, g, b, _ := img.At(x, y).RGBA()
+			row[y] = [3]float32{float32(r) / 255.0, float32(g) / 255.0, float32(b) / 255.0}
 		}
 		array[x] = row
 	}

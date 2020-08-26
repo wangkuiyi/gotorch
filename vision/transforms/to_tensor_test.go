@@ -11,10 +11,12 @@ import (
 func TestToTensor(t *testing.T) {
 	a := assert.New(t)
 	// image to Tensor
-	m := drawImage(image.Rect(0, 0, 4, 4), color.RGBA{0, 0, 255, 255})
+	m := drawImage(image.Rect(0, 0, 2, 2), color.RGBA{0, 0, 255, 255})
 	trans := ToTensor()
 	out := trans.Run(m)
-	a.Equal(out.Shape(), []int64{3, 4, 4})
+	a.Equal(out.Shape(), []int64{3, 2, 2})
+	t.Log(out.String())
+
 	// int to Tensor
 	out = trans.Run(10)
 	a.Equal(out.Shape(), []int64{1})
