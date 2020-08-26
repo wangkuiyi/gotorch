@@ -28,16 +28,17 @@ type sample struct {
 //	img, target := imageNet.Minibatch().Data, loader.Minibatch().Target
 // }
 type ImageNetLoader struct {
-	mbSize  int
-	tr      *tar.Reader
-	vocab   map[string]int // the vocabulary of labels.
-	err     error
-	samples []sample
-	trans   *transforms.ComposeTransformer
+	mbSize int
+	tr     *tar.Reader
+	vocab  map[string]int64 // the vocabulary of labels.
+	err    error
+	inputs []torch.Tensor // inputs and labels form a minibatch.
+	labels []int64
+	trans  *transforms.ComposeTransformer
 }
 
 // ImageNet returns ImageNet dataDataLoader
-func ImageNet(r io.Reader, vocab map[string]int, trans *transforms.ComposeTransformer, mbSize int) (*ImageNetLoader, error) {
+func ImageNet(r io.Reader, vocab map[string]int64, trans *transforms.ComposeTransformer, mbSize int) (*ImageNetLoader, error) {
 	tgz, e := newTarGzReader(r)
 	if e != nil {
 		return nil, e
@@ -53,18 +54,12 @@ func ImageNet(r io.Reader, vocab map[string]int, trans *transforms.ComposeTransf
 
 // Minibatch returns a minibash with data and label Tensor
 func (p *ImageNetLoader) Minibatch() (torch.Tensor, torch.Tensor) {
-	dataArray := []torch.Tensor{}
-	var labelArray []int64
-	for _, sample := range p.samples {
-		data := p.trans.Run(sample.image)
-		dataArray = append(dataArray, data.(torch.Tensor))
-		labelArray = append(labelArray, int64(sample.target))
-	}
-	return torch.Stack(dataArray, 0), torch.NewTensor(labelArray)
+	return torch.Stack(p.inputs, 0), torch.NewTensor(p.labels)
 }
 
-func (p *ImageNetLoader) nextSamples() {
-	p.samples = []sample{}
+func (p *ImageNetLoader) retreiveMinibatch() {
+	p.inputs = []torch.Tensor{}
+	p.labels = []int64{}
 	for {
 		hdr, err := p.tr.Next()
 		if err != nil {
@@ -75,15 +70,18 @@ func (p *ImageNetLoader) nextSamples() {
 			continue
 		}
 
-		target := p.vocab[filepath.Base(filepath.Dir(hdr.Name))]
-		src, _, err := image.Decode(p.tr)
+		label := p.vocab[filepath.Base(filepath.Dir(hdr.Name))]
+		p.labels = append(p.labels, label)
+
+		image, _, err := image.Decode(p.tr)
 		if err != nil {
 			p.err = err
 			break
 		}
+		input := p.trans.Run(image)
+		p.inputs = append(p.inputs, input.(torch.Tensor))
 
-		p.samples = append(p.samples, sample{src, target})
-		if len(p.samples) == p.mbSize {
+		if len(p.inputs) == p.mbSize {
 			break
 		}
 	}
@@ -94,8 +92,8 @@ func (p *ImageNetLoader) Scan() bool {
 	if p.err == io.EOF {
 		return false
 	}
-	p.nextSamples()
-	if p.err != nil && len(p.samples) == 0 {
+	p.retreiveMinibatch()
+	if p.err != nil && len(p.inputs) == 0 {
 		return false
 	}
 	return true
@@ -119,14 +117,14 @@ func (p *ImageNetLoader) Err() error {
 //
 // this function would scan all sub-directories of root, building an index from
 // the class name to it's index.
-func BuildLabelVocabulary(reader io.Reader) (map[string]int, error) {
+func BuildLabelVocabulary(reader io.Reader) (map[string]int64, error) {
 	tr, e := newTarGzReader(reader)
 	if e != nil {
 		return nil, e
 	}
 
-	classToIdx := make(map[string]int)
-	idx := 0
+	classToIdx := make(map[string]int64)
+	var idx int64 = 0
 	for {
 		hdr, err := tr.Next()
 		if err == io.EOF {
