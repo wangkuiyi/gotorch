@@ -53,8 +53,6 @@ func ImageNet(r io.Reader, vocab map[string]int, trans *transforms.ComposeTransf
 
 // Minibatch returns a minibash with data and label Tensor
 func (p *ImageNetLoader) Minibatch() (torch.Tensor, torch.Tensor) {
-	// TODO(yancey1989): execute transform function sequentially to transfrom the sample
-	// data to Tensors.
 	dataArray := []torch.Tensor{}
 	var labelArray []int64
 	for _, sample := range p.samples {
@@ -76,7 +74,7 @@ func (p *ImageNetLoader) nextSamples() {
 		if !strings.HasSuffix(strings.ToUpper(hdr.Name), "JPEG") {
 			continue
 		}
-		// read target
+
 		target := p.vocab[filepath.Base(filepath.Dir(hdr.Name))]
 		src, _, err := image.Decode(p.tr)
 		if err != nil {
