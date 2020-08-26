@@ -63,7 +63,7 @@ func accuracy(output, target torch.Tensor, topk []int64) []float32 {
 	return res
 }
 
-func imageNetLoader(tarFile string, batchSize int64) (*datasets.ImageNetLoader, error) {
+func imageNetLoader(tarFile string, batchSize int) (*datasets.ImageNetLoader, error) {
 	f, e := os.Open(tarFile)
 	if e != nil {
 		panic(e)
@@ -89,7 +89,7 @@ func imageNetLoader(tarFile string, batchSize int64) (*datasets.ImageNetLoader, 
 	return loader, nil
 }
 
-func train(model *models.ResnetModule, opt torch.Optimizer, batchSize int64, device torch.Device, tarFile string) {
+func train(model *models.ResnetModule, opt torch.Optimizer, batchSize int, device torch.Device, tarFile string) {
 	model.Train(true)
 	loader, e := imageNetLoader(tarFile, batchSize)
 	if e != nil {
@@ -128,7 +128,7 @@ func main() {
 		panic(e)
 	}
 
-	batchSize := int64(16)
+	batchSize := 16
 	epochs := 100
 	lr := 0.1
 	momentum := 0.9
