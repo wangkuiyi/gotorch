@@ -3,6 +3,7 @@ package datasets_test
 import (
 	"bytes"
 	"io"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -19,10 +20,12 @@ func TestImgNetLoader(t *testing.T) {
 	trans := transforms.Compose(transforms.RandomCrop(224, 224), transforms.RandomFlip(), transforms.ToTensor())
 	loader, err := datasets.ImageNet(&tgz2, vocab, trans, 2)
 	assert.NoError(t, err)
-
 	for loader.Scan() {
 		data, label := loader.Minibatch()
 		assert.Equal(t, []int64{2, 3, 224, 224}, data.Shape())
-		assert.Equal(t, []int64{2, 1}, label.Shape())
+		assert.Equal(t, []int64{2}, label.Shape())
 	}
+	// failure test for BuildLabelVocabulary
+	_, err = datasets.BuildLabelVocabulary(strings.NewReader("some string"))
+	assert.Error(t, err)
 }
