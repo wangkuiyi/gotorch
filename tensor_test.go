@@ -78,7 +78,7 @@ func TestSave(t *testing.T) {
 	file, e := ioutil.TempFile("", "gotroch-test-save-*")
 	assert.NoError(t, e)
 	defer os.Remove(file.Name())
-	
+
 	a := torch.RandN([]int64{2, 3}, false)
 	a.Save(file.Name())
 	b := torch.Load(file.Name())
