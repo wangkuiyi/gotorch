@@ -13,9 +13,9 @@ import (
 	"github.com/wangkuiyi/gotorch/vision/transforms"
 )
 
-// Sample represents a dataset sample which contains
+// sample represents a dataset sample which contains
 // the image and the class index.
-type Sample struct {
+type sample struct {
 	image  image.Image
 	target int
 }
@@ -33,7 +33,7 @@ type ImageNetLoader struct {
 	tr      *tar.Reader
 	vocab   map[string]int // the vocabulary of labels.
 	eof     bool
-	samples []Sample
+	samples []sample
 	trans   *transforms.ComposeTransformer
 }
 
@@ -67,7 +67,7 @@ func (p *ImageNetLoader) Minibatch() (torch.Tensor, torch.Tensor) {
 }
 
 func (p *ImageNetLoader) nextSamples() error {
-	p.samples = []Sample{}
+	p.samples = []sample{}
 	for {
 		hdr, err := p.tr.Next()
 		if err == io.EOF {
@@ -88,7 +88,7 @@ func (p *ImageNetLoader) nextSamples() error {
 		}
 		m := image.NewRGBA(image.Rect(0, 0, src.Bounds().Dx(), src.Bounds().Dy()))
 		draw.Draw(m, m.Bounds(), src, image.ZP, draw.Src)
-		p.samples = append(p.samples, Sample{m, target})
+		p.samples = append(p.samples, sample{m, target})
 		if len(p.samples) == p.mbSize {
 			break
 		}
