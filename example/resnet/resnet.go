@@ -96,6 +96,7 @@ func train(model *models.ResnetModule, opt torch.Optimizer, batchSize int64, dev
 		panic(e)
 	}
 	batchIdx := 0
+	startTime := time.Now()
 	for loader.Scan() {
 		torch.GC()
 		image, target := loader.Minibatch()
@@ -107,8 +108,9 @@ func train(model *models.ResnetModule, opt torch.Optimizer, batchSize int64, dev
 		acc := accuracy(output, target, []int64{1, 5})
 		acc1 := acc[0]
 		acc5 := acc[1]
-		if batchIdx%5 == 0 {
-			fmt.Printf("loss: %f, acc1 :%f, acc5: %f\n", loss.Item(), acc1, acc5)
+		if batchIdx%100 == 0 {
+			throughput := float64(100*batchSize) / time.Since(startTime).Seconds()
+			fmt.Printf("loss: %f, acc1 :%f, acc5: %f, throughput: %.2f samples/sec\n", loss.Item(), acc1, acc5, throughput)
 		}
 
 		opt.ZeroGrad()
@@ -127,7 +129,7 @@ func main() {
 	}
 
 	batchSize := int64(16)
-	epochs := 1
+	epochs := 100
 	lr := 0.1
 	momentum := 0.9
 	weightDecay := 1e-4

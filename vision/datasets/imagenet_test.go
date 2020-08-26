@@ -19,7 +19,6 @@ func TestImgNetLoader(t *testing.T) {
 	trans := transforms.Compose(transforms.RandomCrop(224, 224), transforms.RandomFlip(), transforms.ToTensor())
 	loader, err := datasets.ImageNet(&tgz2, vocab, trans, 2)
 	assert.NoError(t, err)
-
 	for loader.Scan() {
 		data, label := loader.Minibatch()
 		assert.Equal(t, []int64{2, 3, 224, 224}, data.Shape())

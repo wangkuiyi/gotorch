@@ -77,7 +77,7 @@ func (p *ImageNetLoader) nextSamples() error {
 		if err != nil {
 			return err
 		}
-		if !strings.HasSuffix(strings.ToUpper(hdr.Name), "JPEG") || strings.HasPrefix(filepath.Base(hdr.Name), "._") {
+		if !strings.HasSuffix(strings.ToUpper(hdr.Name), "JPEG") {
 			continue
 		}
 		// read target
@@ -139,7 +139,7 @@ func BuildLabelVocabulary(reader io.Reader) (map[string]int, error) {
 		if err != nil {
 			return nil, err
 		}
-		if hdr.FileInfo().IsDir() {
+		if hdr.FileInfo().Mode().IsRegular() {
 			class := filepath.Base(filepath.Dir(hdr.Name))
 			if _, ok := classToIdx[class]; !ok {
 				classToIdx[class] = idx
