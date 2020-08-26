@@ -47,14 +47,6 @@ func (a Tensor) Print() {
 	C.Tensor_Print(C.Tensor(*a.T))
 }
 
-// Close the tensor
-func (a *Tensor) Close() {
-	if a.T != nil {
-		C.Tensor_Close(C.Tensor(*a.T))
-		a.T = nil
-	}
-}
-
 // Save the tensor to a file
 func (a Tensor) Save(path string) {
 	C.Tensor_Save(C.Tensor(*a.T), C.CString(path))
