@@ -1,7 +1,6 @@
 package transforms
 
 import (
-	"image"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -9,16 +8,29 @@ import (
 
 func TestRandomFlip(t *testing.T) {
 	a := assert.New(t)
-	i := generateRandImage(image.Rect(0, 0, 50, 50))
-	width := i.Bounds().Max.X
+	m := drawRGBWImage()
 
-	trans := RandomFlip()
+	o := RandomHorizontalFlip(0 /*never flip*/).Run(m)
+	a.True(colorEqual(red, o.At(0, 0)))
+	a.True(colorEqual(green, o.At(0, 1)))
+	a.True(colorEqual(blue, o.At(1, 0)))
+	a.True(colorEqual(white, o.At(1, 1)))
 
-	// Run 10 times to cover random cases
-	for j := 0; j < 10; j++ {
-		o := trans.Run(i)
-		outImage := o.(*image.NRGBA)
-		inImage := i.(*image.NRGBA)
-		a.True(inImage.At(0, 0) == outImage.At(0, 0) || inImage.At(0, 0) == outImage.At(width-1, 0))
-	}
+	o = RandomHorizontalFlip(1 /*always flip*/).Run(m)
+	a.True(colorEqual(red, o.At(1, 0)))
+	a.True(colorEqual(green, o.At(1, 1)))
+	a.True(colorEqual(blue, o.At(0, 0)))
+	a.True(colorEqual(white, o.At(0, 1)))
+
+	o = RandomVerticalFlip(0 /*never flip*/).Run(m)
+	a.True(colorEqual(red, o.At(0, 0)))
+	a.True(colorEqual(green, o.At(0, 1)))
+	a.True(colorEqual(blue, o.At(1, 0)))
+	a.True(colorEqual(white, o.At(1, 1)))
+
+	o = RandomVerticalFlip(1 /*always flip*/).Run(m)
+	a.True(colorEqual(red, o.At(0, 1)))
+	a.True(colorEqual(green, o.At(0, 0)))
+	a.True(colorEqual(blue, o.At(1, 1)))
+	a.True(colorEqual(white, o.At(1, 0)))
 }

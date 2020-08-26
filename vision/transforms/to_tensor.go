@@ -30,27 +30,29 @@ func (t ToTensorTransformer) Run(obj interface{}) torch.Tensor {
 
 // ToTensor transform c.f. https://github.com/pytorch/vision/blob/ba1b22125723f3719a3c38a2fe7cd6fb77657c57/torchvision/transforms/functional.py#L45
 func imageToTensor(img image.Image) torch.Tensor {
-	width, height := img.Bounds().Max.X, img.Bounds().Max.Y
+	w, h := img.Bounds().Max.X, img.Bounds().Max.Y
 	// put pixel values with HWC format
-	array := make([][][3]float32, height)
-
-	for x := 0; x < height; x++ {
-		row := make([][3]float32, width)
-		for y := 0; y < width; y++ {
-			// ResNet need the 3 channels image, here we should convert to RGB format.
-			// The division by 255.0 is applied to convert RGB pixel values from [0, 255] to [0.0, 1.0] range
-			c := img.(*image.NRGBA).NRGBAAt(x, y)
-			row[y] = [3]float32{float32(c.R) / 255.0, float32(c.G) / 255.0, float32(c.B) / 255.0}
+	array := make([]float32, h*w*3)
+	denom := float32(0xffff)
+	i := 0
+	for x := 0; x < h; x++ {
+		for y := 0; y < w; y++ {
+			r, g, b, _ := img.At(x, y).RGBA()
+			array[i] = float32(r) / denom
+			i++
+			array[i] = float32(g) / denom
+			i++
+			array[i] = float32(b) / denom
+			i++
 		}
-		array[x] = row
 	}
-	hwcTensor := torch.FromBlob(unsafe.Pointer(&array[0][0][0]), torch.Float, []int64{int64(width), int64(height), 3})
+	hwcTensor := torch.FromBlob(unsafe.Pointer(&array[0]), torch.Float, []int64{int64(w), int64(h), 3})
 	// Convert Tensor to CHW format and return.
 	return hwcTensor.Permute([]int64{2, 0, 1})
 }
 
 func intToTensor(x int) torch.Tensor {
-	array := make([]int, 1)
-	array[0] = x
+	array := make([]int32, 1)
+	array[0] = int32(x)
 	return torch.FromBlob(unsafe.Pointer(&array[0]), torch.Int, []int64{1})
 }

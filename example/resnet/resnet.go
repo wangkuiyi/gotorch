@@ -78,7 +78,7 @@ func imageNetLoader(tarFile string, batchSize int) (*datasets.ImageNetLoader, er
 	}
 	trans := transforms.Compose(
 		transforms.RandomCrop(224, 224),
-		transforms.RandomFlip(),
+		transforms.RandomHorizontalFlip(0.5),
 		transforms.ToTensor(),
 		transforms.Normalize([]float64{0.485, 0.456, 0.406}, []float64{0.229, 0.224, 0.225}))
 
