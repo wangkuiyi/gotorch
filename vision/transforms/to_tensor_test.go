@@ -2,6 +2,7 @@ package transforms
 
 import (
 	"image"
+	"image/color"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -10,7 +11,7 @@ import (
 func TestToTensor(t *testing.T) {
 	a := assert.New(t)
 	// image to Tensor
-	m := generateRandImage(image.Rect(0, 0, 4, 4))
+	m := drawImage(image.Rect(0, 0, 4, 4), color.RGBA{0, 0, 255, 255})
 	trans := ToTensor()
 	out := trans.Run(m)
 	a.Equal(out.Shape(), []int64{3, 4, 4})
