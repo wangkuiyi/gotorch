@@ -124,11 +124,11 @@ func must(e error) {
 // this function would scan all sub-directories of root, building an index from the class name
 // to it's index.
 func BuildLabelVocabulary(reader io.Reader) (map[string]int, error) {
-	gr, err := gzip.NewReader(reader)
-	if err != nil {
-		return nil, err
+	tr, e := newTarGzReader(reader)
+	if e != nil {
+		return nil, e
 	}
-	tr := tar.NewReader(gr)
+
 	classToIdx := make(map[string]int)
 	idx := 0
 	for {
@@ -148,4 +148,16 @@ func BuildLabelVocabulary(reader io.Reader) (map[string]int, error) {
 		}
 	}
 	return classToIdx, nil
+}
+
+func newTarGzReader(r io.Reader) (*tar.Reader, error) {
+	// NOTE: gzip.NewReader returns an io.ReadCloser. However, we ignore the
+	// chance to call its Close() method, which verifies the checksum, which
+	// we don't really care as the data had been consumed by the train loop.
+	g, e := gzip.NewReader(r)
+	if e != nil {
+		return nil, e
+	}
+
+	return tar.NewReader(g), nil
 }
