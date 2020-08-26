@@ -22,7 +22,7 @@ func TestImgNetLoader(t *testing.T) {
 
 	for loader.Scan() {
 		data, label := loader.Minibatch()
-		assert.Equal(t, []int64{2, 224, 224, 3}, data.Shape())
+		assert.Equal(t, []int64{2, 3, 224, 224}, data.Shape())
 		assert.Equal(t, []int64{2, 1}, label.Shape())
 	}
 }
