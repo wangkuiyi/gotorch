@@ -196,7 +196,9 @@ const char *CreateMNISTDataset(const char *data_root, MNISTDataset *dataset);
 void MNISTDataset_Close(MNISTDataset d);
 
 // Set parameters of the normalize transform in dataset
-void MNISTDataset_Normalize(MNISTDataset *dataset, double mean, double stddev);
+void MNISTDataset_Normalize(MNISTDataset *dataset, double *mean,
+                            int64_t mean_len, double *stddev,
+                            int64_t stddev_len);
 
 typedef void *MNISTLoader;
 typedef void *MNISTIterator;

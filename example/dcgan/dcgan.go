@@ -55,7 +55,7 @@ func main() {
 	}
 
 	mnist := datasets.MNIST("",
-		[]transforms.Transform{transforms.Normalize(0.5, 0.5)})
+		[]transforms.Transform{transforms.Normalize([]float64{0.5}, []float64{0.5})})
 
 	nz := int64(100)
 	lr := 0.0002

@@ -11,7 +11,7 @@ import (
 )
 
 func ExampleMNIST() {
-	dataset := MNIST("", []transforms.Transform{transforms.Normalize(0.1307, 0.3081)})
+	dataset := MNIST("", []transforms.Transform{transforms.Normalize([]float64{0.1307}, []float64{0.3081})})
 	trainLoader := NewMNISTLoader(dataset, 8)
 	for trainLoader.Scan() {
 		_ = trainLoader.Batch()

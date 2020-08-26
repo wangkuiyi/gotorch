@@ -9,7 +9,7 @@ import (
 
 func TestNormalizeTransform(t *testing.T) {
 	a := assert.New(t)
-	trans := Normalize(10.0, 2.3)
+	trans := Normalize([]float64{10.0}, []float64{2.3})
 	t1 := torch.NewTensor([]float64{10.2, 11.3, 9.2, 8.4, 13.2})
 	t2 := trans.Run(t1)
 
