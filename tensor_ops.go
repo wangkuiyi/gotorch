@@ -110,6 +110,14 @@ func (a *Tensor) DivI(other Tensor) Tensor {
 	return Tensor{(*unsafe.Pointer)(&t)}
 }
 
+// Permute transpose the tensor dims.
+func (a *Tensor) Permute(dims []int64) Tensor {
+	var t C.Tensor
+	MustNil(unsafe.Pointer(C.Permute(C.Tensor(*a.T), (*C.int64_t)(&dims[0]), C.int64_t(len(dims)), &t)))
+	SetTensorFinalizer((*unsafe.Pointer)(&t))
+	return Tensor{(*unsafe.Pointer)(&t)}
+}
+
 // Eq wraps torch.eq, which does element-wise comparison between two tensors and returns
 // a tensor of the same size as the operands.
 func Eq(a, other Tensor) Tensor {
