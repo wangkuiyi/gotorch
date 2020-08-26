@@ -36,6 +36,80 @@ func (a *Tensor) AddI(other Tensor, alpha float32) Tensor {
 	return Tensor{(*unsafe.Pointer)(&t)}
 }
 
+// Sub torch.sub
+func Sub(a, other Tensor, alpha float32) Tensor {
+	var t C.Tensor
+	MustNil(unsafe.Pointer(C.Sub(C.Tensor(*a.T), C.Tensor(*other.T),
+		C.float(alpha), &t)))
+	SetTensorFinalizer((*unsafe.Pointer)(&t))
+	return Tensor{(*unsafe.Pointer)(&t)}
+}
+
+// Sub torch.sub
+func (a *Tensor) Sub(other Tensor, alpha float32) Tensor {
+	return Sub(*a, other, alpha)
+}
+
+// SubI subs in-place
+func (a *Tensor) SubI(other Tensor, alpha float32) Tensor {
+	var t C.Tensor
+	MustNil(unsafe.Pointer(C.Sub_(
+		C.Tensor(*a.T),
+		C.Tensor(*other.T),
+		C.float(alpha),
+		&t)))
+	SetTensorFinalizer((*unsafe.Pointer)(&t))
+	return Tensor{(*unsafe.Pointer)(&t)}
+}
+
+// Mul torch.mul
+func Mul(a, other Tensor) Tensor {
+	var t C.Tensor
+	MustNil(unsafe.Pointer(C.Mul(C.Tensor(*a.T), C.Tensor(*other.T), &t)))
+	SetTensorFinalizer((*unsafe.Pointer)(&t))
+	return Tensor{(*unsafe.Pointer)(&t)}
+}
+
+// Mul torch.Mul
+func (a *Tensor) Mul(other Tensor) Tensor {
+	return Mul(*a, other)
+}
+
+// MulI multiplies in-place
+func (a *Tensor) MulI(other Tensor) Tensor {
+	var t C.Tensor
+	MustNil(unsafe.Pointer(C.Mul_(
+		C.Tensor(*a.T),
+		C.Tensor(*other.T),
+		&t)))
+	SetTensorFinalizer((*unsafe.Pointer)(&t))
+	return Tensor{(*unsafe.Pointer)(&t)}
+}
+
+// Div torch.div
+func Div(a, other Tensor) Tensor {
+	var t C.Tensor
+	MustNil(unsafe.Pointer(C.Div(C.Tensor(*a.T), C.Tensor(*other.T), &t)))
+	SetTensorFinalizer((*unsafe.Pointer)(&t))
+	return Tensor{(*unsafe.Pointer)(&t)}
+}
+
+// Div torch.Div
+func (a *Tensor) Div(other Tensor) Tensor {
+	return Div(*a, other)
+}
+
+// DivI run divides in-place
+func (a *Tensor) DivI(other Tensor) Tensor {
+	var t C.Tensor
+	MustNil(unsafe.Pointer(C.Div_(
+		C.Tensor(*a.T),
+		C.Tensor(*other.T),
+		&t)))
+	SetTensorFinalizer((*unsafe.Pointer)(&t))
+	return Tensor{(*unsafe.Pointer)(&t)}
+}
+
 // Eq wraps torch.eq, which does element-wise comparison between two tensors and returns
 // a tensor of the same size as the operands.
 func Eq(a, other Tensor) Tensor {
@@ -54,6 +128,13 @@ func (a Tensor) Eq(other Tensor) Tensor {
 func Equal(a, b Tensor) bool {
 	var r int64
 	MustNil(unsafe.Pointer(C.Equal(C.Tensor(*a.T), C.Tensor(*b.T), (*C.int64_t)(&r))))
+	return r != 0
+}
+
+// AllClose returns true if the float tensor are all close.
+func AllClose(a, b Tensor) bool {
+	var r int64
+	MustNil(unsafe.Pointer(C.AllClose(C.Tensor(*a.T), C.Tensor(*b.T), (*C.int64_t)(&r))))
 	return r != 0
 }
 
