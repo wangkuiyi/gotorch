@@ -96,6 +96,19 @@ func ConvTranspose2d(
 	return torch.Tensor{(*unsafe.Pointer)(&t)}
 }
 
+// LogSoftmax torch.nn.functional.log_softmax
+func LogSoftmax(input torch.Tensor, dim int64) torch.Tensor {
+	// Clone _get_softmax_dim()
+	if dim < 0 {
+		if d := input.Dim(); d == 0 || d == 1 || d == 3 {
+			dim = 0
+		} else {
+			dim = 1
+		}
+	}
+	return input.LogSoftmax(dim)
+}
+
 // NllLoss torch.nn.functional.nll_loss
 func NllLoss(input, target, weight torch.Tensor, ignoreIndex int64,
 	reduction string) torch.Tensor {

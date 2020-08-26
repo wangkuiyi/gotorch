@@ -56,8 +56,15 @@ input = torch.randn(3, 5, requires_grad=True)
 target = torch.tensor([1, 0, 4])
 output = F.nll_loss(F.log_softmax(input), target)
 output.backward()
+input.grad.shape
 */
 func TestNllLoss(t *testing.T) {
+	input := torch.RandN([]int64{3, 5}, true)
+	target := torch.NewTensor([]int64{1, 0, 4})
+	var weight torch.Tensor
+	output := NllLoss(LogSoftmax(input, -1), target, weight, -100, "mean")
+	output.Backward()
+	assert.Equal(t, []int64{3, 5}, input.Grad().Shape())
 }
 
 func TestBinaryCrossEntropy(t *testing.T) {
