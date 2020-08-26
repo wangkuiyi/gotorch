@@ -29,26 +29,26 @@ type Sample struct {
 //	img, target := imageNet.Minibatch().Data, loader.Minibatch().Target
 // }
 type ImageNetLoader struct {
-	batchSize int64
-	tr        *tar.Reader
-	vocab     map[string]int // the vocabulary of labels.
-	isEOF     bool
-	samples   []Sample
-	trans     *transforms.ComposeTransformer
+	mbSize  int
+	tr      *tar.Reader
+	vocab   map[string]int // the vocabulary of labels.
+	isEOF   bool
+	samples []Sample
+	trans   *transforms.ComposeTransformer
 }
 
 // ImageNet returns ImageNet dataDataLoader
-func ImageNet(reader io.Reader, vocab map[string]int, trans *transforms.ComposeTransformer, batchSize int64) (*ImageNetLoader, error) {
+func ImageNet(reader io.Reader, vocab map[string]int, trans *transforms.ComposeTransformer, mbSize int) (*ImageNetLoader, error) {
 	gr, err := gzip.NewReader(reader)
 	if err != nil {
 		return nil, err
 	}
 	return &ImageNetLoader{
-		batchSize: batchSize,
-		tr:        tar.NewReader(gr),
-		isEOF:     false,
-		vocab:     vocab,
-		trans:     trans,
+		mbSize: mbSize,
+		tr:     tar.NewReader(gr),
+		isEOF:  false,
+		vocab:  vocab,
+		trans:  trans,
 	}, nil
 }
 
@@ -89,7 +89,7 @@ func (p *ImageNetLoader) nextSamples() error {
 		m := image.NewRGBA(image.Rect(0, 0, src.Bounds().Dx(), src.Bounds().Dy()))
 		draw.Draw(m, m.Bounds(), src, image.ZP, draw.Src)
 		p.samples = append(p.samples, Sample{m, target})
-		if int64(len(p.samples)) == p.batchSize {
+		if len(p.samples) == p.mbSize {
 			break
 		}
 	}
