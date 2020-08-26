@@ -18,7 +18,7 @@ func TestImgNetLoader(t *testing.T) {
 	assert.NoError(t, e)
 	assert.Equal(t, 2, len(vocab))
 
-	trans := transforms.Compose(transforms.RandomCrop(224, 224), transforms.RandomFlip(), transforms.ToTensor())
+	trans := transforms.Compose(transforms.RandomCrop(224, 224), transforms.RandomHorizontalFlip(0.5), transforms.ToTensor())
 	loader, e := datasets.ImageNet(bytes.NewReader(tgz.Bytes()), vocab, trans, 2)
 	assert.NoError(t, e)
 	for loader.Scan() {
