@@ -38,14 +38,14 @@ type ImageNetLoader struct {
 }
 
 // ImageNet returns ImageNet dataDataLoader
-func ImageNet(reader io.Reader, vocab map[string]int, trans *transforms.ComposeTransformer, mbSize int) (*ImageNetLoader, error) {
-	gr, err := gzip.NewReader(reader)
-	if err != nil {
-		return nil, err
+func ImageNet(r io.Reader, vocab map[string]int, trans *transforms.ComposeTransformer, mbSize int) (*ImageNetLoader, error) {
+	tgz, e := newTarGzReader(r)
+	if e != nil {
+		return nil, e
 	}
 	return &ImageNetLoader{
 		mbSize: mbSize,
-		tr:     tar.NewReader(gr),
+		tr:     tgz,
 		eof:    false,
 		vocab:  vocab,
 		trans:  trans,
