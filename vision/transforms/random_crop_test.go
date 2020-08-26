@@ -2,14 +2,9 @@ package transforms
 
 import (
 	"image"
-	"image/color"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-)
-
-var (
-	blue = color.RGBA{0, 0, 255, 255}
 )
 
 func TestRandomCrop(t *testing.T) {
