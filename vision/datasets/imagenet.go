@@ -4,7 +4,6 @@ import (
 	"archive/tar"
 	"compress/gzip"
 	"image"
-	"image/draw"
 	"io"
 	"path/filepath"
 	"strings"
@@ -84,9 +83,8 @@ func (p *ImageNetLoader) nextSamples() {
 			p.err = err
 			break
 		}
-		m := image.NewRGBA(image.Rect(0, 0, src.Bounds().Dx(), src.Bounds().Dy()))
-		draw.Draw(m, m.Bounds(), src, image.ZP, draw.Src)
-		p.samples = append(p.samples, sample{m, target})
+
+		p.samples = append(p.samples, sample{src, target})
 		if len(p.samples) == p.mbSize {
 			break
 		}
