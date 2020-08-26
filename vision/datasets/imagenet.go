@@ -12,11 +12,9 @@ import (
 	"github.com/wangkuiyi/gotorch/vision/transforms"
 )
 
-// sample represents a dataset sample which contains
-// the image and the class index.
 type sample struct {
-	image  image.Image
-	target int
+	input torch.Tensor
+	label int64
 }
 
 // ImageNetLoader provides a convenient interface to reader
@@ -32,8 +30,7 @@ type ImageNetLoader struct {
 	tr     *tar.Reader
 	vocab  map[string]int64 // the vocabulary of labels.
 	err    error
-	inputs []torch.Tensor // inputs and labels form a minibatch.
-	labels []int64
+	ch     chan sample
 	trans  *transforms.ComposeTransformer
 }
 
@@ -43,35 +40,49 @@ func ImageNet(r io.Reader, vocab map[string]int64, trans *transforms.ComposeTran
 	if e != nil {
 		return nil, e
 	}
-	return &ImageNetLoader{
+
+	l := &ImageNetLoader{
 		mbSize: mbSize,
 		tr:     tgz,
 		err:    nil,
+		ch:     make(chan sample, 10), // bufSize=10
 		vocab:  vocab,
 		trans:  trans,
-	}, nil
+	}
+	go l.read()
+	return l, nil
 }
 
 // Minibatch returns a minibash with data and label Tensor
 func (p *ImageNetLoader) Minibatch() (torch.Tensor, torch.Tensor) {
-	return torch.Stack(p.inputs, 0), torch.NewTensor(p.labels)
+	inputs := make([]torch.Tensor, 0)
+	labels := make([]int64, 0)
+
+	for i := 0; i < p.mbSize; i++ {
+		s, ok := <-p.ch
+		if ok {
+			inputs = append(inputs, s.input)
+			labels = append(labels, s.label)
+		} else {
+			break
+		}
+	}
+	return torch.Stack(inputs, 0), torch.NewTensor(labels)
 }
 
-func (p *ImageNetLoader) retreiveMinibatch() {
-	p.inputs = []torch.Tensor{}
-	p.labels = []int64{}
+func (p *ImageNetLoader) read() {
 	for {
 		hdr, err := p.tr.Next()
 		if err != nil {
 			p.err = err
 			break
 		}
+
 		if !strings.HasSuffix(strings.ToUpper(hdr.Name), "JPEG") {
 			continue
 		}
 
 		label := p.vocab[filepath.Base(filepath.Dir(hdr.Name))]
-		p.labels = append(p.labels, label)
 
 		image, _, err := image.Decode(p.tr)
 		if err != nil {
@@ -79,21 +90,14 @@ func (p *ImageNetLoader) retreiveMinibatch() {
 			break
 		}
 		input := p.trans.Run(image)
-		p.inputs = append(p.inputs, input.(torch.Tensor))
 
-		if len(p.inputs) == p.mbSize {
-			break
-		}
+		p.ch <- sample{input: input.(torch.Tensor), label: label}
 	}
 }
 
 // Scan return false if no more data
 func (p *ImageNetLoader) Scan() bool {
-	if p.err == io.EOF {
-		return false
-	}
-	p.retreiveMinibatch()
-	if p.err != nil && len(p.inputs) == 0 {
+	if p.err != nil {
 		return false
 	}
 	return true
