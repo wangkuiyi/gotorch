@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	"log"
+	"os/user"
+	"path"
 
 	torch "github.com/wangkuiyi/gotorch"
 	nn "github.com/wangkuiyi/gotorch/nn"
@@ -14,7 +16,7 @@ import (
 
 var device torch.Device
 
-func generator(nz int64) *nn.SequentialModule {
+func generator(nz int64, nc int64) *nn.SequentialModule {
 	return nn.Sequential(
 		nn.ConvTranspose2d(nz, 256, 4, 1, 0, 0, 1, false, 1, "zero"),
 		nn.BatchNorm2d(256, 1e-5, 0.1, true, true),
@@ -25,14 +27,14 @@ func generator(nz int64) *nn.SequentialModule {
 		nn.ConvTranspose2d(128, 64, 4, 2, 1, 0, 1, false, 1, "zero"),
 		nn.BatchNorm2d(64, 1e-5, 0.1, true, true),
 		nn.Functional(torch.Relu),
-		nn.ConvTranspose2d(64, 1, 4, 2, 1, 0, 1, false, 1, "zero"),
+		nn.ConvTranspose2d(64, nc, 4, 2, 1, 0, 1, false, 1, "zero"),
 		nn.Functional(torch.Tanh),
 	)
 }
 
-func discriminator() *nn.SequentialModule {
+func discriminator(nc int64) *nn.SequentialModule {
 	return nn.Sequential(
-		nn.Conv2d(1, 64, 4, 2, 1, 1, 1, false, "zeros"),
+		nn.Conv2d(nc, 64, 4, 2, 1, 1, 1, false, "zeros"),
 		nn.Functional(func(in torch.Tensor) torch.Tensor { return torch.LeakyRelu(in, 0.2) }),
 		nn.Conv2d(64, 128, 4, 2, 1, 1, 1, false, "zeros"),
 		nn.BatchNorm2d(128, 1e-5, 0.1, true, true),
@@ -54,15 +56,13 @@ func main() {
 		device = torch.NewDevice("cpu")
 	}
 
-	mnist := datasets.MNIST("",
-		[]transforms.Transform{transforms.Normalize(0.5, 0.5)})
-
+	nc := int64(3)
 	nz := int64(100)
 	lr := 0.0002
 
-	netG := generator(nz)
+	netG := generator(nz, nc)
 	netG.To(device)
-	netD := discriminator()
+	netD := discriminator(nc)
 	netD.To(device)
 
 	optimizerD := torch.Adam(lr, 0.5, 0.5, 0.0)
@@ -75,24 +75,29 @@ func main() {
 	checkpointStep := 1000
 	checkpointCount := 1
 	batchSize := int64(64)
+
+	trans := transforms.Compose(transforms.ToTensor())
+	u, _ := user.Current()
+	cifar10, _ := datasets.CIFAR10(path.Join(u.HomeDir, ".cache"), true, batchSize, trans)
+
 	i := 0
 	for epoch := 0; epoch < epochs; epoch++ {
-		trainLoader := datasets.NewMNISTLoader(mnist, batchSize)
-		for trainLoader.Scan() {
+		for cifar10.Scan() {
 			// (1) update D network
 			// train with real
 			optimizerD.ZeroGrad()
 
-			batch := trainLoader.Batch()
-			data := batch.Data.CopyTo(device)
-			label := torch.Empty([]int64{batch.Data.Shape()[0]}, false).CopyTo(device)
+			data, _ := cifar10.Batch()
+			data = data.CopyTo(device)
+			fmt.Println(data.Shape())
+			label := torch.Empty([]int64{data.Shape()[0]}, false).CopyTo(device)
 			initializer.Uniform(&label, 0.8, 1.0)
 			output := netD.Forward(data).(torch.Tensor).View([]int64{-1, 1}).Squeeze(1)
 			errDReal := F.BinaryCrossEntropy(output, label, torch.Tensor{}, "mean")
 			errDReal.Backward()
 
 			// train with fake
-			noise := torch.RandN([]int64{batch.Data.Shape()[0], nz, 1, 1}, false).CopyTo(device)
+			noise := torch.RandN([]int64{data.Shape()[0], nz, 1, 1}, false).CopyTo(device)
 			fake := netG.Forward(noise).(torch.Tensor)
 			initializer.Zeros(&label)
 			output = netD.Forward(fake.Detach()).(torch.Tensor).View([]int64{-1, 1}).Squeeze(1)
@@ -119,8 +124,7 @@ func main() {
 			}
 			i++
 		}
-		trainLoader.Close()
+		cifar10.Reset()
 	}
-	mnist.Close()
 	torch.FinishGC()
 }
