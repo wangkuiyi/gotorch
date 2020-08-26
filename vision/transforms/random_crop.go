@@ -1,10 +1,9 @@
 package transforms
 
 import (
-	"fmt"
 	"image"
+	"log"
 	"math/rand"
-	"time"
 
 	"github.com/disintegration/imaging"
 )
@@ -25,11 +24,12 @@ func RandomCrop(height int, width ...int) *RandomCropTransformer {
 
 // Run execute the random crop function and returns the cropped image object.
 func (t *RandomCropTransformer) Run(input image.Image) image.Image {
-	if t.width > input.Bounds().Max.X || t.height > input.Bounds().Max.Y {
-		panic(fmt.Sprintf("crop size (%d, %d) should be within image size (%d, %d)",
-			t.width, t.height, input.Bounds().Max.X, input.Bounds().Max.Y))
+	if w := input.Bounds().Max.X; t.width > w {
+		log.Panicf("RandomCrop: wanted width %d larger than image width %d", t.width, w)
 	}
-	rand.Seed(time.Now().UnixNano())
+	if h := input.Bounds().Max.Y; t.height > h {
+		log.Panicf("RandomCrop: wanted height %d larger than image height %d", t.height, h)
+	}
 	x := rand.Intn(input.Bounds().Max.X - t.width)
 	y := rand.Intn(input.Bounds().Max.Y - t.height)
 
