@@ -16,10 +16,15 @@ func TestCenterCrop(t *testing.T) {
 
 	r := CenterCrop(2, 2).Run(m)
 	a.Equal(image.Rectangle{Min: image.Point{0, 0}, Max: image.Point{2, 2}}, r.Bounds())
-	a.Equal(blue, r.At(0, 0))
+	a.True(colorEqual(blue, r.At(0, 0)))
+	a.True(colorEqual(blue, r.At(0, 1)))
+	a.True(colorEqual(blue, r.At(1, 0)))
+	a.True(colorEqual(blue, r.At(1, 1)))
 
 	r = CenterCrop(1, 2).Run(m)
 	a.Equal(image.Rectangle{Min: image.Point{0, 0}, Max: image.Point{2, 1}}, r.Bounds())
+	a.True(colorEqual(blue, r.At(0, 0)))
+	a.True(colorEqual(blue, r.At(1, 0)))
 
 	a.Panics(func() { CenterCrop(3, 1).Run(m) })
 	a.Panics(func() { CenterCrop(1, 3).Run(m) })
