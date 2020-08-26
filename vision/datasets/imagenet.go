@@ -63,7 +63,7 @@ func (p *ImageNetLoader) Minibatch() (torch.Tensor, torch.Tensor) {
 		dataArray = append(dataArray, data.(torch.Tensor))
 		labelArray = append(labelArray, int64(sample.target))
 	}
-	return torch.Stack(dataArray, 0), torch.NewTensor([]int64{1, 2, 3, 4})
+	return torch.Stack(dataArray, 0), torch.NewTensor(labelArray)
 }
 
 func (p *ImageNetLoader) nextSamples() error {
