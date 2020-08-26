@@ -1,10 +1,9 @@
 package transforms
 
 import (
-	"fmt"
 	"image"
+	"log"
 	"math/rand"
-	"time"
 
 	"github.com/disintegration/imaging"
 )
@@ -15,19 +14,24 @@ type RandomCropTransformer struct {
 }
 
 // RandomCrop returns the RandomCropTransformer.
-func RandomCrop(width, height int) *RandomCropTransformer {
-	return &RandomCropTransformer{width, height}
+func RandomCrop(height int, width ...int) *RandomCropTransformer {
+	w := height
+	if len(width) > 0 {
+		w = width[0]
+	}
+	return &RandomCropTransformer{width: w, height: height}
 }
 
 // Run execute the random crop function and returns the cropped image object.
 func (t *RandomCropTransformer) Run(input image.Image) image.Image {
-	if t.width > input.Bounds().Max.X || t.height > input.Bounds().Max.Y {
-		panic(fmt.Sprintf("crop size (%d, %d) should be within image size (%d, %d)",
-			t.width, t.height, input.Bounds().Max.X, input.Bounds().Max.Y))
+	if w := input.Bounds().Max.X; t.width > w {
+		log.Panicf("RandomCrop: wanted width %d larger than image width %d", t.width, w)
 	}
-	rand.Seed(time.Now().UnixNano())
-	x := rand.Intn(input.Bounds().Max.X - t.width)
-	y := rand.Intn(input.Bounds().Max.Y - t.height)
+	if h := input.Bounds().Max.Y; t.height > h {
+		log.Panicf("RandomCrop: wanted height %d larger than image height %d", t.height, h)
+	}
+	x := rand.Intn(input.Bounds().Max.X - t.width + 1)
+	y := rand.Intn(input.Bounds().Max.Y - t.height + 1)
 
 	rect := image.Rectangle{
 		Min: image.Point{X: x, Y: y},

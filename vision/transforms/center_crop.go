@@ -13,8 +13,12 @@ type CenterCropTransformer struct {
 }
 
 // CenterCrop returns the CenterCropTransformer.
-func CenterCrop(width, height int) *CenterCropTransformer {
-	return &CenterCropTransformer{width, height}
+func CenterCrop(height int, width ...int) *CenterCropTransformer {
+	w := height
+	if len(width) > 0 {
+		w = width[0]
+	}
+	return &CenterCropTransformer{width: w, height: height}
 }
 
 // Run execute the center crop function and returns the cropped image object.
