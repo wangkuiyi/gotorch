@@ -32,7 +32,7 @@ func ExampleTrainMNISTSequential() {
 	net.ZeroGrad()
 
 	mnist := datasets.MNIST("",
-		[]transforms.Transform{transforms.Normalize(0.1307, 0.3081)})
+		[]transforms.Transform{transforms.Normalize([]float64{0.1307}, []float64{0.3081})})
 
 	opt := torch.SGD(0.1, 0.5, 0, 0, false)
 	opt.AddParameters(net.Parameters())

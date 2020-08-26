@@ -21,8 +21,12 @@ const char *CreateMNISTDataset(const char *data_root, MNISTDataset *dataset) {
 
 void MNISTDataset_Close(MNISTDataset d) { delete d.p; }
 
-void MNISTDataset_Normalize(MNISTDataset *dataset, double mean, double stddev) {
-  dataset->normalize = new torch::data::transforms::Normalize<>(mean, stddev);
+void MNISTDataset_Normalize(MNISTDataset *dataset, double *mean,
+                            int64_t mean_len, double *stddev,
+                            int64_t stddev_len) {
+  dataset->normalize = new torch::data::transforms::Normalize<>(
+      at::ArrayRef<double>(mean, mean_len),
+      at::ArrayRef<double>(stddev, stddev_len));
 }
 
 namespace detail {
