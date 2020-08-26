@@ -26,6 +26,6 @@ func TestImgNetLoader(t *testing.T) {
 		assert.Equal(t, []int64{2}, label.Shape())
 	}
 	// failure test for BuildLabelVocabulary
-	_, err := datasets.BuildLabelVocabulary(strings.NewReader("some string"))
+	_, err = datasets.BuildLabelVocabulary(strings.NewReader("some string"))
 	assert.Error(t, err)
 }
