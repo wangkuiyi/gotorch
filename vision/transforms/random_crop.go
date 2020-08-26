@@ -15,8 +15,12 @@ type RandomCropTransformer struct {
 }
 
 // RandomCrop returns the RandomCropTransformer.
-func RandomCrop(width, height int) *RandomCropTransformer {
-	return &RandomCropTransformer{width, height}
+func RandomCrop(height int, width ...int) *RandomCropTransformer {
+	w := height
+	if len(width) > 0 {
+		w = width[0]
+	}
+	return &RandomCropTransformer{width: w, height: height}
 }
 
 // Run execute the random crop function and returns the cropped image object.
