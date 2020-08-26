@@ -56,6 +56,7 @@ const char *Mul(Tensor a, Tensor other, Tensor *result);
 const char *Mul_(Tensor a, Tensor other, Tensor *result);
 const char *Div(Tensor a, Tensor other, Tensor *result);
 const char *Div_(Tensor a, Tensor other, Tensor *result);
+const char *Permute(Tensor a, int64_t *dims, int64_t dims_size, Tensor *result);
 const char *AllClose(Tensor a, Tensor b, int64_t *result);
 const char *Flatten(Tensor a, int64_t startDim, int64_t endDim, Tensor *result);
 const char *TopK(Tensor a, int64_t k, int64_t dim, int8_t largest,

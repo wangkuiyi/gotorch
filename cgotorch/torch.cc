@@ -209,6 +209,17 @@ const char *Div_(Tensor a, Tensor other, Tensor *result) {
   }
 }
 
+const char *Permute(Tensor a, int64_t *dims, int64_t dims_size,
+                    Tensor *result) {
+  try {
+    c10::ArrayRef<int64_t> d(dims, dims_size);
+    *result = new at::Tensor(a->permute(d));
+    return nullptr;
+  } catch (const std::exception &e) {
+    return exception_str(e.what());
+  }
+}
+
 const char *AllClose(Tensor a, Tensor b, int64_t *result) {
   try {
     *result = at::allclose(*a, *b) ? 1 : 0;

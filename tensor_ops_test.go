@@ -56,6 +56,14 @@ func TestArithI(t *testing.T) {
 	a.True(torch.Equal(x, z))
 }
 
+func TestPermute(t *testing.T) {
+	a := assert.New(t)
+	x := torch.NewTensor([][]float32{{3, 1}, {2, 4}})
+	y := x.Permute([]int64{1, 0})
+	expected := torch.NewTensor([][]float32{{3, 2}, {1, 4}})
+	a.True(torch.Equal(expected, y))
+}
+
 func TestAllClose(t *testing.T) {
 	a := assert.New(t)
 	x := torch.NewTensor([]float32{8.31, 6.55, 1.39})

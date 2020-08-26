@@ -44,7 +44,9 @@ func imageToTensor(img image.Image) torch.Tensor {
 		}
 		array[x] = row
 	}
-	return torch.FromBlob(unsafe.Pointer(&array[0][0][0]), torch.Float, []int64{int64(width), int64(height), 3})
+	hwcTensor := torch.FromBlob(unsafe.Pointer(&array[0][0][0]), torch.Float, []int64{int64(width), int64(height), 3})
+	// Convert Tensor to CHW format and return.
+	return hwcTensor.Permute([]int64{2, 0, 1})
 }
 
 func intToTensor(x int) torch.Tensor {
