@@ -1,7 +1,12 @@
 package gotorch_test
 
 import (
+	"bytes"
+	"fmt"
+	"image"
+	"io/ioutil"
 	"log"
+	"testing"
 	"time"
 
 	torch "github.com/wangkuiyi/gotorch"
@@ -55,4 +60,11 @@ func ExampleTrainMNISTSequential() {
 	mnist.Close()
 	torch.FinishGC()
 	// Output:
+}
+
+func TestImage(t *testing.T) {
+	//f, _ := os.Open("/Users/yancey/.cache/imagenet/train/n01855032/ILSVRC2012_val_00014478.JPEG")
+	data, _ := ioutil.ReadFile("/Users/yancey/.cache/imagenet/train/n02490219/ILSVRC2012_val_00039866.JPEG")
+	fmt.Println(len(data))
+	image.Decode(bytes.NewReader(data))
 }

@@ -2,13 +2,12 @@ package datasets
 
 import (
 	"archive/tar"
-	"bytes"
 	"compress/gzip"
-	"fmt"
 	"image"
 	"image/draw"
 	"io"
 	"path/filepath"
+	"strings"
 
 	torch "github.com/wangkuiyi/gotorch"
 	"github.com/wangkuiyi/gotorch/vision/transforms"
@@ -58,19 +57,18 @@ func (p *ImageNetLoader) Minibatch() (torch.Tensor, torch.Tensor) {
 	// TODO(yancey1989): execute transform function sequentially to transfrom the sample
 	// data to Tensors.
 	dataArray := []torch.Tensor{}
-	labelArray := []torch.Tensor{}
+	var labelArray []int64
 	for _, sample := range p.samples {
 		data := p.trans.Run(sample.image)
-		label := transforms.ToTensor().Run(sample.target)
 		dataArray = append(dataArray, data.(torch.Tensor))
-		labelArray = append(labelArray, label)
+		labelArray = append(labelArray, int64(sample.target))
 	}
-	return torch.Stack(dataArray, 0), torch.Stack(labelArray, 0)
+	return torch.Stack(dataArray, 0), torch.NewTensor([]int64{1, 2, 3, 4})
 }
 
 func (p *ImageNetLoader) nextSamples() error {
 	p.samples = []Sample{}
-	for i := int64(0); i < p.batchSize; i++ {
+	for {
 		hdr, err := p.tr.Next()
 		if err == io.EOF {
 			p.isEOF = true
@@ -79,17 +77,21 @@ func (p *ImageNetLoader) nextSamples() error {
 		if err != nil {
 			return err
 		}
+		if !strings.HasSuffix(strings.ToUpper(hdr.Name), "JPEG") || strings.HasPrefix(filepath.Base(hdr.Name), "._") {
+			continue
+		}
 		// read target
 		target := p.vocab[filepath.Base(filepath.Dir(hdr.Name))]
-		// read image
-		data := make([]byte, hdr.Size)
-		if _, err := p.tr.Read(data); err != io.EOF {
-			return fmt.Errorf("has not read a complete image")
+		src, _, err := image.Decode(p.tr)
+		if err != nil {
+			return err
 		}
-		src, _, err := image.Decode(bytes.NewReader(data))
 		m := image.NewRGBA(image.Rect(0, 0, src.Bounds().Dx(), src.Bounds().Dy()))
 		draw.Draw(m, m.Bounds(), src, image.ZP, draw.Src)
 		p.samples = append(p.samples, Sample{m, target})
+		if int64(len(p.samples)) == p.batchSize {
+			break
+		}
 	}
 	return nil
 }
@@ -112,7 +114,15 @@ func must(e error) {
 	}
 }
 
-// BuildLabelVocabulary returns a vocabulary which mapping from the class name to index
+// BuildLabelVocabulary returns a vocabulary which mapping from the class name to index.
+// A generica images are arranged in this way:
+//
+//   blue/xxx.jpeg
+//   blue/yyy.jpeg
+//   green/zzz.jpeg
+//
+// this function would scan all sub-directories of root, building an index from the class name
+// to it's index.
 func BuildLabelVocabulary(reader io.Reader) (map[string]int, error) {
 	gr, err := gzip.NewReader(reader)
 	if err != nil {
@@ -129,10 +139,12 @@ func BuildLabelVocabulary(reader io.Reader) (map[string]int, error) {
 		if err != nil {
 			return nil, err
 		}
-		class := filepath.Base(filepath.Dir(hdr.Name))
-		if _, ok := classToIdx[class]; !ok {
-			classToIdx[class] = idx
-			idx++
+		if hdr.FileInfo().IsDir() {
+			class := filepath.Base(filepath.Dir(hdr.Name))
+			if _, ok := classToIdx[class]; !ok {
+				classToIdx[class] = idx
+				idx++
+			}
 		}
 	}
 	return classToIdx, nil
