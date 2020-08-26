@@ -18,6 +18,10 @@ func TestNormalizeTransform(t *testing.T) {
 		(11.3 - 10.0) / 2.3,
 		(9.2 - 10.0) / 2.3})
 	a.True(torch.AllClose(t2, expected))
+	a.Panics(func() {
+		trans := Normalize([]float64{1.0, 2.0, 3.0, 4.0, 5.0}, []float64{2.3, 2.4, 2.5})
+		trans.Run(torch.NewTensor([]float64{1.0}))
+	})
 }
 func TestNormalizeTransform3D(t *testing.T) {
 	a := assert.New(t)
