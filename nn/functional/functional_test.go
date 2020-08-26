@@ -67,6 +67,16 @@ func TestNllLoss(t *testing.T) {
 	assert.Equal(t, []int64{3, 5}, input.Grad().Shape())
 }
 
+// >>> torch.nn.functional.log_softmax(torch.tensor([[-0.5, -1.], [1., 0.5]]), dim=1)
+// tensor([[-0.4741, -0.9741],
+//         [-0.4741, -0.9741]])
+func TestLogSoftmax(t *testing.T) {
+	r := LogSoftmax(torch.NewTensor([][]float32{{-0.5, -1}, {1, 0.5}}),
+		1)
+	g := "-0.4741 -0.9741\n-0.4741 -0.9741\n[ CPUFloatType{2,2} ]"
+	assert.Equal(t, g, r.String())
+}
+
 func TestBinaryCrossEntropy(t *testing.T) {
 	input := torch.RandN([]int64{3, 2}, true)
 	target := torch.Rand([]int64{3, 2}, false)
