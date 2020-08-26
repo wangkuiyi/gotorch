@@ -19,3 +19,16 @@ func TestNormalizeTransform(t *testing.T) {
 		(9.2 - 10.0) / 2.3})
 	a.True(torch.AllClose(t2, expected))
 }
+func TestNormalizeTransform3D(t *testing.T) {
+	a := assert.New(t)
+	trans := Normalize([]float64{1.0, 2.0, 3.0}, []float64{2.3, 2.4, 2.5})
+	// an image in torch should be a 3D tensor with CHW format
+	t1 := torch.NewTensor([][][]float64{{{10.2}}, {{11.3}}, {{9.2}}})
+	t2 := trans.Run(t1)
+
+	expected := torch.NewTensor([][][]float64{
+		{{(10.2 - 1.0) / 2.3}},
+		{{(11.3 - 2.0) / 2.4}},
+		{{(9.2 - 3.0) / 2.5}}})
+	a.True(torch.AllClose(t2, expected))
+}

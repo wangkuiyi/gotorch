@@ -24,14 +24,14 @@ func (t *NormalizeTransformer) Run(input torch.Tensor) torch.Tensor {
 	if len(t.Mean) == 1 {
 		meanT = torch.NewTensor([][][]float64{{{t.Mean[0]}}})
 	} else if len(t.Mean) == 3 {
-		meanT = torch.NewTensor([][][]float64{{{t.Mean[0]}}, {{t.Mean[0]}}, {{t.Mean[1]}}})
+		meanT = torch.NewTensor([][][]float64{{{t.Mean[0]}}, {{t.Mean[1]}}, {{t.Mean[2]}}})
 	} else {
 		panic(fmt.Sprintf("len(Mean) should be 1 or 3."))
 	}
 	if len(t.Stddev) == 1 {
 		stddevT = torch.NewTensor([][][]float64{{{t.Stddev[0]}}})
 	} else if len(t.Stddev) == 3 {
-		stddevT = torch.NewTensor([][][]float64{{{t.Stddev[0]}}, {{t.Stddev[0]}}, {{t.Stddev[1]}}})
+		stddevT = torch.NewTensor([][][]float64{{{t.Stddev[0]}}, {{t.Stddev[1]}}, {{t.Stddev[2]}}})
 	} else {
 		panic(fmt.Sprintf("len(Stddev) should be 1 or 3."))
 	}
