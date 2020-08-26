@@ -3,6 +3,7 @@ package datasets_test
 import (
 	"bytes"
 	"io"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -24,4 +25,7 @@ func TestImgNetLoader(t *testing.T) {
 		assert.Equal(t, []int64{2, 3, 224, 224}, data.Shape())
 		assert.Equal(t, []int64{2}, label.Shape())
 	}
+	// failure test for BuildLabelVocabulary
+	_, err := datasets.BuildLabelVocabulary(strings.NewReader("some string"))
+	assert.Error(t, err)
 }

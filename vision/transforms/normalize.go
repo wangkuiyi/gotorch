@@ -1,6 +1,10 @@
 package transforms
 
-import torch "github.com/wangkuiyi/gotorch"
+import (
+	"fmt"
+
+	torch "github.com/wangkuiyi/gotorch"
+)
 
 // NormalizeTransformer corresponds to torchvision.transforms.html#Normalize. It
 // implements Go interface gotorch/data.Transform.
@@ -14,15 +18,25 @@ func Normalize(mean []float64, stddev []float64) *NormalizeTransformer {
 }
 
 // Run normalize the input (Tensor) of size (C, H, W) using the stats value mean, stddev.
-func (t *NormalizeTransformer) Run(input interface{}) interface{} {
-	inputTensor, ok := input.(torch.Tensor)
-	if !ok {
-		panic("NormalizeTransformer accepts Tensor input only.")
+func (t *NormalizeTransformer) Run(input torch.Tensor) torch.Tensor {
+	var meanT torch.Tensor
+	var stddevT torch.Tensor
+	if len(t.Mean) == 1 {
+		meanT = torch.NewTensor([][][]float64{{{t.Mean[0]}}})
+	} else if len(t.Mean) == 3 {
+		meanT = torch.NewTensor([][][]float64{{{t.Mean[0]}}, {{t.Mean[0]}}, {{t.Mean[1]}}})
+	} else {
+		panic(fmt.Sprintf("len(Mean) should be 1 or 3."))
 	}
-	meanT := torch.NewTensor(t.Mean)
+	if len(t.Stddev) == 1 {
+		stddevT = torch.NewTensor([][][]float64{{{t.Stddev[0]}}})
+	} else if len(t.Stddev) == 3 {
+		stddevT = torch.NewTensor([][][]float64{{{t.Stddev[0]}}, {{t.Stddev[0]}}, {{t.Stddev[1]}}})
+	} else {
+		panic(fmt.Sprintf("len(Stddev) should be 1 or 3."))
+	}
 	// TODO(typhoonzero): check if stddevT equals 0
-	stddevT := torch.NewTensor(t.Stddev)
-	inputTensor.SubI(meanT, 1.0)
-	inputTensor.DivI(stddevT)
-	return inputTensor
+	x := input.Sub(meanT, 1.0)
+	x = x.Div(stddevT)
+	return x
 }

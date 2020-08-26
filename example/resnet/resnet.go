@@ -110,7 +110,7 @@ func train(model *models.ResnetModule, opt torch.Optimizer, batchSize int64, dev
 		acc5 := acc[1]
 		if batchIdx%100 == 0 {
 			throughput := float64(100*batchSize) / time.Since(startTime).Seconds()
-			fmt.Printf("loss: %f, acc1 :%f, acc5: %f, throughput: %.2f samples/sec\n", loss.Item(), acc1, acc5, throughput)
+			fmt.Printf("batchIdx: %d, loss: %f, acc1 :%f, acc5: %f, throughput: %.2f samples/sec\n", batchIdx, loss.Item(), acc1, acc5, throughput)
 		}
 
 		opt.ZeroGrad()
