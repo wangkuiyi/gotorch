@@ -8,17 +8,6 @@ import (
 // Transform interface
 type Transform interface{}
 
-// NormalizeTransformer corresponds to torchvision.transforms.html#Normalize. It
-// implements Go interface gotorch/data.Transform.
-type NormalizeTransformer struct {
-	Mean, Stddev float64
-}
-
-// Normalize returns normalize transformer
-func Normalize(mean float64, stddev float64) *NormalizeTransformer {
-	return &NormalizeTransformer{mean, stddev}
-}
-
 // ComposeTransformer composes transforms together
 type ComposeTransformer struct {
 	// Transform function should implement a `Do` method, which accepts any argument type

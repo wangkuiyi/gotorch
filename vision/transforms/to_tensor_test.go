@@ -13,7 +13,7 @@ func TestToTensor(t *testing.T) {
 	m := generateRandImage(image.Rect(0, 0, 4, 4))
 	trans := ToTensor()
 	out := trans.Run(m)
-	a.Equal(out.Shape(), []int64{4, 4, 3})
+	a.Equal(out.Shape(), []int64{3, 4, 4})
 	// int to Tensor
 	out = trans.Run(10)
 	a.Equal(out.Shape(), []int64{1})

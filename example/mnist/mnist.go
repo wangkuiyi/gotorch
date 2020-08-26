@@ -1,14 +1,15 @@
 package main
 
 import (
+	"log"
+	"time"
+
 	torch "github.com/wangkuiyi/gotorch"
 	F "github.com/wangkuiyi/gotorch/nn/functional"
 	"github.com/wangkuiyi/gotorch/nn/initializer"
 	"github.com/wangkuiyi/gotorch/vision/datasets"
 	"github.com/wangkuiyi/gotorch/vision/models"
 	"github.com/wangkuiyi/gotorch/vision/transforms"
-	"log"
-	"time"
 )
 
 func main() {
@@ -24,7 +25,7 @@ func main() {
 	initializer.ManualSeed(1)
 
 	mnist := datasets.MNIST("",
-		[]transforms.Transform{transforms.Normalize(0.1307, 0.3081)})
+		[]transforms.Transform{transforms.Normalize([]float64{0.1307}, []float64{0.3081})})
 
 	net := models.MLP()
 	net.ZeroGrad()

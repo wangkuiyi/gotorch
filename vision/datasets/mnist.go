@@ -42,9 +42,12 @@ func MNIST(dataRoot string, trans []transforms.Transform) *MNISTDataset {
 	for _, v := range trans {
 		switch t := v.(type) {
 		case *transforms.NormalizeTransformer:
+			trans := v.(*transforms.NormalizeTransformer)
 			C.MNISTDataset_Normalize(&dataset,
-				C.double(v.(*transforms.NormalizeTransformer).Mean),
-				C.double(v.(*transforms.NormalizeTransformer).Stddev))
+				(*C.double)(unsafe.Pointer(&trans.Mean[0])),
+				C.int64_t(len(trans.Mean)),
+				(*C.double)(unsafe.Pointer(&trans.Stddev[0])),
+				C.int64_t(len(trans.Stddev)))
 		default:
 			panic(fmt.Sprintf("unsupposed transform type: %T", t))
 		}

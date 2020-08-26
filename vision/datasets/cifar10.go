@@ -1,6 +1,7 @@
 package datasets
 
 import (
+	"fmt"
 	"image"
 	"image/color"
 	"io/ioutil"
@@ -42,7 +43,7 @@ type CIFAR10Loader struct {
 	offset    int64
 	root      string
 	train     bool
-	samples   []Sample
+	samples   []*Sample
 	trans     *transforms.ComposeTransformer
 }
 
@@ -53,6 +54,7 @@ func CIFAR10(root string, train bool, batchSize int64, trans *transforms.Compose
 		root:      root,
 		train:     train,
 		trans:     trans,
+		samples:   make([]*Sample, 0),
 	}
 	imgSize := 3 * 32 * 32
 	downloadList := cifar10TestList
@@ -62,7 +64,6 @@ func CIFAR10(root string, train bool, batchSize int64, trans *transforms.Compose
 	for _, fileName := range downloadList {
 		filePath := path.Join(c.root, cifar10BaseFolder, fileName)
 		file, err := os.Open(filePath)
-		defer file.Close()
 		if err != nil {
 			return nil, err
 		}
@@ -71,8 +72,9 @@ func CIFAR10(root string, train bool, batchSize int64, trans *transforms.Compose
 			target := uint8(b[(imgSize+1)*i])
 			data := b[(imgSize+1)*i+1 : (imgSize+1)*(i+1)]
 			src := rgbBytesToImage(data, 32, 32)
-			c.samples = append(c.samples, Sample{src, int(target)})
+			c.samples = append(c.samples, &Sample{src, int(target)})
 		}
+		file.Close()
 	}
 	return c, nil
 }
@@ -82,6 +84,7 @@ func (c *CIFAR10Loader) Batch() (torch.Tensor, torch.Tensor) {
 	dataArray := []torch.Tensor{}
 	labelArray := []torch.Tensor{}
 	for i := c.offset; (i < c.offset+c.batchSize) && i < int64(len(c.samples)); i++ {
+		fmt.Println(i)
 		data := c.trans.Run(c.samples[i].image)
 		label := transforms.ToTensor().Run(c.samples[i].target)
 		dataArray = append(dataArray, data.(torch.Tensor))
@@ -93,6 +96,7 @@ func (c *CIFAR10Loader) Batch() (torch.Tensor, torch.Tensor) {
 
 // Scan scans the batch from Loader
 func (c *CIFAR10Loader) Scan() bool {
+	torch.GC()
 	if c.offset >= int64(len(c.samples)) {
 		return false
 	}

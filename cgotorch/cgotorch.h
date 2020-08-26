@@ -50,6 +50,14 @@ const char *Tanh(Tensor a, Tensor *result);
 const char *Sigmoid(Tensor a, Tensor *result);
 const char *Add(Tensor a, Tensor other, float alpha, Tensor *result);
 const char *Add_(Tensor a, Tensor other, float alpha, Tensor *result);
+const char *Sub(Tensor a, Tensor other, float alpha, Tensor *result);
+const char *Sub_(Tensor a, Tensor other, float alpha, Tensor *result);
+const char *Mul(Tensor a, Tensor other, Tensor *result);
+const char *Mul_(Tensor a, Tensor other, Tensor *result);
+const char *Div(Tensor a, Tensor other, Tensor *result);
+const char *Div_(Tensor a, Tensor other, Tensor *result);
+const char *Permute(Tensor a, int64_t *dims, int64_t dims_size, Tensor *result);
+const char *AllClose(Tensor a, Tensor b, int64_t *result);
 const char *Flatten(Tensor a, int64_t startDim, int64_t endDim, Tensor *result);
 const char *TopK(Tensor a, int64_t k, int64_t dim, int8_t largest,
                  int8_t sorted, Tensor *values, Tensor *indices);
@@ -188,7 +196,9 @@ const char *CreateMNISTDataset(const char *data_root, MNISTDataset *dataset);
 void MNISTDataset_Close(MNISTDataset d);
 
 // Set parameters of the normalize transform in dataset
-void MNISTDataset_Normalize(MNISTDataset *dataset, double mean, double stddev);
+void MNISTDataset_Normalize(MNISTDataset *dataset, double *mean,
+                            int64_t mean_len, double *stddev,
+                            int64_t stddev_len);
 
 typedef void *MNISTLoader;
 typedef void *MNISTIterator;
