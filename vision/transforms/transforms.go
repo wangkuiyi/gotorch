@@ -8,8 +8,6 @@ import (
 // Transform interface
 type Transform interface{}
 
-
-
 // ComposeTransformer composes transforms together
 type ComposeTransformer struct {
 	// Transform function should implement a `Do` method, which accepts any argument type
