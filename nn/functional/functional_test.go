@@ -7,7 +7,7 @@ import (
 	torch "github.com/wangkuiyi/gotorch"
 )
 
-func TestBatchNorm(t *testing.T) {
+func TestFunctionalBatchNorm(t *testing.T) {
 	input := torch.RandN([]int64{10, 20}, true)
 	w := torch.RandN([]int64{20}, true)
 	r := BatchNorm(input, torch.Tensor{}, torch.Tensor{}, w, torch.Tensor{}, true, 0.1, 0.1)
@@ -19,7 +19,7 @@ filters = torch.randn(8,4,3,3)
 inputs = torch.randn(1,4,5,5)
 o = F.conv2d(inputs, filters, padding=1)
 */
-func TestConv2d(t *testing.T) {
+func TestFunctionalConv2d(t *testing.T) {
 	filters := torch.RandN([]int64{8, 4, 3, 3}, false)
 	inputs := torch.RandN([]int64{1, 4, 5, 5}, false)
 	var bias torch.Tensor
@@ -34,7 +34,7 @@ inputs = torch.randn(1, 4, 5, 5)
 weights = torch.randn(4, 8, 3, 3)
 o = F.conv_transpose2d(inputs, weights, padding=1)
 */
-func TestConvTranspose2d(t *testing.T) {
+func TestFunctionalConvTranspose2d(t *testing.T) {
 	input := torch.RandN([]int64{1, 4, 5, 5}, false)
 	weight := torch.RandN([]int64{4, 8, 3, 3}, false)
 	var bias torch.Tensor
@@ -58,7 +58,7 @@ output = F.nll_loss(F.log_softmax(input), target)
 output.backward()
 input.grad.shape
 */
-func TestNllLoss(t *testing.T) {
+func TestFunctionalNllLoss(t *testing.T) {
 	input := torch.RandN([]int64{3, 5}, true)
 	target := torch.NewTensor([]int64{1, 0, 4})
 	var weight torch.Tensor
@@ -70,14 +70,14 @@ func TestNllLoss(t *testing.T) {
 // >>> torch.nn.functional.log_softmax(torch.tensor([[-0.5, -1.], [1., 0.5]]), dim=1)
 // tensor([[-0.4741, -0.9741],
 //         [-0.4741, -0.9741]])
-func TestLogSoftmax(t *testing.T) {
+func TestFunctionalLogSoftmax(t *testing.T) {
 	r := LogSoftmax(torch.NewTensor([][]float32{{-0.5, -1}, {1, 0.5}}),
 		1)
 	g := "-0.4741 -0.9741\n-0.4741 -0.9741\n[ CPUFloatType{2,2} ]"
 	assert.Equal(t, g, r.String())
 }
 
-func TestBinaryCrossEntropy(t *testing.T) {
+func TestFunctionalBinaryCrossEntropy(t *testing.T) {
 	input := torch.RandN([]int64{3, 2}, true)
 	target := torch.Rand([]int64{3, 2}, false)
 	loss := BinaryCrossEntropy(torch.Sigmoid(input), target, torch.Tensor{}, "mean")
@@ -85,13 +85,13 @@ func TestBinaryCrossEntropy(t *testing.T) {
 	loss.Backward()
 }
 
-func TestMaxPool2d(t *testing.T) {
+func TestFunctionalMaxPool2d(t *testing.T) {
 	input := torch.RandN([]int64{20, 16, 50, 32}, false)
 	out := MaxPool2d(input, []int64{3, 2}, []int64{2, 1}, []int64{0, 0}, []int64{1, 1}, false)
 	assert.NotNil(t, out.T)
 }
 
-func TestAdaptiveAvgPool2d(t *testing.T) {
+func TestFunctionalAdaptiveAvgPool2d(t *testing.T) {
 	input := torch.RandN([]int64{1, 64, 8, 9}, false)
 	out := AdaptiveAvgPool2d(input, []int64{5, 7})
 	assert.NotNil(t, out.T)
