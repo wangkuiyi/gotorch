@@ -3,6 +3,7 @@ package transforms
 import (
 	"image"
 	"image/color"
+	"image/draw"
 	"math/rand"
 	"time"
 )
@@ -19,4 +20,16 @@ func generateRandImage(size image.Rectangle) image.Image {
 		}
 	}
 	return i
+}
+
+func drawImage(size image.Rectangle, c color.Color) image.Image {
+	m := image.NewRGBA(size)
+	draw.Draw(m, m.Bounds(), &image.Uniform{c}, image.ZP, draw.Src)
+	return m
+}
+
+func colorEqual(x, y color.Color) bool {
+	r1, b1, g1, a1 := x.RGBA()
+	r2, b2, g2, a2 := y.RGBA()
+	return r1 == r2 && b1 == b2 && g1 == g2 && a1 == a2
 }
