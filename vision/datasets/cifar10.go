@@ -12,6 +12,7 @@ import (
 	"github.com/wangkuiyi/gotorch/vision/transforms"
 )
 
+// The dataset layout description locates at https://www.cs.toronto.edu/~kriz/cifar.html
 var cifar10Url = "https://www.cs.toronto.edu/~kriz/cifar-10-binary.tar.gz"
 var cifar10BaseFolder = "cifar-10-batches-bin"
 var cifar10FileName = "cifar-10-binary.tar.gz"
