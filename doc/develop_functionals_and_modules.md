@@ -4,7 +4,7 @@ This tutorial demonstrates how to develop modules and functionals for GoTorch.
 [Wrap PyTorch Native Functions](wrap_native_functions.md) explains how to wrap
 PyTorch native functions for GoTorch.  Functionals are high-level functions
 built on native functions.  Modules are structs that encapsulate multiple native
-functions or functionals.  Modules and functionals are the main interface to 
+functions or functionals.  Modules and functionals are the main interface to
 GoTorch end users.
 
 ## Define GoTorch Functionals
