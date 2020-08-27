@@ -94,7 +94,7 @@ func main() {
 
 	trans := transforms.Compose(transforms.Resize(64),
 		transforms.ToTensor(),
-		transforms.Normalize([]float32{0.5, 0.5, 0.5}, []float32{0.5, 0.5, 0.5}))
+		transforms.Normalize([]float64{0.5, 0.5, 0.5}, []float64{0.5, 0.5, 0.5}))
 	u, _ := user.Current()
 	cifar10, _ := datasets.CIFAR10(path.Join(u.HomeDir, ".cache"), true, true, batchSize, trans)
 
@@ -107,6 +107,7 @@ func main() {
 
 			data, _ := cifar10.Batch()
 			data = data.CopyTo(device)
+
 			label := torch.Empty([]int64{data.Shape()[0]}, false).CopyTo(device)
 			initializer.Uniform(&label, 0.8, 1.0)
 			output := netD.Forward(data).(torch.Tensor).View([]int64{-1, 1}).Squeeze(1)
