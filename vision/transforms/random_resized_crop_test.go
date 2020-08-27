@@ -32,14 +32,14 @@ func TestRandomResizedCrop(t *testing.T) {
 	trans = RandomResizedCrop(20)
 	out = trans.Run(input)
 	a.Equal(20, out.Bounds().Max.X)
-	r, g, b, _ := out.At(4, 11).RGBA()
-	a.Equal(uint32(0x4242), r)
+	r, g, b, _ := out.At(7, 5).RGBA()
+	a.Equal(uint32(0x2424), r)
 	a.Equal(uint32(0x0000), g)
-	a.Equal(uint32(0xbdbd), b)
+	a.Equal(uint32(0xdbdb), b)
 
 	// Test crop output greater size
 	trans = RandomResizedCrop(60, 80)
 	out = trans.Run(input)
-	a.Equal(60, out.Bounds().Max.X)
-	a.Equal(80, out.Bounds().Max.Y)
+	a.Equal(80, out.Bounds().Max.X)
+	a.Equal(60, out.Bounds().Max.Y)
 }

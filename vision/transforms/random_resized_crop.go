@@ -26,7 +26,7 @@ func RandomResizedCrop(height int, width ...int) *RandomResizedCropTransformer {
 		w = width[0]
 	}
 	return RandomResizedCropD(
-		w, height,
+		height, w,
 		0.08, 1.0,
 		3.0/4.0, 4.0/3.0,
 		imaging.Linear,
@@ -91,8 +91,8 @@ func (t *RandomResizedCropTransformer) getParams(input image.Image) (int, int, i
 func (t *RandomResizedCropTransformer) Run(input image.Image) image.Image {
 	i, j, h, w := t.getParams(input)
 	cropped := imaging.Crop(input, image.Rectangle{
-		Min: image.Point{X: i, Y: j},
-		Max: image.Point{X: w, Y: h},
+		Min: image.Point{X: j, Y: i},
+		Max: image.Point{X: j + w, Y: i + h},
 	})
 	return imaging.Resize(cropped, t.width, t.height, t.interpolation)
 }
