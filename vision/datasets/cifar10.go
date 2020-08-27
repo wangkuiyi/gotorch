@@ -1,7 +1,6 @@
 package datasets
 
 import (
-	"fmt"
 	"image"
 	"image/color"
 	"io/ioutil"
@@ -28,7 +27,7 @@ func rgbBytesToImage(data []byte, x, y int) *image.RGBA {
 	length := x * y
 	for ix := 0; ix < x; ix++ {
 		for iy := 0; iy < y; iy++ {
-			rgba.Set(ix, iy, color.NRGBA{uint8(data[ix*y+iy]),
+			rgba.Set(ix, iy, color.RGBA{uint8(data[ix*y+iy]),
 				uint8(data[length+ix*y+iy]),
 				uint8(data[2*length+ix*y+iy]),
 				255})
@@ -39,22 +38,24 @@ func rgbBytesToImage(data []byte, x, y int) *image.RGBA {
 
 // CIFAR10Loader struct
 type CIFAR10Loader struct {
-	batchSize int64
-	offset    int64
+	batchSize int
+	offset    int
 	root      string
 	train     bool
-	samples   []*Sample
+	data      []image.Image
+	target    []int
 	trans     *transforms.ComposeTransformer
 }
 
 // CIFAR10 creates a CIFAR10Loader instance
-func CIFAR10(root string, train bool, batchSize int64, trans *transforms.ComposeTransformer) (*CIFAR10Loader, error) {
+func CIFAR10(root string, train bool, batchSize int, trans *transforms.ComposeTransformer) (*CIFAR10Loader, error) {
 	c := &CIFAR10Loader{
 		batchSize: batchSize,
 		root:      root,
 		train:     train,
 		trans:     trans,
-		samples:   make([]*Sample, 0),
+		data:      make([]image.Image, 0),
+		target:    make([]int, 0),
 	}
 	imgSize := 3 * 32 * 32
 	downloadList := cifar10TestList
@@ -72,7 +73,8 @@ func CIFAR10(root string, train bool, batchSize int64, trans *transforms.Compose
 			target := uint8(b[(imgSize+1)*i])
 			data := b[(imgSize+1)*i+1 : (imgSize+1)*(i+1)]
 			src := rgbBytesToImage(data, 32, 32)
-			c.samples = append(c.samples, &Sample{src, int(target)})
+			c.data = append(c.data, src)
+			c.target = append(c.target, int(target))
 		}
 		file.Close()
 	}
@@ -81,23 +83,22 @@ func CIFAR10(root string, train bool, batchSize int64, trans *transforms.Compose
 
 // Batch returns a minibatch with data and label Tensor
 func (c *CIFAR10Loader) Batch() (torch.Tensor, torch.Tensor) {
-	dataArray := []torch.Tensor{}
-	labelArray := []torch.Tensor{}
-	for i := c.offset; (i < c.offset+c.batchSize) && i < int64(len(c.samples)); i++ {
-		fmt.Println(i)
-		data := c.trans.Run(c.samples[i].image)
-		label := transforms.ToTensor().Run(c.samples[i].target)
-		dataArray = append(dataArray, data.(torch.Tensor))
-		labelArray = append(labelArray, label)
+	dataSlice := []torch.Tensor{}
+	labelSlice := []torch.Tensor{}
+	for i := c.offset; (i < c.offset+c.batchSize) && i < len(c.data); i++ {
+		data := c.trans.Run(c.data[i])
+		label := transforms.ToTensor().Run(c.target[i])
+		dataSlice = append(dataSlice, data.(torch.Tensor))
+		labelSlice = append(labelSlice, label)
 	}
 	c.offset = c.offset + c.batchSize
-	return torch.Stack(dataArray, 0), torch.Stack(labelArray, 0)
+	return torch.Stack(dataSlice, 0), torch.Stack(labelSlice, 0)
 }
 
 // Scan scans the batch from Loader
 func (c *CIFAR10Loader) Scan() bool {
 	torch.GC()
-	if c.offset >= int64(len(c.samples)) {
+	if c.offset >= len(c.data) {
 		return false
 	}
 	return true

@@ -11,5 +11,5 @@ for file in files:
     module = torch.jit.load(file)
     images = list(module.parameters())[0]
     for i in range(10):
-        image = images[i].detach().cpu().reshape(28, 28)
+        image = images[i].detach().cpu().reshape(3, 64, 64)
         vutils.save_image(image, directory + '/' + str(i) + '.png', normalize=True) 
