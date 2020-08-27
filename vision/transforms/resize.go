@@ -12,8 +12,12 @@ type ResizeTransformer struct {
 }
 
 // Resize returns the ResizeTransformer.
-func Resize(height, width int) *ResizeTransformer {
-	return &ResizeTransformer{height, width}
+func Resize(height int, width ...int) *ResizeTransformer {
+	w := height
+	if len(width) > 0 {
+		w = width[0]
+	}
+	return &ResizeTransformer{height, w}
 }
 
 // Run execute the resize function and returns the resized image object.

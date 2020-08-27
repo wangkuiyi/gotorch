@@ -92,7 +92,7 @@ func main() {
 	checkpointCount := 1
 	batchSize := 64
 
-	trans := transforms.Compose(transforms.Resize(64, 64),
+	trans := transforms.Compose(transforms.Resize(64),
 		transforms.ToTensor(),
 		transforms.Normalize([]float32{0.5, 0.5, 0.5}, []float32{0.5, 0.5, 0.5}))
 	u, _ := user.Current()
