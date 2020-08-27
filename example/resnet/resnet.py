@@ -1,9 +1,16 @@
+import argparse
 import time
 import torch
 import torch.optim
 import torch.nn.functional as F
 
 import torchvision.models as models
+import torchvision.datasets as datasets
+import torchvision.transforms as transforms
+
+parser = argparse.ArgumentParser(description='PyTorch ImageNet Training')
+parser.add_argument('--train-dir', type=str,
+                    help='url used to set up distributed training')
 
 
 def adjust_learning_rate(optimizer, epoch, lr):
@@ -30,15 +37,14 @@ def accuracy(output, target, topk=(1, )):
         return res
 
 
-def train(model, optimizer, batch_size, device):
+def train(epoch, train_loader, model, optimizer, batch_size, device):
     model.train()
+    start = time.time()
+    for i, (image, target) in enumerate(train_loader):
+        image = image.to(device)
+        target = target.to(device)
 
-    for i in range(10):
-        images = torch.randn((batch_size, 3, 224, 224)).to(device)
-        target = torch.empty(batch_size,
-                             dtype=torch.long).random_(1000).to(device)
-
-        output = model(images)
+        output = model(image)
         loss = F.cross_entropy(output, target)
 
         acc1, acc5 = accuracy(output, target, (1, 5))
@@ -47,13 +53,19 @@ def train(model, optimizer, batch_size, device):
         loss.backward()
         optimizer.step()
 
-        if i % 5 == 0:
-            print("loss: %f, acc1: %f, acc5: %f" % (loss, acc1, acc5))
+        if i and i % 10 == 0:
+            print('batch: %d, loss: %f, acc1: %f, acc5: %f' % (
+                i, loss, acc1, acc5))
+
+    throughput = batch_size * len(train_loader) * 1.0 / (time.time() - start)
+    print('epoch: %d, loss: %f, acc1: %f, acc5: %f, throughput: %f \
+        samples/sec' % (epoch, loss, acc1, acc5, throughput))
 
 
 if __name__ == "__main__":
-    batch_size = 16
-    epochs = 10
+    args = parser.parse_args()
+    batch_size = 32
+    epochs = 100
     lr = 0.1
     mementum = 0.9
     weight_decay = 1e-4
@@ -67,8 +79,19 @@ if __name__ == "__main__":
                                 momentum=mementum,
                                 weight_decay=weight_decay)
 
-    start = time.time()
+    normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
+                                     std=[0.229, 0.224, 0.225])
+    train_dataset = datasets.ImageFolder(
+        args.train_dir,
+        transforms.Compose([
+            transforms.RandomResizedCrop(224),
+            transforms.RandomHorizontalFlip(),
+            transforms.ToTensor(),
+            normalize,
+        ]))
+    train_loader = torch.utils.data.DataLoader(
+        train_dataset, batch_size=batch_size, shuffle=True)
+
     for epoch in range(epochs):
         adjust_learning_rate(optimizer, epoch, lr)
-        train(model, optimizer, batch_size, device)
-    print(time.time() - start)
+        train(epoch, train_loader, model, optimizer, batch_size, device)
