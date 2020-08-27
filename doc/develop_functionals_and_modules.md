@@ -191,7 +191,7 @@ default and can be omitted.
 
 ## Summary
 
-In this tutorial, we learned how to define functionals, and modules in GoTorch.
+In this tutorial, we learned how to define functionals and modules in GoTorch.
 
 1. To define functionals, we either wrap the corresponding C++ functionals or
    write new functions in pure Go.
