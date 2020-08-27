@@ -4,8 +4,6 @@ import (
 	"image"
 	"image/color"
 	"image/draw"
-	"math/rand"
-	"time"
 )
 
 func drawImage(size image.Rectangle, c color.Color) image.Image {
