@@ -29,7 +29,7 @@ type ImageNetLoader struct {
 	mbSize int
 	tr     *tar.Reader
 	vocab  map[string]int64 // the vocabulary of labels.
-	err    error
+	err    chan error
 	ch     chan sample
 	trans  *transforms.ComposeTransformer
 }
@@ -44,7 +44,7 @@ func ImageNet(r io.Reader, vocab map[string]int64, trans *transforms.ComposeTran
 	l := &ImageNetLoader{
 		mbSize: mbSize,
 		tr:     tgz,
-		err:    nil,
+		err:    make(chan error),
 		ch:     make(chan sample, 10), // bufSize=10
 		vocab:  vocab,
 		trans:  trans,
@@ -71,10 +71,13 @@ func (p *ImageNetLoader) Minibatch() (torch.Tensor, torch.Tensor) {
 }
 
 func (p *ImageNetLoader) read() {
+	defer close(p.ch)
+	defer close(p.err)
+
 	for {
 		hdr, err := p.tr.Next()
 		if err != nil {
-			p.err = err
+			p.err <- err
 			break
 		}
 
@@ -86,7 +89,7 @@ func (p *ImageNetLoader) read() {
 
 		image, _, err := image.Decode(p.tr)
 		if err != nil {
-			p.err = err
+			p.err <- err
 			break
 		}
 		input := p.trans.Run(image)
@@ -97,8 +100,13 @@ func (p *ImageNetLoader) read() {
 
 // Scan return false if no more data
 func (p *ImageNetLoader) Scan() bool {
-	if p.err != nil {
-		return false
+	select {
+	case e := <-p.err:
+		if e != nil {
+			return false
+		}
+	default:
+		return true
 	}
 	return true
 }
@@ -106,10 +114,10 @@ func (p *ImageNetLoader) Scan() bool {
 // Err returns the error during the scan process, if there is any. io.EOF is not
 // considered an error.
 func (p *ImageNetLoader) Err() error {
-	if p.err == io.EOF {
-		return nil
+	if e, ok := <-p.err; ok && e != nil && e != io.EOF {
+		return e
 	}
-	return p.err
+	return nil
 }
 
 // BuildLabelVocabulary returns a vocabulary which mapping from the class name
