@@ -1,15 +1,19 @@
 package main
 
 import (
+	"flag"
 	"fmt"
+	"io"
 	"log"
 	"math"
+	"os"
 	"time"
 
 	torch "github.com/wangkuiyi/gotorch"
 	F "github.com/wangkuiyi/gotorch/nn/functional"
-	"github.com/wangkuiyi/gotorch/nn/initializer"
+	"github.com/wangkuiyi/gotorch/vision/datasets"
 	"github.com/wangkuiyi/gotorch/vision/models"
+	"github.com/wangkuiyi/gotorch/vision/transforms"
 )
 
 var device torch.Device
@@ -59,34 +63,72 @@ func accuracy(output, target torch.Tensor, topk []int64) []float32 {
 	return res
 }
 
-func train(model *models.ResnetModule, opt torch.Optimizer, batchSize int64, device torch.Device) {
-	model.Train(true)
-	for i := 0; i < 10; i++ {
-		torch.GC()
-		image := torch.RandN([]int64{batchSize, 3, 224, 224}, false).To(device, torch.Float)
-		target := torch.Empty([]int64{batchSize}, false)
-		initializer.Uniform(&target, 0, 1000)
-		target = target.To(device, torch.Long)
+func imageNetLoader(tarFile string, batchSize int) (*datasets.ImageNetLoader, error) {
+	f, e := os.Open(tarFile)
+	if e != nil {
+		panic(e)
+	}
+	vocab, e := datasets.BuildLabelVocabulary(f)
+	fmt.Println("building label vocabulary done.")
+	if e != nil {
+		return nil, e
+	}
+	if _, e := f.Seek(0, io.SeekStart); e != nil {
+		return nil, e
+	}
+	trans := transforms.Compose(
+		transforms.RandomCrop(224, 224),
+		transforms.RandomHorizontalFlip(0.5),
+		transforms.ToTensor(),
+		transforms.Normalize([]float64{0.485, 0.456, 0.406}, []float64{0.229, 0.224, 0.225}))
 
+	loader, e := datasets.ImageNet(f, vocab, trans, batchSize)
+	if e != nil {
+		return nil, e
+	}
+	return loader, nil
+}
+
+func train(model *models.ResnetModule, opt torch.Optimizer, batchSize int, device torch.Device, tarFile string) {
+	model.Train(true)
+	loader, e := imageNetLoader(tarFile, batchSize)
+	if e != nil {
+		panic(e)
+	}
+	batchIdx := 1
+	startTime := time.Now()
+	for loader.Scan() {
+		torch.GC()
+		image, target := loader.Minibatch()
+		image = image.To(device, torch.Float)
+		target = target.To(device, torch.Long)
 		output := model.Forward(image)
 		loss := F.CrossEntropy(output, target, torch.Tensor{}, -100, "mean")
 
 		acc := accuracy(output, target, []int64{1, 5})
 		acc1 := acc[0]
 		acc5 := acc[1]
-		if i%5 == 0 {
-			fmt.Printf("loss: %f, acc1 :%f, acc5: %f\n", loss.Item(), acc1, acc5)
+		if batchIdx%100 == 0 {
+			throughput := float64(100*batchSize) / time.Since(startTime).Seconds()
+			fmt.Printf("batch: %d, loss: %f, acc1 :%f, acc5: %f, throughput: %.2f samples/sec\n", batchIdx, loss.Item(), acc1, acc5, throughput)
 		}
 
 		opt.ZeroGrad()
 		loss.Backward()
 		opt.Step()
+		batchIdx++
 	}
 	torch.FinishGC()
 }
 
 func main() {
-	batchSize := int64(16)
+	trainFile := flag.String("train-file", "train.tgz", "training images folder with tgz compressed.")
+	flag.Parse()
+	if _, e := os.Open(*trainFile); e != nil {
+		panic(e)
+	}
+
+	batchSize := 16
 	epochs := 100
 	lr := 0.1
 	momentum := 0.9
@@ -109,7 +151,7 @@ func main() {
 	start := time.Now()
 	for epoch := 0; epoch < epochs; epoch++ {
 		adjustLearningRate(optimizer, epoch, lr)
-		train(model, optimizer, batchSize, device)
+		train(model, optimizer, batchSize, device, *trainFile)
 	}
 	fmt.Println(time.Since(start).Seconds())
 }

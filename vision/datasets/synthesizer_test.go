@@ -12,7 +12,7 @@ import (
 	"github.com/wangkuiyi/gotorch/vision/datasets"
 )
 
-func generateColorData(w io.Writer) []string {
+func synthesizeImages(w io.Writer) []string {
 	s := datasets.NewSynthesizer(w)
 	defer s.Close()
 	colors := []color.Color{
@@ -31,7 +31,7 @@ func generateColorData(w io.Writer) []string {
 
 func TestSynthesizer(t *testing.T) {
 	var tgz bytes.Buffer
-	fns := generateColorData(&tgz)
+	fns := synthesizeImages(&tgz)
 
 	gr, e := gzip.NewReader(&tgz)
 	assert.NoError(t, e)

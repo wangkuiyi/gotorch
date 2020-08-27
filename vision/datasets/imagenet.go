@@ -2,23 +2,19 @@ package datasets
 
 import (
 	"archive/tar"
-	"bytes"
 	"compress/gzip"
-	"fmt"
 	"image"
-	"image/draw"
 	"io"
 	"path/filepath"
+	"strings"
 
 	torch "github.com/wangkuiyi/gotorch"
 	"github.com/wangkuiyi/gotorch/vision/transforms"
 )
 
-// Sample represents a dataset sample which contains
-// the image and the class index.
-type Sample struct {
-	image  image.Image
-	target int
+type sample struct {
+	input torch.Tensor
+	label int64
 }
 
 // ImageNetLoader provides a convenient interface to reader
@@ -30,97 +26,117 @@ type Sample struct {
 //	img, target := imageNet.Minibatch().Data, loader.Minibatch().Target
 // }
 type ImageNetLoader struct {
-	batchSize int64
-	tr        *tar.Reader
-	vocab     map[string]int // the vocabulary of labels.
-	isEOF     bool
-	samples   []Sample
-	trans     *transforms.ComposeTransformer
+	mbSize int
+	tr     *tar.Reader
+	vocab  map[string]int64 // the vocabulary of labels.
+	err    chan error
+	ch     chan sample
+	trans  *transforms.ComposeTransformer
 }
 
 // ImageNet returns ImageNet dataDataLoader
-func ImageNet(reader io.Reader, vocab map[string]int, trans *transforms.ComposeTransformer, batchSize int64) (*ImageNetLoader, error) {
-	gr, err := gzip.NewReader(reader)
-	if err != nil {
-		return nil, err
+func ImageNet(r io.Reader, vocab map[string]int64, trans *transforms.ComposeTransformer, mbSize int) (*ImageNetLoader, error) {
+	tgz, e := newTarGzReader(r)
+	if e != nil {
+		return nil, e
 	}
-	return &ImageNetLoader{
-		batchSize: batchSize,
-		tr:        tar.NewReader(gr),
-		isEOF:     false,
-		vocab:     vocab,
-		trans:     trans,
-	}, nil
+
+	l := &ImageNetLoader{
+		mbSize: mbSize,
+		tr:     tgz,
+		err:    make(chan error),
+		ch:     make(chan sample, 10), // bufSize=10
+		vocab:  vocab,
+		trans:  trans,
+	}
+	go l.read()
+	return l, nil
 }
 
 // Minibatch returns a minibash with data and label Tensor
 func (p *ImageNetLoader) Minibatch() (torch.Tensor, torch.Tensor) {
-	// TODO(yancey1989): execute transform function sequentially to transfrom the sample
-	// data to Tensors.
-	dataArray := []torch.Tensor{}
-	labelArray := []torch.Tensor{}
-	for _, sample := range p.samples {
-		data := p.trans.Run(sample.image)
-		label := transforms.ToTensor().Run(sample.target)
-		dataArray = append(dataArray, data.(torch.Tensor))
-		labelArray = append(labelArray, label)
-	}
-	return torch.Stack(dataArray, 0), torch.Stack(labelArray, 0)
-}
+	inputs := make([]torch.Tensor, 0)
+	labels := make([]int64, 0)
 
-func (p *ImageNetLoader) nextSamples() error {
-	p.samples = []Sample{}
-	for i := int64(0); i < p.batchSize; i++ {
-		hdr, err := p.tr.Next()
-		if err == io.EOF {
-			p.isEOF = true
+	for i := 0; i < p.mbSize; i++ {
+		s, ok := <-p.ch
+		if ok {
+			inputs = append(inputs, s.input)
+			labels = append(labels, s.label)
+		} else {
 			break
 		}
-		if err != nil {
-			return err
-		}
-		// read target
-		target := p.vocab[filepath.Base(filepath.Dir(hdr.Name))]
-		// read image
-		data := make([]byte, hdr.Size)
-		if _, err := p.tr.Read(data); err != io.EOF {
-			return fmt.Errorf("has not read a complete image")
-		}
-		src, _, err := image.Decode(bytes.NewReader(data))
-		m := image.NewRGBA(image.Rect(0, 0, src.Bounds().Dx(), src.Bounds().Dy()))
-		draw.Draw(m, m.Bounds(), src, image.ZP, draw.Src)
-		p.samples = append(p.samples, Sample{m, target})
 	}
-	return nil
+	return torch.Stack(inputs, 0), torch.NewTensor(labels)
+}
+
+func (p *ImageNetLoader) read() {
+	defer close(p.ch)
+	defer close(p.err)
+
+	for {
+		hdr, err := p.tr.Next()
+		if err != nil {
+			p.err <- err
+			break
+		}
+
+		if !strings.HasSuffix(strings.ToUpper(hdr.Name), "JPEG") {
+			continue
+		}
+
+		label := p.vocab[filepath.Base(filepath.Dir(hdr.Name))]
+
+		image, _, err := image.Decode(p.tr)
+		if err != nil {
+			p.err <- err
+			break
+		}
+		input := p.trans.Run(image)
+
+		p.ch <- sample{input: input.(torch.Tensor), label: label}
+	}
 }
 
 // Scan return false if no more data
 func (p *ImageNetLoader) Scan() bool {
-	if p.isEOF {
-		return false
-	}
-	must(p.nextSamples())
-	if p.isEOF && len(p.samples) == 0 {
-		return false
+	select {
+	case e := <-p.err:
+		if e != nil {
+			return false
+		}
+	default:
+		return true
 	}
 	return true
 }
 
-func must(e error) {
-	if e != nil {
-		panic(e)
+// Err returns the error during the scan process, if there is any. io.EOF is not
+// considered an error.
+func (p *ImageNetLoader) Err() error {
+	if e, ok := <-p.err; ok && e != nil && e != io.EOF {
+		return e
 	}
+	return nil
 }
 
-// BuildLabelVocabulary returns a vocabulary which mapping from the class name to index
-func BuildLabelVocabulary(reader io.Reader) (map[string]int, error) {
-	gr, err := gzip.NewReader(reader)
-	if err != nil {
-		return nil, err
+// BuildLabelVocabulary returns a vocabulary which mapping from the class name
+// to index.  A generica images are arranged in this way:
+//
+//   blue/xxx.jpeg
+//   blue/yyy.jpeg
+//   green/zzz.jpeg
+//
+// this function would scan all sub-directories of root, building an index from
+// the class name to it's index.
+func BuildLabelVocabulary(reader io.Reader) (map[string]int64, error) {
+	tr, e := newTarGzReader(reader)
+	if e != nil {
+		return nil, e
 	}
-	tr := tar.NewReader(gr)
-	classToIdx := make(map[string]int)
-	idx := 0
+
+	classToIdx := make(map[string]int64)
+	var idx int64 = 0
 	for {
 		hdr, err := tr.Next()
 		if err == io.EOF {
@@ -129,11 +145,25 @@ func BuildLabelVocabulary(reader io.Reader) (map[string]int, error) {
 		if err != nil {
 			return nil, err
 		}
-		class := filepath.Base(filepath.Dir(hdr.Name))
-		if _, ok := classToIdx[class]; !ok {
-			classToIdx[class] = idx
-			idx++
+		if hdr.FileInfo().Mode().IsRegular() {
+			class := filepath.Base(filepath.Dir(hdr.Name))
+			if _, ok := classToIdx[class]; !ok {
+				classToIdx[class] = idx
+				idx++
+			}
 		}
 	}
 	return classToIdx, nil
+}
+
+func newTarGzReader(r io.Reader) (*tar.Reader, error) {
+	// NOTE: gzip.NewReader returns an io.ReadCloser. However, we ignore the
+	// chance to call its Close() method, which verifies the checksum, which
+	// we don't really care as the data had been consumed by the train loop.
+	g, e := gzip.NewReader(r)
+	if e != nil {
+		return nil, e
+	}
+
+	return tar.NewReader(g), nil
 }
