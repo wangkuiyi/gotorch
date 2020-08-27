@@ -10,7 +10,7 @@ import (
 	"github.com/wangkuiyi/gotorch/vision/transforms"
 )
 
-func TestImageNetLoader(t *testing.T) {
+func TestImgNetLoader(t *testing.T) {
 	var tgz bytes.Buffer
 	synthesizeImages(&tgz)
 
