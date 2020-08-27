@@ -96,7 +96,7 @@ func main() {
 		transforms.ToTensor(),
 		transforms.Normalize([]float32{0.5, 0.5, 0.5}, []float32{0.5, 0.5, 0.5}))
 	u, _ := user.Current()
-	cifar10, _ := datasets.CIFAR10(path.Join(u.HomeDir, ".cache"), true, batchSize, trans)
+	cifar10, _ := datasets.CIFAR10(path.Join(u.HomeDir, ".cache"), true, true, batchSize, trans)
 
 	i := 0
 	for epoch := 0; epoch < epochs; epoch++ {

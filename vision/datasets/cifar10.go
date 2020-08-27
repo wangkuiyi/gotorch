@@ -4,6 +4,7 @@ import (
 	"image"
 	"image/color"
 	"io/ioutil"
+	"math/rand"
 	"os"
 	"path"
 
@@ -36,30 +37,41 @@ func rgbBytesToImage(data []byte, x, y int) *image.RGBA {
 	return rgba
 }
 
+func randomSampler(size int) map[int]int {
+	res := make(map[int]int)
+	for i, v := range rand.Perm(size) {
+		res[i] = v
+	}
+	return res
+}
+
 // CIFAR10Loader struct
 type CIFAR10Loader struct {
 	batchSize int
 	offset    int
 	root      string
 	train     bool
+	shuffle   bool
 	data      []image.Image
 	target    []int
+	sampler   map[int]int
 	trans     *transforms.ComposeTransformer
 }
 
 // CIFAR10 creates a CIFAR10Loader instance
-func CIFAR10(root string, train bool, batchSize int, trans *transforms.ComposeTransformer) (*CIFAR10Loader, error) {
+func CIFAR10(root string, train bool, shuffle bool, batchSize int, trans *transforms.ComposeTransformer) (*CIFAR10Loader, error) {
 	c := &CIFAR10Loader{
 		batchSize: batchSize,
 		root:      root,
 		train:     train,
+		shuffle:   shuffle,
 		trans:     trans,
 		data:      make([]image.Image, 0),
 		target:    make([]int, 0),
 	}
 	imgSize := 3 * 32 * 32
 	downloadList := cifar10TestList
-	if train {
+	if c.train {
 		downloadList = cifar10TrainList
 	}
 	for _, fileName := range downloadList {
@@ -78,6 +90,14 @@ func CIFAR10(root string, train bool, batchSize int, trans *transforms.ComposeTr
 		}
 		file.Close()
 	}
+	if c.shuffle {
+		c.sampler = randomSampler(len(c.data))
+	} else {
+		c.sampler = make(map[int]int)
+		for i := 0; i < len(c.data); i++ {
+			c.sampler[i] = i
+		}
+	}
 	return c, nil
 }
 
@@ -86,8 +106,9 @@ func (c *CIFAR10Loader) Batch() (torch.Tensor, torch.Tensor) {
 	dataSlice := []torch.Tensor{}
 	labelSlice := []torch.Tensor{}
 	for i := c.offset; (i < c.offset+c.batchSize) && i < len(c.data); i++ {
-		data := c.trans.Run(c.data[i])
-		label := transforms.ToTensor().Run(c.target[i])
+		j := c.sampler[i]
+		data := c.trans.Run(c.data[j])
+		label := transforms.ToTensor().Run(c.target[j])
 		dataSlice = append(dataSlice, data.(torch.Tensor))
 		labelSlice = append(labelSlice, label)
 	}
