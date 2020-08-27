@@ -18,10 +18,12 @@ func synthesizeImages(w io.Writer) []string {
 	colors := []color.Color{
 		color.RGBA{0, 0, 255, 255},
 		color.RGBA{0, 255, 0, 255},
+		color.RGBA{255, 255, 255, 255},
 	}
 	fns := []string{
 		"/images/training/blue/01.jpeg",
 		"/images/training/green/green.jpeg",
+		"/images/training/white/white.jpeg",
 	}
 	for i := 0; i < len(fns); i++ {
 		s.AddImage(fns[i], 469, 387, colors[i])
