@@ -25,7 +25,7 @@ type sample struct {
 //
 // loader := datasets.ImageNet("/imagenet/train.tar.gz", 32)
 // for range loader.Scan() {
-//	img, target := imageNet.Minibatch().Data, loader.Minibatch().Target
+//	img, target := imageNet.Minibatch()
 // }
 type ImageNetLoader struct {
 	mbSize int
@@ -57,9 +57,13 @@ func (p *ImageNetLoader) Minibatch() (torch.Tensor, torch.Tensor) {
 	return torch.Stack(p.inputs, 0), torch.NewTensor(p.labels)
 }
 
-func (p *ImageNetLoader) retreiveMinibatch() {
+func (p *ImageNetLoader) tensorGC() {
 	p.inputs = []torch.Tensor{}
 	p.labels = []int64{}
+	torch.GC()
+}
+
+func (p *ImageNetLoader) retreiveMinibatch() {
 	for {
 		hdr, err := p.tr.Next()
 		if err != nil {
@@ -73,12 +77,12 @@ func (p *ImageNetLoader) retreiveMinibatch() {
 		label := p.vocab[filepath.Base(filepath.Dir(hdr.Name))]
 		p.labels = append(p.labels, label)
 
-		image, _, err := image.Decode(p.tr)
+		m, _, err := image.Decode(p.tr)
 		if err != nil {
 			p.err = err
 			break
 		}
-		input := p.trans.Run(image)
+		input := p.trans.Run(m)
 		p.inputs = append(p.inputs, input.(torch.Tensor))
 
 		if len(p.inputs) == p.mbSize {
@@ -92,6 +96,8 @@ func (p *ImageNetLoader) Scan() bool {
 	if p.err == io.EOF {
 		return false
 	}
+	// call torch.GC at the begging of each iteration
+	p.tensorGC()
 	p.retreiveMinibatch()
 	if p.err != nil && len(p.inputs) == 0 {
 		return false

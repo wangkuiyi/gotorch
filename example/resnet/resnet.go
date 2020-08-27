@@ -98,7 +98,7 @@ func train(model *models.ResnetModule, opt torch.Optimizer, batchSize int, devic
 	batchIdx := 1
 	startTime := time.Now()
 	for loader.Scan() {
-		torch.GC()
+		loader.Minibatch()
 		image, target := loader.Minibatch()
 		image = image.To(device, torch.Float)
 		target = target.To(device, torch.Long)
@@ -128,7 +128,7 @@ func main() {
 		panic(e)
 	}
 
-	batchSize := 16
+	batchSize := 32
 	epochs := 100
 	lr := 0.1
 	momentum := 0.9
