@@ -90,7 +90,7 @@ func main() {
 	epochs := 30
 	checkpointStep := 1000
 	checkpointCount := 1
-	batchSize := 16
+	batchSize := 64
 
 	trans := transforms.Compose(transforms.Resize(64, 64),
 		transforms.ToTensor(),
