@@ -98,7 +98,6 @@ func train(model *models.ResnetModule, opt torch.Optimizer, batchSize int, devic
 	batchIdx := 1
 	startTime := time.Now()
 	for loader.Scan() {
-		loader.Minibatch()
 		image, target := loader.Minibatch()
 		image = image.To(device, torch.Float)
 		target = target.To(device, torch.Long)
