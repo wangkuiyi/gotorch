@@ -10,16 +10,20 @@ import (
 
 // IModule is the interface of `Module`s
 type IModule interface {
-	// Train enables "training" mode
+	// Train corresponds to torch.nn.Module.train(bool). It effects only
+	// certain modules like Dropout and BatchNorm.
 	Train(on bool)
 	// IsTraining returns true if the module is in training mode
 	IsTraining() bool
-	// To recursively casts all parameters to the given `dtype` and `device`.
+	// To corresponds to torch.nn.Module.to().  It recursively casts all
+	// parameters to the given `dtype` and `device`.
 	To(device torch.Device)
-	// ZeroGrad recursively zeros out the `grad` value of each registered parameter.
+	// ZeroGrad corresponds to torch.nn.Module.zero_grad(). It recursively
+	// zeros out the `grad` value of each registered parameter.
 	ZeroGrad()
-	// String is for printing modules prettily
-	String() string
+	// TODO(shendiaomo): Implement this.
+	// String is for printing modules prettily.
+	// String() string
 }
 
 // Module contains default implementation of `Module`s
@@ -183,11 +187,11 @@ func (m *Module) ZeroGrad() {
 	}
 }
 
+// TODO(shendiaomo): to be implemented
 // String is for printing modules prettily
-func (m *Module) String() string {
-	// TODO(shendiaomo): to be implemented
-	return m.name
-}
+// func (m *Module) String() string {
+// 	return m.name
+// }
 
 // NamedParameters returns trainable parameters (recursively) with their names
 func (m *Module) NamedParameters() map[string]torch.Tensor {

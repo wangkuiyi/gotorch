@@ -53,9 +53,10 @@ func (s *Synthesizer) AddImage(fn string, w, h int, c color.Color) error {
 	}
 
 	e = s.WriteHeader(&tar.Header{
-		Name: fn,
-		Mode: 0600,
-		Size: int64(im.Len()),
+		Typeflag: tar.TypeReg,
+		Name:     fn,
+		Mode:     0600,
+		Size:     int64(im.Len()),
 	})
 	if e != nil {
 		return e

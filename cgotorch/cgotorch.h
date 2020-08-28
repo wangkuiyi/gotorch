@@ -1,22 +1,26 @@
 /* Copyright 2020, GoTorch Authors */
 #ifndef CGOTORCH_CGOTORCH_H_
 #define CGOTORCH_CGOTORCH_H_
+
 #include <stdbool.h>
 #include <stdint.h>
 
 #ifdef __cplusplus
+#include <vector>
 extern "C" {
 typedef at::Tensor *Tensor;
 typedef torch::optim::Optimizer *Optimizer;
 typedef torch::data::datasets::MNIST *MNIST;
 typedef torch::data::transforms::Normalize<> *Normalize;
 typedef torch::Device *Device;
+typedef std::vector<char> *ByteBuffer;  // NOLINT
 #else
 typedef void *Tensor;
 typedef void *Optimizer;
 typedef void *MNIST;
 typedef void *Normalize;
 typedef void *Device;
+typedef void *ByteBuffer;
 #endif
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -50,6 +54,14 @@ const char *Tanh(Tensor a, Tensor *result);
 const char *Sigmoid(Tensor a, Tensor *result);
 const char *Add(Tensor a, Tensor other, float alpha, Tensor *result);
 const char *Add_(Tensor a, Tensor other, float alpha, Tensor *result);
+const char *Sub(Tensor a, Tensor other, float alpha, Tensor *result);
+const char *Sub_(Tensor a, Tensor other, float alpha, Tensor *result);
+const char *Mul(Tensor a, Tensor other, Tensor *result);
+const char *Mul_(Tensor a, Tensor other, Tensor *result);
+const char *Div(Tensor a, Tensor other, Tensor *result);
+const char *Div_(Tensor a, Tensor other, Tensor *result);
+const char *Permute(Tensor a, int64_t *dims, int64_t dims_size, Tensor *result);
+const char *AllClose(Tensor a, Tensor b, int64_t *result);
 const char *Flatten(Tensor a, int64_t startDim, int64_t endDim, Tensor *result);
 const char *TopK(Tensor a, int64_t k, int64_t dim, int8_t largest,
                  int8_t sorted, Tensor *values, Tensor *indices);
@@ -83,8 +95,18 @@ const char *Tensor_FromBlob(void *data, int8_t dtype, int64_t *sizes_data,
 // Backward, Gradient
 void Tensor_Backward(Tensor a);
 Tensor Tensor_Grad(Tensor a);
-const char *Tensor_FromBlob(void *data, int8_t dtype, int64_t *sizes_data,
-                            int64_t sizes_data_len, Tensor *result);
+
+////////////////////////////////////////////////////////////////////////////////
+// Pickle encode/decode Tensors
+////////////////////////////////////////////////////////////////////////////////
+
+const char *Tensor_Encode(Tensor, ByteBuffer *);
+
+const char *ByteBuffer_Data(ByteBuffer);
+int64_t ByteBuffer_Size(ByteBuffer);
+void ByteBuffer_Free(ByteBuffer);
+
+const char *Tensor_Decode(const char *addr, int64_t size, Tensor *);
 
 ////////////////////////////////////////////////////////////////////////////////
 // torch.nn.init
@@ -188,7 +210,9 @@ const char *CreateMNISTDataset(const char *data_root, MNISTDataset *dataset);
 void MNISTDataset_Close(MNISTDataset d);
 
 // Set parameters of the normalize transform in dataset
-void MNISTDataset_Normalize(MNISTDataset *dataset, double mean, double stddev);
+void MNISTDataset_Normalize(MNISTDataset *dataset, double *mean,
+                            int64_t mean_len, double *stddev,
+                            int64_t stddev_len);
 
 typedef void *MNISTLoader;
 typedef void *MNISTIterator;

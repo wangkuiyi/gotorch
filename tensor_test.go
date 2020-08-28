@@ -11,13 +11,6 @@ import (
 	"github.com/wangkuiyi/gotorch/nn/initializer"
 )
 
-func ExampleTensor() {
-	t := torch.RandN([]int64{10, 100}, false)
-	t.Close()
-	t.Close()
-	// Output:
-}
-
 func TestTensorDetach(t *testing.T) {
 	x := torch.RandN([]int64{1}, true)
 	y := x.Detach()
@@ -82,16 +75,15 @@ func TestShape(t *testing.T) {
 }
 
 func TestSave(t *testing.T) {
-	file, e := ioutil.TempFile("/tmp", "gotroch")
+	file, e := ioutil.TempFile("", "gotroch-test-save-*")
 	assert.NoError(t, e)
 	defer os.Remove(file.Name())
-	tsave := torch.RandN([]int64{2, 3}, false)
-	tsave.Save(file.Name())
-	tload := torch.Load(file.Name())
 
-	ss := tsave.Shape()
-	ts := tload.Shape()
-	assert.EqualValues(t, ss, ts)
-	assert.Equal(t, tsave.Dtype(), tload.Dtype())
-	assert.Equal(t, tsave.String(), tload.String())
+	a := torch.RandN([]int64{2, 3}, false)
+	a.Save(file.Name())
+	b := torch.Load(file.Name())
+
+	assert.EqualValues(t, a.Shape(), b.Shape())
+	assert.Equal(t, a.Dtype(), b.Dtype())
+	assert.Equal(t, a.String(), b.String())
 }

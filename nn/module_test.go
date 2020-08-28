@@ -1,6 +1,7 @@
 package nn
 
 import (
+	"log"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -28,14 +29,14 @@ func (n *myNet) Forward(x torch.Tensor) torch.Tensor {
 	return x
 }
 
-type myNet2 struct {
+type myNetWithBuffer struct {
 	Module
 	Weight torch.Tensor `gotorch:"buffer"`
 	L1     *LinearModule
 }
 
-func newMyNet2() *myNet2 {
-	n := &myNet2{
+func newMyNetWithBuffer() *myNetWithBuffer {
+	n := &myNetWithBuffer{
 		Weight: torch.RandN([]int64{100, 200}, false),
 		L1:     Linear(100, 200, false),
 	}
@@ -44,30 +45,34 @@ func newMyNet2() *myNet2 {
 }
 
 // Forward executes the calculation
-func (n *myNet2) Forward(x torch.Tensor) torch.Tensor {
+func (n *myNetWithBuffer) Forward(x torch.Tensor) torch.Tensor {
 	x = n.L1.Forward(x)
 	return x
 }
 
-type hierarchyNet struct {
+type hierarchicalNet struct {
 	Module
 	L1 *myNet
-	L2 *LinearModule
+	L2 []*LinearModule
 }
 
-func newHierarchyNet() *hierarchyNet {
-	n := &hierarchyNet{
+func newHierarchicalNet() *hierarchicalNet {
+	n := &hierarchicalNet{
 		L1: newMyNet(),
-		L2: Linear(200, 10, false),
+		L2: []*LinearModule{
+			Linear(10, 10, false),
+			Linear(10, 5, false),
+		},
 	}
 	n.Init(n)
 	return n
 }
 
 // Forward executes the calculation
-func (n *hierarchyNet) Forward(x torch.Tensor) torch.Tensor {
+func (n *hierarchicalNet) Forward(x torch.Tensor) torch.Tensor {
 	x = n.L1.Forward(x)
-	x = n.L2.Forward(x)
+	x = n.L2[0].Forward(x)
+	x = n.L2[1].Forward(x)
 	return x
 }
 
@@ -103,17 +108,22 @@ func TestModule(t *testing.T) {
 	assert.Contains(t, namedParams, "myNet.L1.Weight")
 	assert.Contains(t, namedParams, "myNet.L2.Weight")
 
-	n2 := newMyNet2()
+	n2 := newMyNetWithBuffer()
 	namedParams2 := n2.NamedParameters()
 	assert.Equal(t, 1, len(namedParams2))
-	assert.Contains(t, namedParams2, "myNet2.L1.Weight")
+	assert.Contains(t, namedParams2, "myNetWithBuffer.L1.Weight")
+	assert.Equal(t, 1, len(n2.Parameters()))
+	assert.Equal(t, 1, len(n2.Buffers()))
 
-	hn := newHierarchyNet()
+	hn := newHierarchicalNet()
 	hnNamedParams := hn.NamedParameters()
-	assert.Equal(t, 3, len(hnNamedParams))
-	assert.Contains(t, hnNamedParams, "hierarchyNet.L1.L1.Weight")
-	assert.Contains(t, hnNamedParams, "hierarchyNet.L1.L2.Weight")
-	assert.Contains(t, hnNamedParams, "hierarchyNet.L2.Weight")
+	assert.Equal(t, 4, len(hnNamedParams))
+	assert.Contains(t, hnNamedParams, "hierarchicalNet.L1.L1.Weight")
+	assert.Contains(t, hnNamedParams, "hierarchicalNet.L1.L2.Weight")
+	assert.Contains(t, hnNamedParams, "hierarchicalNet.L2[0].Weight")
+	assert.Contains(t, hnNamedParams, "hierarchicalNet.L2[1].Weight")
+	assert.Equal(t, 4, len(hn.Parameters()))
+	assert.Equal(t, 0, len(hn.Buffers()))
 }
 
 func TestModuleTrain(t *testing.T) {
@@ -123,10 +133,11 @@ func TestModuleTrain(t *testing.T) {
 	assert.False(t, n.L1.IsTraining())
 	assert.False(t, n.L2.IsTraining())
 
-	hn := newHierarchyNet()
+	hn := newHierarchicalNet()
 	hn.Train(false)
 	assert.False(t, hn.IsTraining())
-	assert.False(t, hn.L2.IsTraining())
+	assert.False(t, hn.L2[0].IsTraining())
+	assert.False(t, hn.L2[1].IsTraining())
 	assert.False(t, hn.L1.IsTraining())
 	assert.False(t, hn.L1.L1.IsTraining())
 	assert.False(t, hn.L1.L2.IsTraining())
@@ -137,32 +148,14 @@ func TestModuleTrain(t *testing.T) {
 	assert.False(t, n3.L2.IsTraining())
 }
 
-func TestConv2d(t *testing.T) {
-	c := Conv2d(16, 33, 3, 2, 0, 1, 1, true, "zeros")
-	x := torch.RandN([]int64{20, 16, 50, 100}, false)
-	output := c.Forward(x)
-	assert.NotNil(t, output)
-}
-
-func TestConvTranspose2d(t *testing.T) {
-	c := ConvTranspose2d(16, 33, 3, 2, 0, 1, 1, true, 1, "zeros")
-	x := torch.RandN([]int64{20, 16, 50, 100}, false)
-	output := c.Forward(x)
-	assert.NotNil(t, output.T)
-}
-
-func TestBatchNorm2d(t *testing.T) {
-	b := BatchNorm2d(100, 1e-5, 0.1, true, true)
-	x := torch.RandN([]int64{20, 100, 35, 45}, false)
-	output := b.Forward(x)
-	assert.NotNil(t, output.T)
-}
-
 func TestNewModuleWithoutInit(t *testing.T) {
-	newMyNetWithoutInit := func() *myNet {
-		return &myNet{
-			L1: Linear(100, 200, false),
-			L2: Linear(200, 10, false),
+	newMyNetWithoutInit := func() *hierarchicalNet {
+		return &hierarchicalNet{
+			L1: newMyNet(),
+			L2: []*LinearModule{
+				Linear(10, 10, false),
+				Linear(10, 5, false),
+			},
 		}
 	}
 	n := newMyNetWithoutInit()
@@ -171,4 +164,18 @@ func TestNewModuleWithoutInit(t *testing.T) {
 	assert.Panics(t, func() { n.ZeroGrad() })
 	assert.Panics(t, func() { n.NamedParameters() })
 	assert.Panics(t, func() { n.NamedBuffers() })
+}
+
+func TestModuleToDevice(t *testing.T) {
+	var device torch.Device
+	if torch.IsCUDAAvailable() {
+		log.Println("CUDA is valid")
+		device = torch.NewDevice("cuda")
+	} else {
+		log.Println("No CUDA found; CPU only")
+		device = torch.NewDevice("cpu")
+	}
+
+	hn := newHierarchicalNet()
+	assert.NotPanics(t, func() { hn.To(device) })
 }

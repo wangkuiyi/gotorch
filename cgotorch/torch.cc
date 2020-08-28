@@ -155,6 +155,80 @@ const char *Add_(Tensor a, Tensor other, float alpha, Tensor *result) {
   }
 }
 
+const char *Sub(Tensor a, Tensor other, float alpha, Tensor *result) {
+  try {
+    *result = new at::Tensor(torch::sub(*a, *other, alpha));
+    return nullptr;
+  } catch (const std::exception &e) {
+    return exception_str(e.what());
+  }
+}
+
+const char *Sub_(Tensor a, Tensor other, float alpha, Tensor *result) {
+  try {
+    *result = new at::Tensor(a->sub_(*other, alpha));
+    return nullptr;
+  } catch (const std::exception &e) {
+    return exception_str(e.what());
+  }
+}
+
+const char *Mul(Tensor a, Tensor other, Tensor *result) {
+  try {
+    *result = new at::Tensor(torch::mul(*a, *other));
+    return nullptr;
+  } catch (const std::exception &e) {
+    return exception_str(e.what());
+  }
+}
+
+const char *Mul_(Tensor a, Tensor other, Tensor *result) {
+  try {
+    *result = new at::Tensor(a->mul_(*other));
+    return nullptr;
+  } catch (const std::exception &e) {
+    return exception_str(e.what());
+  }
+}
+
+const char *Div(Tensor a, Tensor other, Tensor *result) {
+  try {
+    *result = new at::Tensor(torch::div(*a, *other));
+    return nullptr;
+  } catch (const std::exception &e) {
+    return exception_str(e.what());
+  }
+}
+
+const char *Div_(Tensor a, Tensor other, Tensor *result) {
+  try {
+    *result = new at::Tensor(a->div_(*other));
+    return nullptr;
+  } catch (const std::exception &e) {
+    return exception_str(e.what());
+  }
+}
+
+const char *Permute(Tensor a, int64_t *dims, int64_t dims_size,
+                    Tensor *result) {
+  try {
+    c10::ArrayRef<int64_t> d(dims, dims_size);
+    *result = new at::Tensor(a->permute(d));
+    return nullptr;
+  } catch (const std::exception &e) {
+    return exception_str(e.what());
+  }
+}
+
+const char *AllClose(Tensor a, Tensor b, int64_t *result) {
+  try {
+    *result = at::allclose(*a, *b) ? 1 : 0;
+    return nullptr;
+  } catch (const std::exception &e) {
+    return exception_str(e.what());
+  }
+}
+
 const char *Flatten(Tensor a, int64_t startDim, int64_t endDim,
                     Tensor *result) {
   try {

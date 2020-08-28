@@ -47,14 +47,6 @@ func (a Tensor) Print() {
 	C.Tensor_Print(C.Tensor(*a.T))
 }
 
-// Close the tensor
-func (a *Tensor) Close() {
-	if a.T != nil {
-		C.Tensor_Close(C.Tensor(*a.T))
-		a.T = nil
-	}
-}
-
 // Save the tensor to a file
 func (a Tensor) Save(path string) {
 	C.Tensor_Save(C.Tensor(*a.T), C.CString(path))
@@ -140,6 +132,7 @@ func To(a Tensor, device Device, dtype int8) Tensor {
 // FromBlob creating a Tensor with the give data memory
 func FromBlob(data unsafe.Pointer, dtype int8, sizes []int64) Tensor {
 	var t C.Tensor
-	C.Tensor_FromBlob(data, C.int8_t(dtype), (*C.int64_t)(unsafe.Pointer(&sizes[0])), C.int64_t(len(sizes)), &t)
+	MustNil(unsafe.Pointer(C.Tensor_FromBlob(data, C.int8_t(dtype), (*C.int64_t)(unsafe.Pointer(&sizes[0])), C.int64_t(len(sizes)), &t)))
+	SetTensorFinalizer((*unsafe.Pointer)(&t))
 	return Tensor{(*unsafe.Pointer)(&t)}
 }

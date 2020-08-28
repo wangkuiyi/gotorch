@@ -12,20 +12,65 @@ import (
 // >>> t+s
 // tensor([[-1., -2.],
 //         [ 2.,  1.]])
-func TestAdd(t *testing.T) {
+func TestArith(t *testing.T) {
+	a := assert.New(t)
 	r := torch.NewTensor([][]float32{{-0.5, -1}, {1, 0.5}})
 	s := torch.NewTensor([][]float32{{-0.5, -1}, {1, 0.5}})
 	q := r.Add(s, 1)
-	g := "-1 -2\n 2  1\n[ CPUFloatType{2,2} ]"
-	assert.Equal(t, g, q.String())
+	expected := torch.NewTensor([][]float32{{-1, -2}, {2, 1}})
+	a.True(torch.Equal(expected, q))
+
+	q = r.Sub(s, 1)
+	expected = torch.NewTensor([][]float32{{0, 0}, {0, 0}})
+	a.True(torch.Equal(expected, q))
+
+	q = r.Mul(s)
+	expected = torch.NewTensor([][]float32{{0.25, 1}, {1, 0.25}})
+	a.True(torch.Equal(expected, q))
+
+	q = r.Div(s)
+	expected = torch.NewTensor([][]float32{{1.0, 1.0}, {1.0, 1.0}})
+	a.True(torch.Equal(expected, q))
+
 }
 
-func TestAddI(t *testing.T) {
+func TestArithI(t *testing.T) {
+	a := assert.New(t)
+
 	x := torch.RandN([]int64{2, 3}, false)
 	y := torch.RandN([]int64{2, 3}, false)
 	z := torch.Add(x, y, 1)
 	x.AddI(y, 1)
-	assert.True(t, torch.Equal(x, z))
+	a.True(torch.Equal(x, z))
+
+	z = torch.Sub(x, y, 1)
+	x.SubI(y, 1)
+	a.True(torch.Equal(x, z))
+
+	z = torch.Mul(x, y)
+	x.MulI(y)
+	a.True(torch.Equal(x, z))
+
+	z = torch.Div(x, y)
+	x.DivI(y)
+	a.True(torch.Equal(x, z))
+}
+
+func TestPermute(t *testing.T) {
+	a := assert.New(t)
+	x := torch.NewTensor([][]float32{{3, 1}, {2, 4}})
+	y := x.Permute([]int64{1, 0})
+	expected := torch.NewTensor([][]float32{{3, 2}, {1, 4}})
+	a.True(torch.Equal(expected, y))
+}
+
+func TestAllClose(t *testing.T) {
+	a := assert.New(t)
+	x := torch.NewTensor([]float32{8.31, 6.55, 1.39})
+	y := torch.NewTensor([]float32{2.38, 3.12, 5.23})
+	r := x.Mul(y)
+	expected := torch.NewTensor([]float32{8.31 * 2.38, 6.55 * 3.12, 1.39 * 5.23})
+	a.True(torch.AllClose(expected, r))
 }
 
 // >>> torch.eq(torch.tensor([[1, 2], [3, 4]]), torch.tensor([[1, 1], [4, 4]]))
