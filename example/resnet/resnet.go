@@ -7,6 +7,7 @@ import (
 	"math"
 	"math/rand"
 	"os"
+	"time"
 
 	torch "github.com/wangkuiyi/gotorch"
 	F "github.com/wangkuiyi/gotorch/nn/functional"
@@ -17,6 +18,7 @@ import (
 
 var trainSamples = 1281167
 var device torch.Device
+var logInterval = 1
 
 func max(array []int64) int64 {
 	max := array[0]
@@ -131,14 +133,11 @@ func main() {
 	epoch := 0
 	adjustLearningRate(optimizer, epoch, lr)
 	skipSamples := 0
-	for {
-		// reset file seeker and renew a ImageNet loader
+	startTime := time.Now()
+	for epoch < epochs {
+		// seek to 0 of the file reader, and create an ImageNet loader
 		if _, e := f.Seek(0, io.SeekStart); e != nil {
 			log.Fatal(e)
-		}
-		if batch == 0 {
-			// skip samples randomly at the begging of each epoch
-			skipSamples = rand.Intn(batchSize)
 		}
 		loader, e := imageNetLoader(f, vocab, batchSize, skipSamples)
 		if e != nil {
@@ -148,15 +147,23 @@ func main() {
 			batch++
 			image, target := loader.Minibatch()
 			loss, acc1, acc5 := trainOneBatch(image.To(device, torch.Float), target.To(device, torch.Long), model, optimizer)
-			log.Printf("Epoch: %d, Batch: %d, loss:%f, acc1: %f, acc5:%f", epoch, batch, loss, acc1, acc5)
-			if batch == batchs {
-				epoch++
-				adjustLearningRate(optimizer, epoch, lr)
-				batch = 0
-				if epoch == epochs {
-					return
-				}
+			if batch%logInterval == 0 {
+				throughput := float64(batch/logInterval) / time.Since(startTime).Seconds()
+				log.Printf("Epoch: %d, Batch: %d, loss:%f, acc1: %f, acc5:%f, throughput: %f samples/secs",
+					epoch, batch, loss, acc1, acc5, throughput)
+				startTime = time.Now()
 			}
+			if batch == batchs {
+				break
+			}
+		}
+		if batch == batchs {
+			// go to next epoch
+			epoch++
+			adjustLearningRate(optimizer, epoch, lr)
+			batch = 0
+			skipSamples = rand.Intn(batchSize)
+			log.Printf("skip %d samples at the next epoch", skipSamples)
 		}
 	}
 }
