@@ -46,6 +46,10 @@ func RandomResizedCropD(height, width int, scale0, scale1, ratio0, ratio1 float6
 	}
 }
 
+func uniform(from, to float64) float64 {
+	return (rand.Float64() + from) * (to - from)
+}
+
 func (t *RandomResizedCropTransformer) getParams(input image.Image) (int, int, int, int) {
 	width := input.Bounds().Max.X
 	height := input.Bounds().Max.Y
@@ -53,10 +57,10 @@ func (t *RandomResizedCropTransformer) getParams(input image.Image) (int, int, i
 
 	// try 10 times to generate random scaled image bounds.
 	for idx := 0; idx < 10; idx++ {
-		targetArea := float64(area) * ((rand.Float64() + t.scale0) * (t.scale1 - t.scale0))
+		targetArea := float64(area) * uniform(t.scale0, t.scale1)
 		logRatio0 := math.Log(t.ratio0)
 		logRatio1 := math.Log(t.ratio1)
-		aspectRatio := math.Exp((rand.Float64() + logRatio0) * (logRatio1 - logRatio0))
+		aspectRatio := math.Exp(uniform(logRatio0, logRatio1))
 
 		w := int(math.Round(math.Sqrt(targetArea * aspectRatio)))
 		h := int(math.Round(math.Sqrt(targetArea / aspectRatio)))

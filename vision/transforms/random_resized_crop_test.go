@@ -27,15 +27,22 @@ func TestRandomResizedCrop(t *testing.T) {
 	a.Equal(50, out.Bounds().Max.Y)
 	a.True(colorEqual(red, out.At(19, 19)))
 
+	// bounds test for scalar and ratio equals to zero
+	trans = RandomResizedCropD(50, 50, 0.0, 0.0, 0.0, 0.0, imaging.Linear)
+	out = trans.Run(input)
+	a.Equal(0, out.Bounds().Max.X)
+	a.Equal(0, out.Bounds().Max.Y)
+
 	rand.Seed(1)
 	// Test crop output smaller size
 	trans = RandomResizedCrop(20)
 	out = trans.Run(input)
 	a.Equal(20, out.Bounds().Max.X)
 	r, g, b, _ := out.At(7, 5).RGBA()
-	a.Equal(uint32(0x2424), r)
+	// the resized image color should be between blue and red
+	a.True(r > uint32(0x0) && r < uint32(0xffff))
 	a.Equal(uint32(0x0000), g)
-	a.Equal(uint32(0xdbdb), b)
+	a.True(b > uint32(0x0) && b < uint32(0xffff))
 
 	// Test crop output greater size
 	trans = RandomResizedCrop(60, 80)
