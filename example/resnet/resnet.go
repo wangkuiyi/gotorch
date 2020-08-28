@@ -2,12 +2,10 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"io"
 	"log"
 	"math"
 	"os"
-	"time"
 
 	torch "github.com/wangkuiyi/gotorch"
 	F "github.com/wangkuiyi/gotorch/nn/functional"
@@ -16,6 +14,7 @@ import (
 	"github.com/wangkuiyi/gotorch/vision/transforms"
 )
 
+var trainSamples = 1281167
 var device torch.Device
 
 func max(array []int64) int64 {
@@ -63,61 +62,29 @@ func accuracy(output, target torch.Tensor, topk []int64) []float32 {
 	return res
 }
 
-func imageNetLoader(tarFile string, batchSize int) (*datasets.ImageNetLoader, error) {
-	f, e := os.Open(tarFile)
-	if e != nil {
-		panic(e)
-	}
-	vocab, e := datasets.BuildLabelVocabulary(f)
-	fmt.Println("building label vocabulary done.")
-	if e != nil {
-		return nil, e
-	}
-	if _, e := f.Seek(0, io.SeekStart); e != nil {
-		return nil, e
-	}
+func imageNetLoader(r io.Reader, vocab map[string]int64, batchSize int) (*datasets.ImageNetLoader, error) {
 	trans := transforms.Compose(
 		transforms.RandomResizedCrop(224),
 		transforms.RandomHorizontalFlip(0.5),
 		transforms.ToTensor(),
 		transforms.Normalize([]float64{0.485, 0.456, 0.406}, []float64{0.229, 0.224, 0.225}))
 
-	loader, e := datasets.ImageNet(f, vocab, trans, batchSize)
+	loader, e := datasets.ImageNet(r, vocab, trans, batchSize)
 	if e != nil {
 		return nil, e
 	}
 	return loader, nil
 }
 
-func train(model *models.ResnetModule, opt torch.Optimizer, batchSize int, device torch.Device, tarFile string) {
-	model.Train(true)
-	loader, e := imageNetLoader(tarFile, batchSize)
-	if e != nil {
-		panic(e)
-	}
-	batchIdx := 1
-	startTime := time.Now()
-	for loader.Scan() {
-		image, target := loader.Minibatch()
-		image = image.To(device, torch.Float)
-		target = target.To(device, torch.Long)
-		output := model.Forward(image)
-		loss := F.CrossEntropy(output, target, torch.Tensor{}, -100, "mean")
-
-		acc := accuracy(output, target, []int64{1, 5})
-		acc1 := acc[0]
-		acc5 := acc[1]
-		if batchIdx%100 == 0 {
-			throughput := float64(100*batchSize) / time.Since(startTime).Seconds()
-			fmt.Printf("batch: %d, loss: %f, acc1 :%f, acc5: %f, throughput: %.2f samples/sec\n", batchIdx, loss.Item(), acc1, acc5, throughput)
-		}
-
-		opt.ZeroGrad()
-		loss.Backward()
-		opt.Step()
-		batchIdx++
-	}
-	torch.FinishGC()
+func trainOneBatch(image, target torch.Tensor, model *models.ResnetModule, opt torch.Optimizer) (float32, float32, float32) {
+	output := model.Forward(image)
+	loss := F.CrossEntropy(output, target, torch.Tensor{}, -100, "mean")
+	acc := accuracy(output, target, []int64{1, 5})
+	acc1 := acc[0]
+	acc5 := acc[1]
+	loss.Backward()
+	opt.Step()
+	return loss.Item(), acc1, acc5
 }
 
 func main() {
@@ -143,14 +110,56 @@ func main() {
 
 	model := models.Resnet50()
 	model.To(device)
+	model.Train(true)
 
 	optimizer := torch.SGD(lr, momentum, 0, weightDecay, false)
 	optimizer.AddParameters(model.Parameters())
 
-	start := time.Now()
-	for epoch := 0; epoch < epochs; epoch++ {
-		adjustLearningRate(optimizer, epoch, lr)
-		train(model, optimizer, batchSize, device, *trainFile)
+	f, e := os.Open(*trainFile)
+	if e != nil {
+		log.Fatal(e)
 	}
-	fmt.Println(time.Since(start).Seconds())
+	// build label vocabulary
+	vocab, e := datasets.BuildLabelVocabulary(f)
+	if e != nil {
+		log.Fatal(e)
+	}
+	log.Print("building label vocabulary done.")
+
+	itersEpoch := itersEachEpoch(trainSamples, batchSize)
+	iter := 0
+	epoch := 0
+	adjustLearningRate(optimizer, epoch, lr)
+	for {
+		// reset file seeker and renew a ImageNet loader
+		if _, e := f.Seek(0, io.SeekStart); e != nil {
+			log.Fatal(e)
+		}
+		loader, e := imageNetLoader(f, vocab, batchSize)
+		if e != nil {
+			panic(e)
+		}
+		for loader.Scan() {
+			iter++
+			image, target := loader.Minibatch()
+			loss, acc1, acc5 := trainOneBatch(image.CopyTo(device), target.CopyTo(device), model, optimizer)
+			log.Printf("Epoch: %d, Batch: %d, loss:%f, acc1: %f, acc5:%f", epoch, iter, loss, acc1, acc5)
+			if iter == itersEpoch {
+				epoch++
+				adjustLearningRate(optimizer, epoch, lr)
+				iter = 0
+				if epoch == epochs {
+					return
+				}
+			}
+		}
+	}
+}
+
+func itersEachEpoch(samples, batchSize int) int {
+	itersEachEpoch := trainSamples / batchSize
+	if trainSamples%batchSize != 0 {
+		itersEachEpoch++
+	}
+	return itersEachEpoch
 }
