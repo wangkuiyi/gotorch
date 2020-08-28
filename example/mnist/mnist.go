@@ -28,7 +28,6 @@ func main() {
 		[]transforms.Transform{transforms.Normalize([]float64{0.1307}, []float64{0.3081})})
 
 	net := models.MLP()
-	// net.ZeroGrad()
 	net.To(device)
 	opt := torch.SGD(0.01, 0.5, 0, 0, false)
 	opt.AddParameters(net.Parameters())
