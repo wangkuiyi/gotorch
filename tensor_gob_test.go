@@ -18,7 +18,9 @@ func TestTensorGobEncode(t *testing.T) {
 	assert.Equal(t, 747, len(b))
 	assert.Equal(t, fmt.Sprintf("%x", md5.Sum(b)), "dd65752601bf4d4ca19ae903baf96799")
 
-	// TODO(wangkuiyi): test encoding an empty tensor.
+	a = gotorch.Tensor{nil}
+	_, e = a.GobEncode()
+	assert.Error(t, e)
 }
 
 func TestTensorGobDecode(t *testing.T) {

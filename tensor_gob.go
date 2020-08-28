@@ -15,6 +15,10 @@ import (
 // tensor is on GPU, C.Tenosr_Encode clones it in CPU before encoding, so the
 // result always encodes a CPU tensor.
 func (t Tensor) GobEncode() ([]byte, error) {
+	if t.T == nil {
+		return nil, fmt.Errorf("Cannot encode nil tensor")
+	}
+
 	var b C.ByteBuffer
 	err := unsafe.Pointer(
 		C.Tensor_Encode(C.Tensor(*t.T), (*C.ByteBuffer)(unsafe.Pointer(&b))))
