@@ -253,7 +253,7 @@ func visitTensors(m IModule, prefix string, visitor Visitor) error {
 		case (v.Kind() == reflect.Slice || v.Kind() == reflect.Array):
 			// The field is a slice or array.
 			must(v.CanInterface(), "Please export slice and array field %s.%s",
-				sv.Type().Name(), prefix+f.Name)
+				sv.Type().Name(), f.Name)
 			for j := 0; j < v.Len(); j++ {
 				visitTensors(v.Index(j).Interface().(IModule),
 					fmt.Sprintf("%s.%s[%d]", prefix, f.Name, j), visitor)
@@ -262,13 +262,13 @@ func visitTensors(m IModule, prefix string, visitor Visitor) error {
 		case f.Type.Implements(moduleType):
 			// The field is of type Module.
 			must(v.CanInterface(), "Please export Module field %s.%s",
-				sv.Type().Name(), prefix+f.Name)
+				sv.Type().Name(), f.Name)
 			visitTensors(v.Interface().(IModule), prefix+"."+f.Name, visitor)
 
 		case f.Type == tensorType:
 			// The field is of type Tensor.
 			must(v.CanInterface(), "Please export Tensor field %s.%s",
-				v.Type().Name(), prefix+f.Name)
+				v.Type().Name(), f.Name)
 			if e := visitor(f, v, prefix); e != nil {
 				return e
 			}
@@ -333,7 +333,7 @@ func (m *Module) SetStateDict(sd map[string]torch.Tensor) error {
 
 func makeTensorSetter(src map[string]torch.Tensor, marks map[string]int) Visitor {
 	return func(f reflect.StructField, v reflect.Value, prefix string) error {
-		k := prefix + f.Name
+		k := prefix + "." + f.Name
 		t, ok := src[k]
 		if !ok {
 			return fmt.Errorf("Cannot find field %s in the value map", k)
