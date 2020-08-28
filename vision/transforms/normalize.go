@@ -19,6 +19,7 @@ func Normalize(mean []float64, stddev []float64) *NormalizeTransformer {
 
 // Run normalize the input (Tensor) of size (C, H, W) using the stats value mean, stddev.
 func (t *NormalizeTransformer) Run(input torch.Tensor) torch.Tensor {
+	dtype := input.Dtype()
 	var meanT torch.Tensor
 	var stddevT torch.Tensor
 	if len(t.Mean) == 1 {
@@ -37,6 +38,6 @@ func (t *NormalizeTransformer) Run(input torch.Tensor) torch.Tensor {
 	}
 	// TODO(typhoonzero): check if stddevT equals 0
 	x := input.Sub(meanT, 1.0)
-	x = x.Div(stddevT)
+	x = x.Div(stddevT).CastTo(dtype)
 	return x
 }
