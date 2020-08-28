@@ -18,7 +18,7 @@ import (
 
 var trainSamples = 1281167
 var device torch.Device
-var logInterval = 1
+var logInterval = 10
 
 func max(array []int64) int64 {
 	max := array[0]
