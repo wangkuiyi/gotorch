@@ -16,6 +16,7 @@ import (
 )
 
 var trainSamples = 1281167
+var device torch.Device
 
 func max(array []int64) int64 {
 	max := array[0]
@@ -99,7 +100,6 @@ func main() {
 	lr := 0.1
 	momentum := 0.9
 	weightDecay := 1e-4
-	var device torch.Device
 	if torch.IsCUDAAvailable() {
 		log.Println("CUDA is valid")
 		device = torch.NewDevice("cuda")
