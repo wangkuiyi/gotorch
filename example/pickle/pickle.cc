@@ -8,6 +8,10 @@ int main() {
   auto a = torch::randn({3, 4}, at::TensorOptions().requires_grad(false));
   std::cout << "Generated tensor = " << a << std::endl;
 
+  if (!a.is_cuda()) {
+    a = a.cpu();
+  }
+
   auto e = torch::pickle_save(a);
   std::cout << "Encoded buffer size = " << e.size() << std::endl;
 
