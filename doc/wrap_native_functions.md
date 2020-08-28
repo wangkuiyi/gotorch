@@ -183,7 +183,8 @@ type Tensor *unsafe.Pointer
 ```
 
 This pointer-to-pointer is still not enough as we need to attach methods of
-`at::Tensor`, like `MM`, `Add`, and `To`, to the Go type.  Again, Go pointers
+`at::Tensor`, like `MM`, `Add`, and `To`, to the Go type.  Again, Go types
+with pointer [base type](https://golang.org/ref/spec#Method_declarations)
 cannot have methods, so we wrap the above pointer-to-pointer in a struct.
 
 Given the Go type `Tensor`, the Go wrapper `MM` is as follows.
