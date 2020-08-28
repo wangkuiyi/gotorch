@@ -25,7 +25,25 @@ func (t Tensor) GobEncode() ([]byte, error) {
 		return nil, fmt.Errorf(msg)
 	}
 
-	bs := C.GoBytes(unsafe.Pointer(C.ByteBuffer_Data(b)), C.int(int(int64(C.ByteBuffer_Size(b)))))
+	bs := C.GoBytes(C.ByteBuffer_Data(b), C.int(int(int64(C.ByteBuffer_Size(b)))))
 	C.ByteBuffer_Free(b)
 	return bs, nil
+}
+
+// GobDecodeTensor decodes a tensor from []byte.  We don't define
+// Tenosr.GobDecode because we want to create a new tensor instead of overwrite
+// an existing one.  It is easier to manage the GC of a new tensor.
+func GobDecodeTensor(buf []byte) (Tensor, error) {
+	var t C.Tensor
+	err := unsafe.Pointer(
+		C.Tensor_Decode(C.CBytes(buf), C.int64_t(int64(len(buf))), &t))
+
+	if err != nil {
+		msg := C.GoString((*C.char)(err))
+		C.FreeString((*C.char)(err))
+		return Tensor{T: nil}, fmt.Errorf(msg)
+	}
+
+	SetTensorFinalizer((*unsafe.Pointer)(&t))
+	return Tensor{(*unsafe.Pointer)(&t)}, nil
 }

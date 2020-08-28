@@ -102,11 +102,11 @@ Tensor Tensor_Grad(Tensor a);
 
 const char *Tensor_Encode(Tensor, ByteBuffer *);
 
-const char *ByteBuffer_Data(ByteBuffer);
+void *ByteBuffer_Data(ByteBuffer);
 int64_t ByteBuffer_Size(ByteBuffer);
 void ByteBuffer_Free(ByteBuffer);
 
-const char *Tensor_Decode(const char *addr, int64_t size, Tensor *);
+const char *Tensor_Decode(void *addr, int64_t size, Tensor *);
 
 ////////////////////////////////////////////////////////////////////////////////
 // torch.nn.init
