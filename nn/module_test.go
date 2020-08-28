@@ -179,3 +179,11 @@ func TestModuleToDevice(t *testing.T) {
 	hn := newHierarchicalNet()
 	assert.NotPanics(t, func() { hn.To(device) })
 }
+
+func TestModuleStateDict(t *testing.T) {
+	n := newMyNetWithBuffer()
+	sd := n.StateDict()
+	assert.Equal(t, 2, len(sd))
+	assert.Contains(t, sd, "myNetWithBuffer.L1.Weight")
+	assert.Contains(t, sd, "myNetWithBuffer.Weight")
+}
