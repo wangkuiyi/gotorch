@@ -1,22 +1,26 @@
 /* Copyright 2020, GoTorch Authors */
 #ifndef CGOTORCH_CGOTORCH_H_
 #define CGOTORCH_CGOTORCH_H_
+
 #include <stdbool.h>
 #include <stdint.h>
 
 #ifdef __cplusplus
+#include <vector>
 extern "C" {
 typedef at::Tensor *Tensor;
 typedef torch::optim::Optimizer *Optimizer;
 typedef torch::data::datasets::MNIST *MNIST;
 typedef torch::data::transforms::Normalize<> *Normalize;
 typedef torch::Device *Device;
+typedef std::vector<char> *ByteBuffer;  // NOLINT
 #else
 typedef void *Tensor;
 typedef void *Optimizer;
 typedef void *MNIST;
 typedef void *Normalize;
 typedef void *Device;
+typedef void *ByteBuffer;
 #endif
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -91,8 +95,18 @@ const char *Tensor_FromBlob(void *data, int8_t dtype, int64_t *sizes_data,
 // Backward, Gradient
 void Tensor_Backward(Tensor a);
 Tensor Tensor_Grad(Tensor a);
-const char *Tensor_FromBlob(void *data, int8_t dtype, int64_t *sizes_data,
-                            int64_t sizes_data_len, Tensor *result);
+
+////////////////////////////////////////////////////////////////////////////////
+// Pickle encode/decode Tensors
+////////////////////////////////////////////////////////////////////////////////
+
+const char *Tensor_Encode(Tensor, ByteBuffer *);
+
+const char *ByteBuffer_Data(ByteBuffer);
+int64_t ByteBuffer_Size(ByteBuffer);
+void ByteBuffer_Free(ByteBuffer);
+
+const char *Tensor_Decode(const char *addr, int64_t size, Tensor *);
 
 ////////////////////////////////////////////////////////////////////////////////
 // torch.nn.init
