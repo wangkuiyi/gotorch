@@ -20,14 +20,8 @@ func (t Tensor) GobEncode() ([]byte, error) {
 	}
 
 	var b C.ByteBuffer
-	err := unsafe.Pointer(
-		C.Tensor_Encode(C.Tensor(*t.T), (*C.ByteBuffer)(unsafe.Pointer(&b))))
-
-	if err != nil {
-		msg := C.GoString((*C.char)(err))
-		C.FreeString((*C.char)(err))
-		return nil, fmt.Errorf(msg)
-	}
+	MustNil(unsafe.Pointer(
+		C.Tensor_Encode(C.Tensor(*t.T), (*C.ByteBuffer)(unsafe.Pointer(&b)))))
 
 	bs := C.GoBytes(C.ByteBuffer_Data(b), C.int(int(int64(C.ByteBuffer_Size(b)))))
 	C.ByteBuffer_Free(b)
@@ -39,14 +33,8 @@ func (t Tensor) GobEncode() ([]byte, error) {
 // an existing one.  It is easier to manage the GC of a new tensor.
 func GobDecodeTensor(buf []byte) (Tensor, error) {
 	var t C.Tensor
-	err := unsafe.Pointer(
-		C.Tensor_Decode(C.CBytes(buf), C.int64_t(int64(len(buf))), &t))
-
-	if err != nil {
-		msg := C.GoString((*C.char)(err))
-		C.FreeString((*C.char)(err))
-		return Tensor{T: nil}, fmt.Errorf(msg)
-	}
+	MustNil(unsafe.Pointer(
+		C.Tensor_Decode(C.CBytes(buf), C.int64_t(int64(len(buf))), &t)))
 
 	SetTensorFinalizer((*unsafe.Pointer)(&t))
 	return Tensor{(*unsafe.Pointer)(&t)}, nil
