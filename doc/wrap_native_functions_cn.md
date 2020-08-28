@@ -1,13 +1,13 @@
 # 包装 PyTorch 本地函数
 
-PyTorch 的核心逻辑在一个叫 libtorch 的库中，这个库是用 C++ 编写的，它包含了
+PyTorch 的核心逻辑在一个叫 libtorch 的库中，这个库是用 C++ 编写的，包含了
 大约1600个深度学习算子，这些算子中的大部分是用来对张量（Tensor） 进行操作的，
 我们常称之为本地函数。
 
 在 PyTorch 中，`torch.nn.functional` 包中的函数和 `torch.nn` 包中的模块 (`Moduel`) 和类会通过
 [`pybind`](https://github.com/pybind/pybind11) (一个 Python 调用 C++ 的函数接口生成工具）
 来调用本地函数。而在 GoTorch 中，我们有两个对应的包  `gotorch/nn/functional` 和 `gotorch/nn`，
-他们通过 Go 中的包装方法（通过 CGo）来调用本地函数。
+他们通过 Go 中的包装方法（利用CGo实现的）来调用本地函数。
 
 本文将讲解如何通过 [Cgo](https://blog.golang.org/cgo) 来进行本地函数包装，我们将从三个层次上来
 介绍包装逻辑，他们是：
@@ -86,7 +86,7 @@ func MyExit(x int) {
 
 在我们的代码库中，所有的 C Wrapper 函数都放在 `cgotorch` 目录下。 特别地，在 `cgotorch/cgotorch.h` 文件中，你可以找到
  `at::Tensor` 和 `at::mm` 等类型的 wrapper。C 语言中没有类的概念，所以我们定义了指向 `at::Tensor` 的指针来表示
- C++ 中的 Tensor。 这些指针在 Go 中可以用 `unsafe.Pointer` 来存储，如下所示：
+ C++ 中的 Tensor，如下所示：
 
 ```c
 extern "C" {
