@@ -232,13 +232,13 @@ func (m *Module) Buffers() []torch.Tensor {
 }
 
 // Visitor is a function type supposed to be called by visitTensors.  The
-// parameter f and v are a tensor-typed field in a given module.  In most cases,
-// it should return true; otherwise, it breaks the recursive visiting process.
-type Visitor func(f reflect.StructField, v reflect.Value, prefix string) bool
+// parameter f and v are a tensor-typed field in a given module. Returning
+// non-nil eror breaks the recursive visiting process.
+type Visitor func(f reflect.StructField, v reflect.Value, prefix string) error
 
-func visitTensors(m IModule, prefix string, visitor Visitor) {
+func visitTensors(m IModule, prefix string, visitor Visitor) error {
 	if reflect.ValueOf(m).IsNil() {
-		return // No need to visit fields in a nil Module value.
+		return nil // No need to visit fields in a nil Module value.
 	}
 
 	moduleType := reflect.TypeOf((*IModule)(nil)).Elem()
@@ -267,20 +267,20 @@ func visitTensors(m IModule, prefix string, visitor Visitor) {
 
 		case f.Type == tensorType:
 			// The field is of type Tensor.
-			if r := visitor(f, v, prefix); !r {
-				return
+			must(v.CanInterface(), "Please export Tensor field %s.%s",
+				v.Type().Name(), prefix+f.Name)
+			if e := visitor(f, v, prefix); e != nil {
+				return e
 			}
 		}
 	}
+	return nil
 }
 
 // makeTensorRecorder returns a visitor function that records a parameter and/or
 // buffer tensor in a module into map record with key set to prefix+"."+f.Name.
 func makeTensorRecorder(record map[string]torch.Tensor, param, buffer bool) Visitor {
-	return func(f reflect.StructField, v reflect.Value, prefix string) bool {
-		must(v.CanInterface(), "Please export Tensor field %s.%s",
-			v.Type().Name(), prefix+f.Name)
-
+	return func(f reflect.StructField, v reflect.Value, prefix string) error {
 		tag := f.Tag.Get("gotorch")
 		if (buffer && tag == "buffer") || (param && (tag == "param" || tag == "")) {
 			// If the field is what we want.
@@ -291,7 +291,7 @@ func makeTensorRecorder(record map[string]torch.Tensor, param, buffer bool) Visi
 				record[prefix+"."+f.Name] = fv
 			}
 		}
-		return true // Alway go on visiting.
+		return nil
 	}
 }
 
@@ -305,18 +305,44 @@ func (m *Module) StateDict() map[string]torch.Tensor {
 	return r
 }
 
-// func (m *Module) SetStateDict(sd map[string]torch.Tensor) error {
-// 	must(m.outer != nil, "GoTorch modules requires calling `Init` before using")
+// SetStateDict sets the module's all tensor fields to values in sd.
+func (m *Module) SetStateDict(sd map[string]torch.Tensor) error {
+	must(m.outer != nil, "GoTorch modules requires calling `Init` before using")
 
-// 	// SetStateDict requires that (1) entries in the map are all defined in
-// 	// the module, and (2) parameters and buffers in the module are all in
-// 	// the map.  To ensure (2), we go over module fields using Go
-// 	// reflection, and for each field, we check the existence of the
-// 	// corresponding entry in the map.  To ensure (2), we store fields in a
-// 	// set, and check that every entry in the map is in the set.
-// 	marks := make(map[string]int)
+	// SetStateDict requires that (1) entries in the map are all defined in
+	// the module, and (2) parameters and buffers in the module are all in
+	// the map.  To ensure (2), we go over module fields using Go
+	// reflection, and for each field, we check the existence of the
+	// corresponding entry in the map.  To ensure (2), we store fields in a
+	// set, and check that every entry in the map is in the set.
+	marks := make(map[string]int)
 
-// }
+	e := visitTensors(m.outer, reflect.TypeOf(m.outer).Elem().Name(),
+		makeTensorSetter(sd, marks))
+	if e != nil {
+		return e
+	}
+
+	for k := range sd {
+		if _, ok := marks[k]; !ok {
+			return fmt.Errorf("sd[%s] is not used to set any field", k)
+		}
+	}
+	return nil
+}
+
+func makeTensorSetter(src map[string]torch.Tensor, marks map[string]int) Visitor {
+	return func(f reflect.StructField, v reflect.Value, prefix string) error {
+		k := prefix + f.Name
+		t, ok := src[k]
+		if !ok {
+			return fmt.Errorf("Cannot find field %s in the value map", k)
+		}
+		v.Set(reflect.ValueOf(t))
+		marks[k]++
+		return nil
+	}
+}
 
 func must(condition bool, fmtStr string, args ...interface{}) {
 	if !condition {
