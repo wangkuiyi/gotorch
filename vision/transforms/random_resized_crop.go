@@ -26,7 +26,7 @@ func RandomResizedCrop(height int, width ...int) *RandomResizedCropTransformer {
 		w = width[0]
 	}
 	return RandomResizedCropD(
-		w, height,
+		height, w,
 		0.08, 1.0,
 		3.0/4.0, 4.0/3.0,
 		imaging.Linear,
@@ -46,6 +46,10 @@ func RandomResizedCropD(height, width int, scale0, scale1, ratio0, ratio1 float6
 	}
 }
 
+func uniform(from, to float64) float64 {
+	return (rand.Float64() + from) * (to - from)
+}
+
 func (t *RandomResizedCropTransformer) getParams(input image.Image) (int, int, int, int) {
 	width := input.Bounds().Max.X
 	height := input.Bounds().Max.Y
@@ -53,10 +57,10 @@ func (t *RandomResizedCropTransformer) getParams(input image.Image) (int, int, i
 
 	// try 10 times to generate random scaled image bounds.
 	for idx := 0; idx < 10; idx++ {
-		targetArea := float64(area) * ((rand.Float64() + t.scale0) * (t.scale1 - t.scale0))
+		targetArea := float64(area) * uniform(t.scale0, t.scale1)
 		logRatio0 := math.Log(t.ratio0)
 		logRatio1 := math.Log(t.ratio1)
-		aspectRatio := math.Exp((rand.Float64() + logRatio0) * (logRatio1 - logRatio0))
+		aspectRatio := math.Exp(uniform(logRatio0, logRatio1))
 
 		w := int(math.Round(math.Sqrt(targetArea * aspectRatio)))
 		h := int(math.Round(math.Sqrt(targetArea / aspectRatio)))
@@ -91,8 +95,8 @@ func (t *RandomResizedCropTransformer) getParams(input image.Image) (int, int, i
 func (t *RandomResizedCropTransformer) Run(input image.Image) image.Image {
 	i, j, h, w := t.getParams(input)
 	cropped := imaging.Crop(input, image.Rectangle{
-		Min: image.Point{X: i, Y: j},
-		Max: image.Point{X: w, Y: h},
+		Min: image.Point{X: j, Y: i},
+		Max: image.Point{X: j + w, Y: i + h},
 	})
 	return imaging.Resize(cropped, t.width, t.height, t.interpolation)
 }
