@@ -1,10 +1,9 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"log"
-	"os/user"
-	"path"
 
 	torch "github.com/wangkuiyi/gotorch"
 	nn "github.com/wangkuiyi/gotorch/nn"
@@ -14,6 +13,7 @@ import (
 	"github.com/wangkuiyi/gotorch/vision/transforms"
 )
 
+var dataroot = flag.String("dataroot", "", "path to dataset")
 var device torch.Device
 
 func generator(nz int64, nc int64, ngf int64) *nn.SequentialModule {
@@ -62,6 +62,7 @@ func discriminator(nc int64, ndf int64) *nn.SequentialModule {
 }
 
 func main() {
+	flag.Parse()
 	if torch.IsCUDAAvailable() {
 		log.Println("CUDA is valid")
 		device = torch.NewDevice("cuda")
@@ -75,19 +76,20 @@ func main() {
 	ngf := int64(64)
 	ndf := int64(64)
 	lr := 0.0002
+	fixedNoise := torch.RandN([]int64{64, nz, 1, 1}, false).CopyTo(device)
 
 	netG := generator(nz, nc, ngf)
 	netG.To(device)
 	netD := discriminator(nc, ndf)
 	netD.To(device)
 
-	optimizerD := torch.Adam(lr, 0.5, 0.5, 0.0)
+	optimizerD := torch.Adam(lr, 0.5, 0.999, 0.0)
 	optimizerD.AddParameters(netD.Parameters())
 
-	optimizerG := torch.Adam(lr, 0.5, 0.5, 0.0)
+	optimizerG := torch.Adam(lr, 0.5, 0.999, 0.0)
 	optimizerG.AddParameters(netG.Parameters())
 
-	epochs := 30
+	epochs := 100
 	checkpointStep := 1000
 	checkpointCount := 1
 	batchSize := 64
@@ -95,8 +97,7 @@ func main() {
 	trans := transforms.Compose(transforms.Resize(64),
 		transforms.ToTensor(),
 		transforms.Normalize([]float64{0.5, 0.5, 0.5}, []float64{0.5, 0.5, 0.5}))
-	u, _ := user.Current()
-	cifar10, _ := datasets.CIFAR10(path.Join(u.HomeDir, ".cache"), true, true, batchSize, trans)
+	cifar10, _ := datasets.CIFAR10(*dataroot, true, true, batchSize, trans)
 
 	i := 0
 	for epoch := 0; epoch < epochs; epoch++ {
@@ -109,7 +110,7 @@ func main() {
 			data = data.CopyTo(device)
 
 			label := torch.Empty([]int64{data.Shape()[0]}, false).CopyTo(device)
-			initializer.Uniform(&label, 0.8, 1.0)
+			initializer.Ones(&label)
 			output := netD.Forward(data).(torch.Tensor).View([]int64{-1, 1}).Squeeze(1)
 			errDReal := F.BinaryCrossEntropy(output, label, torch.Tensor{}, "mean")
 			errDReal.Backward()
@@ -135,9 +136,9 @@ func main() {
 			fmt.Printf("[%d/%d][%d] D_Loss: %f G_Loss: %f\n",
 				epoch, epochs, i, errD, errG.Item())
 			if i%checkpointStep == 0 {
-				samples := netG.Forward(torch.RandN([]int64{10, nz, 1, 1}, false).CopyTo(device)).(torch.Tensor)
+				samples := netG.Forward(fixedNoise).(torch.Tensor)
 				ckName := fmt.Sprintf("dcgan-sample-%d.pt", checkpointCount)
-				samples.Detach().Save(ckName)
+				samples.Save(ckName)
 				checkpointCount++
 			}
 			i++
