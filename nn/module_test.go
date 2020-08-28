@@ -1,6 +1,8 @@
 package nn
 
 import (
+	"bytes"
+	"encoding/gob"
 	"log"
 	"testing"
 
@@ -186,4 +188,51 @@ func TestModuleStateDict(t *testing.T) {
 	assert.Equal(t, 2, len(sd))
 	assert.Contains(t, sd, "myNetWithBuffer.L1.Weight")
 	assert.Contains(t, sd, "myNetWithBuffer.Weight")
+}
+
+func TestModuleGobStateDict(t *testing.T) {
+	x := newMyNetWithBuffer()
+	x.L1.Weight = torch.NewTensor([][]float32{{0, 1}, {1, 0}})
+	x.Weight = torch.NewTensor([]float32{10, 20})
+
+	var buf bytes.Buffer
+	sd := x.StateDict()
+	assert.NoError(t, gob.NewEncoder(&buf).Encode(sd))
+
+	ns := make(map[string]torch.Tensor)
+	assert.NoError(t, gob.NewDecoder(&buf).Decode(&ns))
+
+	assert.Contains(t, ns, "myNetWithBuffer.L1.Weight")
+	assert.Contains(t, ns, "myNetWithBuffer.Weight")
+
+	assert.Equal(t, sd["myNetWithBuffer.L1.Weight"].String(), ns["myNetWithBuffer.L1.Weight"].String())
+	assert.Equal(t, sd["myNetWithBuffer.Weight"].String(), ns["myNetWithBuffer.Weight"].String())
+
+	assert.Equal(t, " 0  1\n 1  0\n[ CPUFloatType{2,2} ]", sd["myNetWithBuffer.L1.Weight"].String())
+	assert.Equal(t, " 10\n 20\n[ CPUFloatType{2} ]", sd["myNetWithBuffer.Weight"].String())
+}
+
+func TestModuleSetStateDict(t *testing.T) {
+	x := newMyNetWithBuffer()
+	x.L1.Weight = torch.NewTensor([][]float32{{0, 1}, {1, 0}})
+	x.Weight = torch.NewTensor([]float32{10, 20})
+
+	y := newMyNetWithBuffer()
+	assert.NoError(t, y.SetStateDict(x.StateDict()))
+
+	sd := x.StateDict()
+	assert.Equal(t, 2, len(sd))
+	assert.Contains(t, sd, "myNetWithBuffer.L1.Weight")
+	assert.Contains(t, sd, "myNetWithBuffer.Weight")
+
+	ns := y.StateDict()
+	assert.Equal(t, 2, len(sd))
+	assert.Contains(t, ns, "myNetWithBuffer.L1.Weight")
+	assert.Contains(t, ns, "myNetWithBuffer.Weight")
+
+	assert.Equal(t, sd["myNetWithBuffer.L1.Weight"].String(), ns["myNetWithBuffer.L1.Weight"].String())
+	assert.Equal(t, sd["myNetWithBuffer.Weight"].String(), ns["myNetWithBuffer.Weight"].String())
+
+	assert.Equal(t, " 0  1\n 1  0\n[ CPUFloatType{2,2} ]", sd["myNetWithBuffer.L1.Weight"].String())
+	assert.Equal(t, " 10\n 20\n[ CPUFloatType{2} ]", sd["myNetWithBuffer.Weight"].String())
 }
