@@ -28,27 +28,29 @@ type sample struct {
 //	img, target := imageNet.Minibatch()
 // }
 type ImageNetLoader struct {
-	mbSize int
-	tr     *tar.Reader
-	vocab  map[string]int64 // the vocabulary of labels.
-	err    error
-	inputs []torch.Tensor // inputs and labels form a minibatch.
-	labels []int64
-	trans  *transforms.ComposeTransformer
+	mbSize      int
+	skipSamples int
+	tr          *tar.Reader
+	vocab       map[string]int64 // the vocabulary of labels.
+	err         error
+	inputs      []torch.Tensor // inputs and labels form a minibatch.
+	labels      []int64
+	trans       *transforms.ComposeTransformer
 }
 
 // ImageNet returns ImageNet dataDataLoader
-func ImageNet(r io.Reader, vocab map[string]int64, trans *transforms.ComposeTransformer, mbSize int) (*ImageNetLoader, error) {
+func ImageNet(r io.Reader, vocab map[string]int64, trans *transforms.ComposeTransformer, mbSize, skipSamples int) (*ImageNetLoader, error) {
 	tgz, e := newTarGzReader(r)
 	if e != nil {
 		return nil, e
 	}
 	return &ImageNetLoader{
-		mbSize: mbSize,
-		tr:     tgz,
-		err:    nil,
-		vocab:  vocab,
-		trans:  trans,
+		mbSize:      mbSize,
+		tr:          tgz,
+		err:         nil,
+		vocab:       vocab,
+		trans:       trans,
+		skipSamples: skipSamples,
 	}, nil
 }
 
@@ -64,6 +66,7 @@ func (p *ImageNetLoader) tensorGC() {
 }
 
 func (p *ImageNetLoader) retreiveMinibatch() {
+	iter := 0
 	for {
 		hdr, err := p.tr.Next()
 		if err != nil {
@@ -73,6 +76,12 @@ func (p *ImageNetLoader) retreiveMinibatch() {
 		if !strings.HasSuffix(strings.ToUpper(hdr.Name), "JPEG") {
 			continue
 		}
+		if iter < p.skipSamples {
+			iter++
+			continue
+		}
+		// only skip the head samplers
+		p.skipSamples = 0
 
 		label := p.vocab[filepath.Base(filepath.Dir(hdr.Name))]
 		p.labels = append(p.labels, label)
@@ -147,7 +156,6 @@ func BuildLabelVocabulary(reader io.Reader) (map[string]int64, error) {
 			}
 		}
 	}
-	return classToIdx, nil
 }
 
 func newTarGzReader(r io.Reader) (*tar.Reader, error) {

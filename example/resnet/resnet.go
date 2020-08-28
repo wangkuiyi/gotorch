@@ -5,6 +5,7 @@ import (
 	"io"
 	"log"
 	"math"
+	"math/rand"
 	"os"
 
 	torch "github.com/wangkuiyi/gotorch"
@@ -15,7 +16,6 @@ import (
 )
 
 var trainSamples = 1281167
-var device torch.Device
 
 func max(array []int64) int64 {
 	max := array[0]
@@ -62,14 +62,14 @@ func accuracy(output, target torch.Tensor, topk []int64) []float32 {
 	return res
 }
 
-func imageNetLoader(r io.Reader, vocab map[string]int64, batchSize int) (*datasets.ImageNetLoader, error) {
+func imageNetLoader(r io.Reader, vocab map[string]int64, batchSize int, skipSamples int) (*datasets.ImageNetLoader, error) {
 	trans := transforms.Compose(
 		transforms.RandomResizedCrop(224),
 		transforms.RandomHorizontalFlip(0.5),
 		transforms.ToTensor(),
 		transforms.Normalize([]float64{0.485, 0.456, 0.406}, []float64{0.229, 0.224, 0.225}))
 
-	loader, e := datasets.ImageNet(r, vocab, trans, batchSize)
+	loader, e := datasets.ImageNet(r, vocab, trans, batchSize, skipSamples)
 	if e != nil {
 		return nil, e
 	}
@@ -99,7 +99,7 @@ func main() {
 	lr := 0.1
 	momentum := 0.9
 	weightDecay := 1e-4
-
+	var device torch.Device
 	if torch.IsCUDAAvailable() {
 		log.Println("CUDA is valid")
 		device = torch.NewDevice("cuda")
@@ -126,28 +126,33 @@ func main() {
 	}
 	log.Print("building label vocabulary done.")
 
-	itersEpoch := itersEachEpoch(trainSamples, batchSize)
-	iter := 0
+	batchs := itersEachEpoch(trainSamples, batchSize)
+	batch := 0
 	epoch := 0
 	adjustLearningRate(optimizer, epoch, lr)
+	skipSamples := 0
 	for {
 		// reset file seeker and renew a ImageNet loader
 		if _, e := f.Seek(0, io.SeekStart); e != nil {
 			log.Fatal(e)
 		}
-		loader, e := imageNetLoader(f, vocab, batchSize)
+		if batch == 0 {
+			// skip samples randomly at the begging of each epoch
+			skipSamples = rand.Intn(batchSize)
+		}
+		loader, e := imageNetLoader(f, vocab, batchSize, skipSamples)
 		if e != nil {
 			panic(e)
 		}
 		for loader.Scan() {
-			iter++
+			batch++
 			image, target := loader.Minibatch()
-			loss, acc1, acc5 := trainOneBatch(image.CopyTo(device), target.CopyTo(device), model, optimizer)
-			log.Printf("Epoch: %d, Batch: %d, loss:%f, acc1: %f, acc5:%f", epoch, iter, loss, acc1, acc5)
-			if iter == itersEpoch {
+			loss, acc1, acc5 := trainOneBatch(image.To(device, torch.Float), target.To(device, torch.Long), model, optimizer)
+			log.Printf("Epoch: %d, Batch: %d, loss:%f, acc1: %f, acc5:%f", epoch, batch, loss, acc1, acc5)
+			if batch == batchs {
 				epoch++
 				adjustLearningRate(optimizer, epoch, lr)
-				iter = 0
+				batch = 0
 				if epoch == epochs {
 					return
 				}
