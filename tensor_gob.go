@@ -28,14 +28,12 @@ func (t Tensor) GobEncode() ([]byte, error) {
 	return bs, nil
 }
 
-// GobDecodeTensor decodes a tensor from []byte.  We don't define
-// Tenosr.GobDecode because we want to create a new tensor instead of overwrite
-// an existing one.  It is easier to manage the GC of a new tensor.
-func GobDecodeTensor(buf []byte) (Tensor, error) {
-	var t C.Tensor
+// GobDecode makes Tensor implements the gob.GobDecoder interface.
+func (t *Tensor) GobDecode(buf []byte) error {
+	var n C.Tensor
 	MustNil(unsafe.Pointer(
-		C.Tensor_Decode(C.CBytes(buf), C.int64_t(int64(len(buf))), &t)))
-
-	SetTensorFinalizer((*unsafe.Pointer)(&t))
-	return Tensor{(*unsafe.Pointer)(&t)}, nil
+		C.Tensor_Decode(C.CBytes(buf), C.int64_t(int64(len(buf))), &n)))
+	SetTensorFinalizer((*unsafe.Pointer)(&n))
+	*t = Tensor{T: (*unsafe.Pointer)(&n)}
+	return nil
 }

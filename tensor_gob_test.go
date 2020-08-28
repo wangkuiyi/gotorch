@@ -1,7 +1,9 @@
 package gotorch_test
 
 import (
+	"bytes"
 	"crypto/md5"
+	"encoding/gob"
 	"fmt"
 	"testing"
 
@@ -25,12 +27,11 @@ func TestTensorGobEncode(t *testing.T) {
 
 func TestTensorGobDecode(t *testing.T) {
 	x := gotorch.NewTensor([][]float32{{1, 0, 0}, {0, 1, 0}, {0, 0, 1}})
-	b, e := x.GobEncode()
-	assert.NoError(t, e)
-	// The ground-truth length comes from the C++ program example/pickle.
-	assert.Equal(t, 747, len(b))
 
-	y, e := gotorch.GobDecodeTensor(b)
-	assert.NoError(t, e)
+	var buf bytes.Buffer
+	assert.NoError(t, gob.NewEncoder(&buf).Encode(x))
+
+	var y gotorch.Tensor
+	assert.NoError(t, gob.NewDecoder(&buf).Decode(&y))
 	assert.Equal(t, " 1  0  0\n 0  1  0\n 0  0  1\n[ CPUFloatType{3,3} ]", y.String())
 }

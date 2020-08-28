@@ -193,15 +193,6 @@ func (m *Module) ZeroGrad() {
 // 	return m.name
 // }
 
-// StateDict mimics torch.Module.state_dict(), which returns parameters and
-// buffers with their (unique) names.
-func (m *Module) StateDict() map[string]torch.Tensor {
-	must(m.outer != nil, "GoTorch modules requires calling `Init` before using")
-	r := make(map[string]torch.Tensor)
-	getNamedNonNilTensors(m.outer, reflect.TypeOf(m.outer).Elem().Name(), true, true, r)
-	return r
-}
-
 // NamedParameters returns trainable parameters (recursively) with their names
 func (m *Module) NamedParameters() map[string]torch.Tensor {
 	must(m.outer != nil, "GoTorch modules requires calling `Init` before using")
@@ -297,4 +288,13 @@ func must(condition bool, fmtStr string, args ...interface{}) {
 		// Use logPanicf to be recoverable and enable stack trace
 		log.Panicf(fmtStr, args...)
 	}
+}
+
+// StateDict mimics torch.Module.state_dict(), which returns parameters and
+// buffers with their (unique) names.
+func (m *Module) StateDict() map[string]torch.Tensor {
+	must(m.outer != nil, "GoTorch modules requires calling `Init` before using")
+	r := make(map[string]torch.Tensor)
+	getNamedNonNilTensors(m.outer, reflect.TypeOf(m.outer).Elem().Name(), true, true, r)
+	return r
 }
