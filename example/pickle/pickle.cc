@@ -5,7 +5,7 @@
 #include "torch/script.h"
 
 int main() {
-  auto a = torch::randn({3, 4}, at::TensorOptions().requires_grad(false));
+  auto a = torch::eye(3);
   std::cout << "Generated tensor = " << a << std::endl;
 
   if (!a.is_cuda()) {
