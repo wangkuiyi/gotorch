@@ -18,8 +18,8 @@ translates the work into Go source code, which compiles into native code running
 on servers and mobile devices, including phones, pads, and self-driving cars.
 
 In addition to the Go binding of libtorch, GoTorch also includes the other two
-layers of functionalities of PyTorch provided in Python -- torch.nn.functional,
-and torch.nn.
+layers of functionalities of PyTorch provided in Python -- `torch.nn.functional`,
+and `torch.nn`.
 
 ## Layers of Functionalities
 
@@ -29,10 +29,10 @@ libtorch.
 1. The finest-grained layer is in libtorch -- about 1600 native functions, each
    is a fundamental operation in mathematics or its corresponding gradient
    operation.  Each native function has CPU and GPU implementations. By linking
-   libtorch with github.com/pytorch/xla, we get an additional implementation for
-   Google TPU.
+   libtorch with [XLA](github.com/pytorch/xla), we get an additional
+   implementation for Google TPU.
 
-1. A higher-level abstraction is in the Python package torch.nn.functional,
+1. A higher-level abstraction is in the Python package `torch.nn.functional`,
    which provides functions defined in Python and calls native functions in
    C/C++.
 
