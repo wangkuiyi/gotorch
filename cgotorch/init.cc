@@ -54,6 +54,15 @@ const char *Uniform_(Tensor *tensor, double low, double high) {
   }
 }
 
+const char *Normal_(Tensor *tensor, double mean, double std) {
+  try {
+    torch::nn::init::normal_(**tensor, mean, std);
+    return nullptr;
+  } catch (const std::exception &e) {
+    return exception_str(e.what());
+  }
+}
+
 const char *KaimingUniform_(double a, const char *fan_mod,
                             const char *non_linearity, Tensor *tensor) {
   try {
