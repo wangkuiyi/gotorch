@@ -5,7 +5,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	torch "github.com/wangkuiyi/gotorch"
-	"github.com/wangkuiyi/gotorch/nn/initializer"
 )
 
 func TestManualSeed(t *testing.T) {
@@ -18,6 +17,6 @@ func TestManualSeed(t *testing.T) {
 
 func TestNormal(t *testing.T) {
 	x := torch.Empty([]int64{2, 3}, false)
-	initializer.Normal(&x, 0.1, 0.2)
+	Normal(&x, 0.1, 0.2)
 	assert.NotNil(t, x.T)
 }
