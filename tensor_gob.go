@@ -15,17 +15,27 @@ import (
 // tensor is on GPU, C.Tenosr_Encode clones it in CPU before encoding, so the
 // result always encodes a CPU tensor.
 func (t Tensor) GobEncode() ([]byte, error) {
-	var b C.ByteBuffer
-	err := unsafe.Pointer(
-		C.Tensor_Encode(C.Tensor(*t.T), (*C.ByteBuffer)(unsafe.Pointer(&b))))
-
-	if err != nil {
-		msg := C.GoString((*C.char)(err))
-		C.FreeString((*C.char)(err))
-		return nil, fmt.Errorf(msg)
+	if t.T == nil {
+		return nil, fmt.Errorf("Cannot encode nil tensor")
 	}
 
-	bs := C.GoBytes(unsafe.Pointer(C.ByteBuffer_Data(b)), C.int(int(int64(C.ByteBuffer_Size(b)))))
+	var b C.ByteBuffer
+	MustNil(unsafe.Pointer(
+		C.Tensor_Encode(C.Tensor(*t.T), (*C.ByteBuffer)(unsafe.Pointer(&b)))))
+
+	bs := C.GoBytes(C.ByteBuffer_Data(b), C.int(int(int64(C.ByteBuffer_Size(b)))))
 	C.ByteBuffer_Free(b)
 	return bs, nil
+}
+
+// GobDecodeTensor decodes a tensor from []byte.  We don't define
+// Tenosr.GobDecode because we want to create a new tensor instead of overwrite
+// an existing one.  It is easier to manage the GC of a new tensor.
+func GobDecodeTensor(buf []byte) (Tensor, error) {
+	var t C.Tensor
+	MustNil(unsafe.Pointer(
+		C.Tensor_Decode(C.CBytes(buf), C.int64_t(int64(len(buf))), &t)))
+
+	SetTensorFinalizer((*unsafe.Pointer)(&t))
+	return Tensor{(*unsafe.Pointer)(&t)}, nil
 }
