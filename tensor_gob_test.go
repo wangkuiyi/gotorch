@@ -1,6 +1,8 @@
 package gotorch_test
 
 import (
+	"crypto/md5"
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -11,9 +13,11 @@ func TestTensorGobEncode(t *testing.T) {
 	a := gotorch.NewTensor([][]float32{{1, 0, 0}, {0, 1, 0}, {0, 0, 1}})
 	b, e := a.GobEncode()
 	assert.NoError(t, e)
-	// The ground-truth length comes from the C++ program example/pickle.
+	// The ground-truth length and MD5 checksum come from the C++ program
+	// example/pickle.
 	assert.Equal(t, 747, len(b))
-	// TODO(wangkuiyi): verify the content of []byte.
+	assert.Equal(t, fmt.Sprintf("%x", md5.Sum(b)), "dd65752601bf4d4ca19ae903baf96799")
+
 	// TODO(wangkuiyi): test encoding an empty tensor.
 }
 

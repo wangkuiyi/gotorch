@@ -19,8 +19,8 @@ int main() {
 
   unsigned char checksum[MD5_DIGEST_LENGTH];
   MD5(reinterpret_cast<unsigned char*>(e.data()), e.size(), checksum);
-  for (unsigned char c : checksum) {
-    std::cout << std::hex << static_cast<unsigned int>(c);
+  for (int c : checksum) {
+    std::cout << std::hex << std::setw(2) << std::setfill('0') << c;
   }
   std::cout << std::endl;
 
