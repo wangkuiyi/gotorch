@@ -1,5 +1,17 @@
 # DCGAN Example
 
+## Download CIFAR10 Dataset
+
+We first download cifar10 dataset to somewhere, say `$DATAROOT`.
+
+```bash
+cd $DATAROOT
+wget https://www.cs.toronto.edu/\~kriz/cifar-10-binary.tar.gz
+tar zxvf cifar-10-binary.tar.gz
+```
+
+## Build
+
 We first build the gotorch project. For how to build and test, please refer to [CONTRIBUTING.md](https://github.com/wangkuiyi/gotorch/blob/develop/CONTRIBUTING.md).
 
 Then, we run the following command in the root directory to install gotorch project.
@@ -10,20 +22,22 @@ go install ./...
 
 The `dcgan` binary will be installed at `$GOPATH/bin` directory.
 
+## Run
+
 Then, we execute the compiled binary in current directory to train the model:
 
 ```bash
-$GOPATH/bin/dcgan
-[0/30][0] D_Loss: 1.511980 G_Loss: 1.214779
-[0/30][1] D_Loss: 0.991748 G_Loss: 1.575888
-[0/30][2] D_Loss: 0.774483 G_Loss: 2.076495
-[0/30][3] D_Loss: 0.647692 G_Loss: 2.421216
-[0/30][4] D_Loss: 0.577828 G_Loss: 2.674094
-[0/30][5] D_Loss: 0.558098 G_Loss: 2.808377
-[0/30][6] D_Loss: 0.561936 G_Loss: 2.944061
-[0/30][7] D_Loss: 0.513400 G_Loss: 3.169870
-[0/30][8] D_Loss: 0.470114 G_Loss: 3.544255
-[0/30][9] D_Loss: 0.457290 G_Loss: 3.877758
+$GOPATH/bin/dcgan -dataroot=$DATAROOT
+[0/100][0] D_Loss: 1.501880 G_Loss: 3.284637
+[0/100][1] D_Loss: 1.180851 G_Loss: 3.828784
+[0/100][2] D_Loss: 0.901259 G_Loss: 4.031792
+[0/100][3] D_Loss: 0.868884 G_Loss: 4.756028
+[0/100][4] D_Loss: 0.832174 G_Loss: 5.523646
+[0/100][5] D_Loss: 0.762144 G_Loss: 5.824744
+[0/100][6] D_Loss: 0.488496 G_Loss: 6.646035
+[0/100][7] D_Loss: 0.381518 G_Loss: 6.663010
+[0/100][8] D_Loss: 0.626897 G_Loss: 9.005035
+[0/100][9] D_Loss: 0.393866 G_Loss: 6.695397
 ```
 
 The training program periodically generates image samples and saves to pickle files.
@@ -32,7 +46,3 @@ We use the `pickle_to_png.py` to transform the saved pickle files into png forma
 ```bash
 python pickle_to_png.py
 ```
-
-Here are some generated images after 15 epoches training:
-
-![example1](1.png) ![example2](3.png) ![example3](6.png)
