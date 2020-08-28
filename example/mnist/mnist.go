@@ -28,12 +28,12 @@ func main() {
 		[]transforms.Transform{transforms.Normalize([]float64{0.1307}, []float64{0.3081})})
 
 	net := models.MLP()
-	net.ZeroGrad()
+	// net.ZeroGrad()
 	net.To(device)
 	opt := torch.SGD(0.01, 0.5, 0, 0, false)
 	opt.AddParameters(net.Parameters())
 
-	epochs := 2
+	epochs := 5
 	startTime := time.Now()
 	var lastLoss float32
 	iters := 0

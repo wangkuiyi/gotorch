@@ -29,7 +29,6 @@ func ExampleTrainMNISTSequential() {
 		nn.Functional(torch.Tanh),
 		nn.Linear(512, 10, false))}
 	net.Init(net)
-	net.ZeroGrad()
 
 	mnist := datasets.MNIST("",
 		[]transforms.Transform{transforms.Normalize([]float64{0.1307}, []float64{0.3081})})
