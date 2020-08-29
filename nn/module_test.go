@@ -10,6 +10,20 @@ import (
 	torch "github.com/wangkuiyi/gotorch"
 )
 
+type myModel struct {
+	Module // Every model must derive from Module
+
+	W torch.Tensor // A parameter
+	S torch.Tensor `gotorch:"buffer"` // A buffer
+
+	L1 *LinearModule // Has weight but no bias
+	L2 *LinearModule // Has weight and bias
+
+	LL []*LinearModule // Slice of modules
+	WW []torch.Tensor  // Slice of parameters
+	SS []torch.Tensor  `gotorch:"buffer"` // Slice of buffers
+}
+
 type myNet struct {
 	Module
 	L1, L2 *LinearModule
