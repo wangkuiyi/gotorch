@@ -16,15 +16,21 @@ import (
 	"github.com/wangkuiyi/gotorch/vision/transforms"
 )
 
+// the original Imagenet dataset contains 1281167 training images
+// c.f. https://patrykchrabaszcz.github.io/Imagenet32/
 var trainSamples = 1281167
 var device torch.Device
-var logInterval = 10
 
-func max(array []int64) int64 {
-	max := array[0]
-	for _, v := range array {
-		if v > max {
-			max = v
+const logInterval = 10 // in iterations
+
+func maxIntSlice(v []int64) int64 {
+	if len(v) == 0 {
+		panic("maxIntSlice expected a non-empty slice")
+	}
+	max := v[0]
+	for _, e := range v {
+		if e > max {
+			max = e
 		}
 	}
 	return max
@@ -47,11 +53,11 @@ func adjustLearningRate(opt torch.Optimizer, epoch int, lr float64) {
 }
 
 func accuracy(output, target torch.Tensor, topk []int64) []float32 {
-	maxk := max(topk)
+	maxk := maxIntSlice(topk)
 	target = target.Detach()
 	output = output.Detach()
 
-	batchSize := target.Shape()[0]
+	mbSize := target.Shape()[0]
 	_, pred := torch.TopK(output, maxk, 1, true, true)
 	pred = pred.Transpose(0, 1)
 	correct := pred.Eq(target.View([]int64{1, -1}).ExpandAs(pred))
@@ -60,26 +66,26 @@ func accuracy(output, target torch.Tensor, topk []int64) []float32 {
 	for _, k := range topk {
 		kt := torch.NewTensor(rangeI(k)).CopyTo(device)
 		correctK := correct.IndexSelect(0, kt).View([]int64{-1}).CastTo(torch.Float).SumByDim(0, true)
-		res = append(res, correctK.Item()*100/float32(batchSize))
+		res = append(res, correctK.Item()*100/float32(mbSize))
 	}
 	return res
 }
 
-func imageNetLoader(r io.Reader, vocab map[string]int64, batchSize int, skipSamples int) (*datasets.ImageNetLoader, error) {
+func imageNetLoader(r io.Reader, vocab map[string]int64, mbSize int, skipSamples int) (*datasets.ImageNetLoader, error) {
 	trans := transforms.Compose(
 		transforms.RandomResizedCrop(224),
 		transforms.RandomHorizontalFlip(0.5),
 		transforms.ToTensor(),
 		transforms.Normalize([]float64{0.485, 0.456, 0.406}, []float64{0.229, 0.224, 0.225}))
 
-	loader, e := datasets.ImageNet(r, vocab, trans, batchSize, skipSamples)
+	loader, e := datasets.ImageNet(r, vocab, trans, mbSize, skipSamples)
 	if e != nil {
 		return nil, e
 	}
 	return loader, nil
 }
 
-func trainOneBatch(image, target torch.Tensor, model *models.ResnetModule, opt torch.Optimizer) (float32, float32, float32) {
+func trainOneMinibatch(image, target torch.Tensor, model *models.ResnetModule, opt torch.Optimizer) (float32, float32, float32) {
 	output := model.Forward(image)
 	loss := F.CrossEntropy(output, target, torch.Tensor{}, -100, "mean")
 	acc := accuracy(output, target, []int64{1, 5})
@@ -97,7 +103,7 @@ func main() {
 		panic(e)
 	}
 
-	batchSize := 32
+	mbSize := 32 // minibatch size
 	epochs := 100
 	lr := 0.1
 	momentum := 0.9
@@ -128,8 +134,8 @@ func main() {
 	}
 	log.Print("building label vocabulary done.")
 
-	batchs := itersEachEpoch(trainSamples, batchSize)
-	batch := 0
+	iters := numIterPerEpoch(trainSamples, mbSize)
+	iter := 0
 	epoch := 0
 	adjustLearningRate(optimizer, epoch, lr)
 	skipSamples := 0
@@ -139,39 +145,35 @@ func main() {
 		if _, e := f.Seek(0, io.SeekStart); e != nil {
 			log.Fatal(e)
 		}
-		loader, e := imageNetLoader(f, vocab, batchSize, skipSamples)
+		loader, e := imageNetLoader(f, vocab, mbSize, skipSamples)
 		if e != nil {
 			panic(e)
 		}
 		for loader.Scan() {
-			batch++
+			iter++
 			image, target := loader.Minibatch()
-			loss, acc1, acc5 := trainOneBatch(image.To(device, torch.Float), target.To(device, torch.Long), model, optimizer)
-			if batch%logInterval == 0 {
-				throughput := float64(batch/logInterval) / time.Since(startTime).Seconds()
-				log.Printf("Epoch: %d, Batch: %d, loss:%f, acc1: %f, acc5:%f, throughput: %f samples/secs",
-					epoch, batch, loss, acc1, acc5, throughput)
+			loss, acc1, acc5 := trainOneMinibatch(image.To(device, torch.Float), target.To(device, torch.Long), model, optimizer)
+			if iter%logInterval == 0 {
+				throughput := float64(iter/logInterval) / time.Since(startTime).Seconds()
+				log.Printf("Epoch: %d, Iteration: %d, loss:%f, acc1: %f, acc5:%f, throughput: %f samples/secs",
+					epoch, iter, loss, acc1, acc5, throughput)
 				startTime = time.Now()
 			}
-			if batch == batchs {
+			if iter == iters {
 				break
 			}
 		}
-		if batch == batchs {
+		if iter == iters {
 			// go to next epoch
 			epoch++
 			adjustLearningRate(optimizer, epoch, lr)
-			batch = 0
-			skipSamples = rand.Intn(batchSize)
+			iter = 0
+			skipSamples = rand.Intn(mbSize)
 			log.Printf("skip %d samples at the next epoch", skipSamples)
 		}
 	}
 }
 
-func itersEachEpoch(samples, batchSize int) int {
-	itersEachEpoch := trainSamples / batchSize
-	if trainSamples%batchSize != 0 {
-		itersEachEpoch++
-	}
-	return itersEachEpoch
+func numIterPerEpoch(samples, mbSize int) int {
+	return (trainSamples + mbSize - 1) / mbSize
 }
