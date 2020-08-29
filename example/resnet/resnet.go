@@ -25,8 +25,6 @@ const (
 
 var device torch.Device
 
-const logInterval = 10 // in iterations
-
 func maxIntSlice(v []int64) int64 {
 	if len(v) == 0 {
 		panic("maxIntSlice expected a non-empty slice")
