@@ -99,42 +99,14 @@ func (m *Module) IsTraining() bool {
 // To recursively casts all parameters to the given `dtype` and `device`.
 func (m *Module) To(device torch.Device) {
 	must(m.outer != nil, "GoTorch requires calling `Init` before using")
-	// TODO(shendiaomo): to be implemented after the `To` method of `Tensors` is ready
-	moduleType := reflect.TypeOf((*IModule)(nil)).Elem()
-	tensorType := reflect.TypeOf((*torch.Tensor)(nil)).Elem()
-	sv := reflect.ValueOf(m.outer).Elem() // Elem gets what the pointer points to.
-	for i := 0; i < sv.NumField(); i++ {
-		f := sv.Type().Field(i)
-		v := sv.Field(i)
-		if v.Kind() == reflect.Slice || v.Kind() == reflect.Array {
-			for j := 0; j < v.Len(); j++ {
-				must(v.CanInterface(),
-					"GoTorch requires exporting Module field %s.%s", sv.Type().Name(), f.Name)
-				if m, ok := v.Index(j).Interface().(IModule); ok {
-					if !reflect.ValueOf(m).IsNil() {
-						m.To(device)
-					}
-				}
+	visitTensors(m.outer, reflect.TypeOf(m.outer).Elem().Name(),
+		func(f reflect.StructField, v reflect.Value, prefix string) error {
+			t := v.Interface().(torch.Tensor)
+			if t.T != nil {
+				v.Set(reflect.ValueOf(t.To(device, t.Dtype())))
 			}
-		} else if f.Type.Implements(moduleType) {
-			if sv.Type() == moduleType && v.Addr() == reflect.ValueOf(m.outer).Addr() {
-				// Skip `outer` itself
-				continue
-			}
-			must(v.CanInterface(),
-				"GoTorch requires exporting Module field %s.%s", sv.Type().Name(), f.Name)
-			if m, ok := v.Interface().(IModule); ok {
-				if !reflect.ValueOf(m).IsNil() {
-					m.To(device)
-				}
-			}
-		} else if f.Type == tensorType {
-			param := v.Interface().(torch.Tensor)
-			if param.T != nil {
-				param.SetData(param.To(device, param.Dtype()))
-			}
-		}
-	}
+			return nil
+		})
 }
 
 // NamedParameters returns trainable parameters (recursively) with their names
