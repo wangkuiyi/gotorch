@@ -154,6 +154,7 @@ func main() {
 		for loader.Scan() {
 			iter++
 			image, target := loader.Minibatch()
+			optimizer.ZeroGrad()
 			loss, acc1, acc5 := trainOneMinibatch(image.To(device, torch.Float), target.To(device, torch.Long), model, optimizer)
 			if iter%logInterval == 0 {
 				throughput := float64(iter/logInterval) / time.Since(startTime).Seconds()
