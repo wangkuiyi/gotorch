@@ -18,12 +18,6 @@ type IModule interface {
 	// To corresponds to torch.nn.Module.to().  It recursively casts all
 	// parameters to the given `dtype` and `device`.
 	To(device torch.Device)
-	// ZeroGrad corresponds to torch.nn.Module.zero_grad(). It recursively
-	// zeros out the `grad` value of each registered parameter.
-	ZeroGrad()
-	// TODO(shendiaomo): Implement this.
-	// String is for printing modules prettily.
-	// String() string
 }
 
 // Module contains default implementation of `Module`s
@@ -114,56 +108,6 @@ func (m *Module) To(device torch.Device) {
 			return nil
 		})
 }
-
-// ZeroGrad recursively zeros out the `grad` value of each registered parameter.
-func (m *Module) ZeroGrad() {
-	must(m.outer != nil, "GoTorch modules requires calling `Init` before using")
-	moduleType := reflect.TypeOf((*IModule)(nil)).Elem()
-	tensorType := reflect.TypeOf((*torch.Tensor)(nil)).Elem()
-	sv := reflect.ValueOf(m.outer).Elem() // Elem gets what the pointer points to.
-	for i := 0; i < sv.NumField(); i++ {
-		f := sv.Type().Field(i)
-		v := sv.Field(i)
-		// TODO(shendiaomo): take reflect.Map into consideration
-		if v.Kind() == reflect.Slice || v.Kind() == reflect.Array {
-			for j := 0; j < v.Len(); j++ {
-				must(v.CanInterface(),
-					"GoTorch requires exporting Module field %s.%s", sv.Type().Name(), f.Name)
-				if m, ok := v.Index(j).Interface().(IModule); ok {
-					if !reflect.ValueOf(m).IsNil() {
-						m.ZeroGrad()
-					}
-				}
-			}
-		} else if f.Type.Implements(moduleType) {
-			if sv.Type() == moduleType && v.Addr() == reflect.ValueOf(m.outer).Addr() {
-				// Skip `outer` itself
-				continue
-			}
-			must(v.CanInterface(),
-				"GoTorch requires exporting Module field %s.%s", sv.Type().Name(), f.Name)
-			if m, ok := v.Interface().(IModule); ok {
-				if !reflect.ValueOf(m).IsNil() {
-					m.ZeroGrad()
-				}
-			}
-		} else if f.Type == tensorType {
-			/* TODO(shendiaomo): implement `Grad`, `Defined` and `Detach`
-			grad := v.Interface().(torch.Tensor).Grad()
-			if grad.Defined() {
-				grad = grad.Detach()
-				grad.Zero_()
-			}
-			*/
-		}
-	}
-}
-
-// TODO(shendiaomo): to be implemented
-// String is for printing modules prettily
-// func (m *Module) String() string {
-// 	return m.name
-// }
 
 // NamedParameters returns trainable parameters (recursively) with their names
 func (m *Module) NamedParameters() map[string]torch.Tensor {
