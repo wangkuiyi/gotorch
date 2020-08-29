@@ -199,8 +199,11 @@ func visitTensors(m IModule, prefix string, visitor Visitor) error {
 			must(v.CanInterface(), "Please export slice and array field %s.%s",
 				sv.Type().Name(), f.Name)
 			for j := 0; j < v.Len(); j++ {
+				pre := fmt.Sprintf("%s.%s[%d]", prefix, f.Name, j)
 				if m, ok := v.Index(j).Interface().(IModule); ok {
-					visitTensors(m, fmt.Sprintf("%s.%s[%d]", prefix, f.Name, j), visitor)
+					visitTensors(m, pre, visitor)
+				} else if _, ok := v.Index(j).Interface().(torch.Tensor); ok {
+					visitor(f, v.Index(j), pre)
 				}
 			}
 
