@@ -104,7 +104,6 @@ func (n *myNet3) Forward(x torch.Tensor) torch.Tensor {
 
 func TestModule(t *testing.T) {
 	n := newMyNet()
-	n.ZeroGrad()
 	namedParams := n.NamedParameters()
 	assert.Equal(t, 2, len(namedParams))
 	assert.Contains(t, namedParams, "myNet.L1.Weight")
@@ -163,7 +162,6 @@ func TestNewModuleWithoutInit(t *testing.T) {
 	n := newMyNetWithoutInit()
 	assert.Panics(t, func() { n.Train(true) })
 	assert.Panics(t, func() { n.To(torch.NewDevice("cpu")) })
-	assert.Panics(t, func() { n.ZeroGrad() })
 	assert.Panics(t, func() { n.NamedParameters() })
 	assert.Panics(t, func() { n.NamedBuffers() })
 }
