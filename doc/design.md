@@ -257,12 +257,12 @@ void LinearImpl::reset() {
 ```
 
 The registration is necessary.  For example, the `Module::get_parameters` method
-traverses all data members registered as parameters.  And `Module.To(device)`
+traverses all data members registered as parameters.  And `Module::to(device)`
 moves all parameters and buffers, as well those in sub-modules recursively, to
 the specified device.
 
 The Python module-definition framework doesn't require users to call
-`register_{parameter|buffer|submodule}` explicitly as it utilizes the
+`register_{parameter|buffer|module}` explicitly as it utilizes the
 `__setattr__` method and other customization capabilities of Python to call
 these functions automatically.  However, such convenience doesn't always work.
 In the following example of defining the fully-connected module in Python, we
@@ -346,7 +346,7 @@ func BatchNorm2d(numFeatures int64, eps, momentum float64,
 }
 ```
 
-Each module must have the Forward method, just like in PyTorch. The GoTorch
+Each module must have the `Forward` method, just like in PyTorch. The GoTorch
 framework allows users to attach Forward methods of any signatures, as long as
 the name is "Forward".  For example, most Forward methods take a tensor-typed
 parameter and return a tensor. However, some other modules can have various
