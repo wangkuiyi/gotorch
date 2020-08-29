@@ -18,7 +18,11 @@ import (
 
 // the original Imagenet dataset contains 1281167 training images
 // c.f. https://patrykchrabaszcz.github.io/Imagenet32/
-var trainSamples = 1281167
+const (
+	trainSamples = 1281167
+	logInterval  = 10 // in iterations
+)
+
 var device torch.Device
 
 const logInterval = 10 // in iterations
