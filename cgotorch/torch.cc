@@ -324,3 +324,33 @@ const char *SqueezeWithDim(Tensor a, int64_t dim, Tensor *result) {
 }
 
 void FreeString(const char *s) { delete[] s; }
+
+// We use the pointer int64_t* to represent an optional int64_t parameter -- the
+// value nullptr indicate not-specified.  Please be aware that we need only one
+// "pointerized" parameter because C++ doesn't allow named parameters and the
+// rest optional parameters don't need to be pointerized.
+const char *Argmin(Tensor a, int64_t *dim, int8_t keepdim, Tensor *result) {
+  try {
+    if (dim == nullptr) {
+      *result = new at::Tensor(a->argmin());
+    } else {
+      *result = new at::Tensor(a->argmin(*dim, static_cast<bool>(keepdim)));
+    }
+    return nullptr;
+  } catch (const std::exception &e) {
+    return exception_str(e.what());
+  }
+}
+
+const char *Argmax(Tensor a, int64_t *dim, int8_t keepdim, Tensor *result) {
+  try {
+    if (dim == nullptr) {
+      *result = new at::Tensor(a->argmax());
+    } else {
+      *result = new at::Tensor(a->argmax(*dim, static_cast<bool>(keepdim)));
+    }
+    return nullptr;
+  } catch (const std::exception &e) {
+    return exception_str(e.what());
+  }
+}

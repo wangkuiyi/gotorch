@@ -7,6 +7,9 @@ package gotorch
 import "C"
 
 import (
+	"log"
+	"reflect"
+	"strings"
 	"unsafe"
 )
 
@@ -380,4 +383,50 @@ func View(a Tensor, shape []int64) Tensor {
 // View returns a new Tensor with the same data but of a different shape
 func (a Tensor) View(shape []int64) Tensor {
 	return View(a, shape)
+}
+
+// Argmin mimics torch.argmin
+func (a Tensor) Argmin(opts ...interface{}) Tensor {
+	return a.argMinMax(true, opts...)
+}
+
+// Argmax mimics torch.argmax
+func (a Tensor) Argmax(opts ...interface{}) Tensor {
+	return a.argMinMax(false, opts...)
+}
+
+func (a Tensor) argMinMax(argmin bool, opts ...interface{}) Tensor {
+	var (
+		dimOpt  int64
+		dim     *int64
+		keepdim int8
+	)
+
+	if len(opts) > 0 {
+		// The first optional parameter must be dim integer.
+		if !strings.HasPrefix(reflect.TypeOf(opts[0]).Kind().String(), "int") {
+			log.Panicf("Tensor.Argmin(dim) requires dim in int{64|32|16|}")
+		}
+		dimOpt = reflect.ValueOf(opts[0]).Int()
+		dim = &dimOpt
+	}
+
+	if len(opts) > 1 {
+		// The second optional parametr must be keepdim bool.
+		if reflect.TypeOf(opts[1]).Kind() != reflect.Bool {
+			log.Panicf("Tensor.Argmin(dim) requires dim in int64")
+		}
+		if opts[1].(bool) {
+			keepdim = 1
+		}
+	}
+
+	var t C.Tensor
+	if argmin {
+		MustNil(unsafe.Pointer(C.Argmin(C.Tensor(*a.T), (*C.int64_t)(dim), C.int8_t(keepdim), &t)))
+	} else {
+		MustNil(unsafe.Pointer(C.Argmax(C.Tensor(*a.T), (*C.int64_t)(dim), C.int8_t(keepdim), &t)))
+	}
+	SetTensorFinalizer((*unsafe.Pointer)(&t))
+	return Tensor{(*unsafe.Pointer)(&t)}
 }
