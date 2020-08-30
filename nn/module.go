@@ -18,6 +18,10 @@ type IModule interface {
 	// To corresponds to torch.nn.Module.to().  It recursively casts all
 	// parameters to the given `dtype` and `device`.
 	To(device torch.Device)
+	// StateDict returns a map of parameters and buffers.
+	StateDict() map[string]torch.Tensor
+	// SetStateDict sets the map of parameters and buffers into the module.
+	SetStateDict(sd map[string]torch.Tensor) error
 }
 
 // Module contains default implementation of `Module`s
