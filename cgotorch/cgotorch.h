@@ -74,6 +74,7 @@ const char *LogSoftmax(Tensor a, int64_t dim, Tensor *result);
 const char *Squeeze(Tensor a, Tensor *result);
 const char *SqueezeWithDim(Tensor a, int64_t dim, Tensor *result);
 const char *Argmin(Tensor a, int64_t *dim, int8_t keepdim, Tensor *result);
+const char *Argmax(Tensor a, int64_t *dim, int8_t keepdim, Tensor *result);
 // TODO(qijun) only support float
 const char *Item(Tensor a, float *result);
 const char *Mean(Tensor a, Tensor *result);

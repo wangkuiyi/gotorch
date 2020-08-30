@@ -387,6 +387,15 @@ func (a Tensor) View(shape []int64) Tensor {
 
 // Argmin mimics torch.argmin
 func (a Tensor) Argmin(opts ...interface{}) Tensor {
+	return a.argMinMax(true, opts...)
+}
+
+// Argmax mimics torch.argmax
+func (a Tensor) Argmax(opts ...interface{}) Tensor {
+	return a.argMinMax(false, opts...)
+}
+
+func (a Tensor) argMinMax(argmin bool, opts ...interface{}) Tensor {
 	var (
 		dimOpt  int64
 		dim     *int64
@@ -413,7 +422,11 @@ func (a Tensor) Argmin(opts ...interface{}) Tensor {
 	}
 
 	var t C.Tensor
-	MustNil(unsafe.Pointer(C.Argmin(C.Tensor(*a.T), (*C.int64_t)(dim), C.int8_t(keepdim), &t)))
+	if argmin {
+		MustNil(unsafe.Pointer(C.Argmin(C.Tensor(*a.T), (*C.int64_t)(dim), C.int8_t(keepdim), &t)))
+	} else {
+		MustNil(unsafe.Pointer(C.Argmax(C.Tensor(*a.T), (*C.int64_t)(dim), C.int8_t(keepdim), &t)))
+	}
 	SetTensorFinalizer((*unsafe.Pointer)(&t))
 	return Tensor{(*unsafe.Pointer)(&t)}
 }
