@@ -12,6 +12,12 @@ func drawImage(size image.Rectangle, c color.Color) image.Image {
 	return m
 }
 
+func drawGrayImage(size image.Rectangle, c color.Color) image.Image {
+	m := image.NewGray(size)
+	draw.Draw(m, m.Bounds(), &image.Uniform{c}, image.ZP, draw.Src)
+	return m
+}
+
 func colorEqual(x, y color.Color) bool {
 	r1, b1, g1, a1 := x.RGBA()
 	r2, b2, g2, a2 := y.RGBA()
