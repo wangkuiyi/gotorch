@@ -24,7 +24,7 @@ func main() {
 	defer torch.FinishGC()
 
 	toTrain := flag.Bool("train", true, "Train or predict")
-	modelFn := flag.String("model", "./mnist_model.gob", "Model filename")
+	modelFn := flag.String("model", "/tmp/mnist_model.gob", "Model filename")
 	inputs := flag.String("inputs", "", "colon-separated input image files")
 	flag.Parse()
 
