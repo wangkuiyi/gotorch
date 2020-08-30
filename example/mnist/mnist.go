@@ -7,7 +7,6 @@ import (
 	"image"
 	"log"
 	"os"
-	"reflect"
 	"strings"
 	"time"
 
@@ -26,13 +25,14 @@ func main() {
 	toTrain := flag.Bool("train", true, "Train or predict")
 	modelFn := flag.String("model", "/tmp/mnist_model.gob", "Model filename")
 	inputs := flag.String("inputs", "", "colon-separated input image files")
+	epochs := flag.Int("epochs", 5, "The total number of epochs to train")
 	flag.Parse()
 
 	initializer.ManualSeed(1)
 
 	var e error
 	if *toTrain {
-		e = train(*modelFn)
+		e = train(*modelFn, *epochs)
 	} else {
 		e = predict(*modelFn, *inputs)
 	}
@@ -41,7 +41,7 @@ func main() {
 	}
 }
 
-func train(modelFn string) error {
+func train(modelFn string, epochs int) error {
 	device := defaultDevice()
 	net := models.MLP()
 	net.To(device)
@@ -52,7 +52,6 @@ func train(modelFn string) error {
 		transforms.Normalize([]float64{0.1307}, []float64{0.3081})})
 	defer mnist.Close()
 
-	epochs := 5
 	startTime := time.Now()
 	var lastLoss float32
 	iters := 0
@@ -115,11 +114,9 @@ func predict(modelFn, inputs string) error {
 			return fmt.Errorf("Cannot decode input image: %v", e)
 		}
 
-		fmt.Println(reflect.TypeOf(img))
-
 		t := transforms.ToTensor().Run(img)
 		n := transforms.Normalize([]float64{0.1307}, []float64{0.3081}).Run(t)
-		fmt.Println(m.Forward(n))
+		fmt.Println(m.Forward(n).Argmin().Item())
 	}
 	return nil
 }
