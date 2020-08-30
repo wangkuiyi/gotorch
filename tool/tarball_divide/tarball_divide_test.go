@@ -10,6 +10,8 @@ import (
 	"io/ioutil"
 	"path/filepath"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestDivide(t *testing.T) {
@@ -18,16 +20,27 @@ func TestDivide(t *testing.T) {
 		t.Fatal(e)
 	}
 
-	fn := synthesizeTarball(t, "/tmp")
-	t.Log(d, fn)
+	fn := synthesizeTarball(t, d)
 
-	//	assert.NoError(t, divide(fn, d))
+	l, e := ListTarGzFile(fn)
+	assert.NoError(t, e)
+	assert.Equal(t, 5, len(l))
+
+	assert.NoError(t, divide(fn, d))
+
+	l, e = ListTarGzFile(filepath.Join(d, "0.tar.gz"))
+	assert.NoError(t, e)
+	assert.Equal(t, 3, len(l))
+
+	l, e = ListTarGzFile(filepath.Join(d, "1.tar.gz"))
+	assert.NoError(t, e)
+	assert.Equal(t, 2, len(l))
 }
 
 func synthesizeTarball(t *testing.T, dir string) string {
 	fn := filepath.Join(dir, "input.tar.gz")
 
-	w, e := NewTarGzWriter(fn)
+	w, e := CreatTarGzFile(fn)
 	if e != nil {
 		t.Fatalf("Cannot create writer: %v", e)
 	}
@@ -52,8 +65,6 @@ func synthesizeTarball(t *testing.T, dir string) string {
 			Mode: 0600,
 			Size: int64(buf.Len()),
 		}
-
-		t.Log(buf.Len(), len(buf.Bytes()))
 
 		if e := w.WriteHeader(hdr); e != nil {
 			t.Fatalf("Failed writing header: %v", e)

@@ -58,10 +58,11 @@ func divide(input, output string) error {
 		}
 	}(oss)
 
-	in, e := tarGzReader(input)
+	in, e := OpenTarGzFile(input)
 	if e != nil {
 		return fmt.Errorf("Cannot create reader: %v", e)
 	}
+	defer in.Close()
 
 	for {
 		hdr, e := in.Next()
@@ -74,7 +75,7 @@ func divide(input, output string) error {
 
 		label := filepath.Base(filepath.Dir(hdr.Name))
 		if _, ok := oss[label]; !ok {
-			w, e := NewTarGzWriter(filepath.Join(output, label+".tar.gz"))
+			w, e := CreatTarGzFile(filepath.Join(output, label+".tar.gz"))
 			if e != nil {
 				return fmt.Errorf("Cannot create output: %v", e)
 			}
@@ -93,18 +94,42 @@ func divide(input, output string) error {
 	return nil
 }
 
-func tarGzReader(fn string) (*tar.Reader, error) {
+// TarGzReader includes a tar reader and its underlying readers.
+type TarGzReader struct {
+	*tar.Reader
+	g *gzip.Reader
+	f *os.File
+}
+
+// OpenTarGzFile returns a TarGzReader
+func OpenTarGzFile(fn string) (*TarGzReader, error) {
 	f, e := os.Open(fn)
 	if e != nil {
 		return nil, e
 	}
 
-	r, e := gzip.NewReader(f)
+	g, e := gzip.NewReader(f)
 	if e != nil {
 		return nil, e
 	}
 
-	return tar.NewReader(r), nil
+	return &TarGzReader{
+		Reader: tar.NewReader(g),
+		g:      g,
+		f:      f,
+	}, nil
+}
+
+// Close calls gzip.Reader.Close() and os.File.Close if the underlying storage
+// is a file.
+func (r *TarGzReader) Close() error {
+	if e := r.g.Close(); e != nil {
+		return e
+	}
+	if r.f != nil {
+		return r.f.Close()
+	}
+	return nil
 }
 
 // TarGzWriter defines a writer to a .tar.gz file.
@@ -114,8 +139,8 @@ type TarGzWriter struct {
 	f *os.File
 }
 
-// NewTarGzWriter creates a writer.
-func NewTarGzWriter(fn string) (*TarGzWriter, error) {
+// CreatTarGzFile creates a writer.
+func CreatTarGzFile(fn string) (*TarGzWriter, error) {
 	f, e := os.Create(fn)
 	if e != nil {
 		return nil, e
@@ -141,4 +166,26 @@ func (w *TarGzWriter) Close() error {
 		return w.f.Close()
 	}
 	return nil
+}
+
+// ListTarGzFile list contents in a .tar.gz file.
+func ListTarGzFile(fn string) ([]*tar.Header, error) {
+	r, e := OpenTarGzFile(fn)
+	if e != nil {
+		return nil, e
+	}
+	defer r.Close()
+
+	l := make([]*tar.Header, 0)
+	for {
+		hdr, e := r.Next()
+		if e == io.EOF {
+			return l, nil
+		}
+		if e != nil {
+			return nil, e
+		}
+		l = append(l, hdr)
+	}
+	return l, nil
 }
