@@ -54,7 +54,7 @@ func (m *Module) Init(outer IModule) {
 			if v.Addr() == reflect.ValueOf(m) {
 				// Calling Init in a valid Module: struct{*Module} or struct{Module}
 				m.outer = outer
-				m.isTraining = true
+				m.isTraining = true // training mode by default.
 			}
 		}
 	}
