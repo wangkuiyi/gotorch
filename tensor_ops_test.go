@@ -248,3 +248,39 @@ func TestTranspose(t *testing.T) {
 	g := "-0.5000  1.0000\n-1.0000  0.5000\n[ CPUFloatType{2,2} ]"
 	assert.Equal(t, g, r.String())
 }
+
+func TestArgmin(t *testing.T) {
+	x := torch.NewTensor([][]float32{{1, 2}, {3, 4}})
+	assert.Equal(t, "0\n[ CPULongType{} ]", x.Argmin().String())
+
+	x = torch.NewTensor([][]float32{{4, 3}, {2, 1}})
+	assert.Equal(t, "3\n[ CPULongType{} ]", x.Argmin().String())
+
+	// x = torch.tensor([[3,4],[2,1]]
+	// x.argmin(0)
+	x = torch.NewTensor([][]float32{{3, 4}, {2, 1}})
+	assert.Equal(t, " 1\n 1\n[ CPULongType{2} ]", x.Argmin(0).String())
+
+	// x = torch.tensor([[3,4],[2,1]]
+	// x.argmin(1)
+	x = torch.NewTensor([][]float32{{3, 4}, {2, 1}})
+	assert.Equal(t, " 0\n 1\n[ CPULongType{2} ]", x.Argmin(1).String())
+}
+
+func TestArgmax(t *testing.T) {
+	x := torch.NewTensor([][]float32{{1, 2}, {3, 4}})
+	assert.Equal(t, "3\n[ CPULongType{} ]", x.Argmax().String())
+
+	x = torch.NewTensor([][]float32{{4, 3}, {2, 1}})
+	assert.Equal(t, "0\n[ CPULongType{} ]", x.Argmax().String())
+
+	// x = torch.tensor([[3,4],[2,1]]
+	// x.argmax(0)
+	x = torch.NewTensor([][]float32{{3, 4}, {2, 1}})
+	assert.Equal(t, " 0\n 0\n[ CPULongType{2} ]", x.Argmax(0).String())
+
+	// x = torch.tensor([[3,4],[2,1]]
+	// x.argmax(1)
+	x = torch.NewTensor([][]float32{{3, 4}, {2, 1}})
+	assert.Equal(t, " 1\n 0\n[ CPULongType{2} ]", x.Argmax(1).String())
+}
