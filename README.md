@@ -69,9 +69,11 @@ executable binary  # x86_64, ARM, CUDA, TPU
 ## Documentation
 
 - [Build and Test](CONTRIBUTING.md)
-- [Design Docs](./doc/design.md)
+- [Design Docs](./doc/design.md) [(汉语)](./doc/design_cn.md)
 - How To
-  - [Wrap PyTorch Native Functions](./doc/wrap_native_functions.md)
+  - [Wrap PyTorch Native Functions](./doc/wrap_native_functions.md) [(汉语)](./doc/wrap_native_functions_cn.md)
+  - [Port Functionals and Modules](doc/develop_functionals_and_modules.md)
 - Examples
-  - [MNIST Training](./example/mnist/mnist.go)
+  - [MNIST Training](./example/mnist)
   - [Adversarial Learning](./example/dcgan)
+  - [Train ResNet50 Using ImageNet](./example/resnet)
