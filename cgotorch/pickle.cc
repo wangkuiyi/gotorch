@@ -24,7 +24,7 @@ const char* Tensor_Encode(Tensor a, ByteBuffer* r) {
   }
 }
 
-const char* ByteBuffer_Data(ByteBuffer buf) { return buf->data(); }
+void* ByteBuffer_Data(ByteBuffer buf) { return buf->data(); }
 
 int64_t ByteBuffer_Size(ByteBuffer buf) { return uint64_t(buf->size()); }
 
@@ -34,9 +34,10 @@ void ByteBuffer_Free(ByteBuffer buf) {
   }
 }
 
-const char* Tensor_Decode(const char* addr, int64_t size, Tensor* r) {
+const char* Tensor_Decode(void* addr, int64_t size, Tensor* r) {
   try {
-    std::vector<char> buf(addr, addr + static_cast<int>(size));
+    auto data = static_cast<const char*>(addr);
+    std::vector<char> buf(data, data + static_cast<int>(size));
     *r = new at::Tensor();
     **r = torch::pickle_load(buf).toTensor();
     return nullptr;
