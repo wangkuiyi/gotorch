@@ -100,7 +100,7 @@ func (m *Module) IsTraining() bool {
 func (m *Module) To(device torch.Device) {
 	must(m.outer != nil, "GoTorch requires calling `Init` before using")
 	visitTensors(m.outer, reflect.TypeOf(m.outer).Elem().Name(),
-		func(f reflect.StructField, v reflect.Value, prefix string) error {
+		func(f reflect.StructField, v reflect.Value, prefix string, noSuffix bool) error {
 			t := v.Interface().(torch.Tensor)
 			if t.T != nil {
 				v.Set(reflect.ValueOf(t.To(device, t.Dtype())))
@@ -150,7 +150,7 @@ func (m *Module) Buffers() []torch.Tensor {
 // Visitor is a function type supposed to be called by visitTensors.  The
 // parameter f and v are a tensor-typed field in a given module. Returning
 // non-nil eror breaks the recursive visiting process.
-type Visitor func(f reflect.StructField, v reflect.Value, prefix string) error
+type Visitor func(f reflect.StructField, v reflect.Value, prefix string, noSuffix bool) error
 
 func visitTensors(m IModule, prefix string, visitor Visitor) error {
 	if reflect.ValueOf(m).IsNil() {
@@ -175,7 +175,7 @@ func visitTensors(m IModule, prefix string, visitor Visitor) error {
 				if m, ok := v.Index(j).Interface().(IModule); ok {
 					visitTensors(m, pre, visitor)
 				} else if _, ok := v.Index(j).Interface().(torch.Tensor); ok {
-					visitor(f, v.Index(j), pre)
+					visitor(f, v.Index(j), pre, true)
 				}
 			}
 
@@ -189,7 +189,7 @@ func visitTensors(m IModule, prefix string, visitor Visitor) error {
 			// The field is of type Tensor.
 			must(v.CanInterface(), "Please export Tensor field %s.%s",
 				v.Type().Name(), f.Name)
-			if e := visitor(f, v, prefix); e != nil {
+			if e := visitor(f, v, prefix, false); e != nil {
 				return e
 			}
 		}
@@ -200,7 +200,7 @@ func visitTensors(m IModule, prefix string, visitor Visitor) error {
 // makeTensorRecorder returns a visitor function that records a parameter and/or
 // buffer tensor in a module into map record with key set to prefix+"."+f.Name.
 func makeTensorRecorder(record map[string]torch.Tensor, param, buffer bool) Visitor {
-	return func(f reflect.StructField, v reflect.Value, prefix string) error {
+	return func(f reflect.StructField, v reflect.Value, prefix string, noSuffix bool) error {
 		tag := f.Tag.Get("gotorch")
 		if (buffer && tag == "buffer") || (param && (tag == "param" || tag == "")) {
 			// If the field is what we want.
@@ -208,7 +208,11 @@ func makeTensorRecorder(record map[string]torch.Tensor, param, buffer bool) Visi
 			if fv.T != nil {
 				// Don't record nil Tensor, for example,
 				// unspecified bias of module Linear.
-				record[prefix+"."+f.Name] = fv
+				if noSuffix {
+					record[prefix] = fv
+				} else {
+					record[prefix+"."+f.Name] = fv
+				}
 			}
 		}
 		return nil
@@ -252,8 +256,16 @@ func (m *Module) SetStateDict(sd map[string]torch.Tensor) error {
 }
 
 func makeTensorSetter(src map[string]torch.Tensor, marks map[string]int) Visitor {
-	return func(f reflect.StructField, v reflect.Value, prefix string) error {
-		k := prefix + "." + f.Name
+	return func(f reflect.StructField, v reflect.Value, prefix string, noSuffix bool) error {
+		fv := v.Interface().(torch.Tensor)
+		if fv.T == nil {
+			// Skip nil Tensors
+			return nil
+		}
+		k := prefix
+		if !noSuffix {
+			k += "." + f.Name
+		}
 		t, ok := src[k]
 		if !ok {
 			return fmt.Errorf("Cannot find field %s in the value map", k)
