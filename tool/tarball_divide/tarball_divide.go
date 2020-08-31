@@ -54,8 +54,6 @@ func main() {
 	outDir := flag.String("out", "./", "The output directory")
 	flag.Parse()
 
-	log.Println(flag.NArg(), flag.Arg(0))
-
 	if flag.NArg() != 1 {
 		fmt.Fprintf(os.Stderr, "Usage: tarball_divide -out=./ input.tar.gz\n")
 	}
