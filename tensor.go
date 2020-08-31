@@ -95,9 +95,15 @@ func (a Tensor) Grad() Tensor {
 
 // To returns a Tensor on the specified device with the same content as the a.
 // If the specified device doesn't exist, To panics.
-func (a Tensor) To(device Device, dtype int8) Tensor {
+func (a Tensor) To(device Device, dtype ...int8) Tensor {
 	var t C.Tensor
-	MustNil(unsafe.Pointer(C.Tensor_To(C.Tensor(*a.T), device.T, C.int8_t(dtype), &t)))
+	var d int8
+	if len(dtype) == 0 {
+		d = a.Dtype()
+	} else {
+		d = dtype[0]
+	}
+	MustNil(unsafe.Pointer(C.Tensor_To(C.Tensor(*a.T), device.T, C.int8_t(d), &t)))
 	SetTensorFinalizer((*unsafe.Pointer)(&t))
 	return Tensor{(*unsafe.Pointer)(&t)}
 }
