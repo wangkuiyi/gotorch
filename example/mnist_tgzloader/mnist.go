@@ -28,7 +28,7 @@ func MNISTLoader(fn string, vocab map[string]int64) *datasets.ImageLoader {
 
 func test(model nn.IModule, loader *datasets.ImageLoader) {
 	testLoss := float32(0)
-	correct := float32(0)
+	correct := int64(0)
 	samples := 0
 	for loader.Scan() {
 		data, label := loader.Minibatch()
@@ -37,11 +37,12 @@ func test(model nn.IModule, loader *datasets.ImageLoader) {
 		output := model.(*models.MLPModule).Forward(data)
 		loss := F.NllLoss(output, label, torch.Tensor{}, -100, "mean")
 		pred := output.Argmax(1)
-		testLoss += loss.Item()
-		correct += pred.Eq(label.View(pred.Shape())).SumByDim(0, false).Item()
+		testLoss += loss.Item().(float32)
+		correct += pred.Eq(label.View(pred.Shape())).SumByDim(0, false).Item().(int64)
 		samples += int(label.Shape()[0])
 	}
-	log.Printf("Test average loss: %.4f, Accuracy: %.2f%%\n", testLoss/float32(samples), 100.0*correct/float32(samples))
+	log.Printf("Test average loss: %.4f, Accuracy: %.2f%%\n",
+		testLoss/float32(samples), 100.0*float32(correct)/float32(samples))
 }
 
 func train(trainFn string, testFn string, epochs int) {
@@ -69,7 +70,7 @@ func train(trainFn string, testFn string, epochs int) {
 			loss := F.NllLoss(pred, label.To(device, label.Dtype()), torch.Tensor{}, -100, "mean")
 			loss.Backward()
 			opt.Step()
-			trainLoss = loss.Item()
+			trainLoss = loss.Item().(float32)
 		}
 		throughput := float64(totalSamples) / time.Since(startTime).Seconds()
 		log.Printf("Train Epoch: %d, Loss: %.4f, throughput: %f samples/sec", epoch, trainLoss, throughput)
@@ -80,6 +81,7 @@ func train(trainFn string, testFn string, epochs int) {
 func main() {
 	trainFn := flag.String("train-file", "train.tgz", "training images tgz file.")
 	testFn := flag.String("test-file", "test.tgz", "testing images tgz file")
+	epochs := flag.Int("epochs", 5, "number of epochs to train")
 	flag.Parse()
 
 	if torch.IsCUDAAvailable() {
@@ -91,5 +93,5 @@ func main() {
 	}
 
 	initializer.ManualSeed(1)
-	train(*trainFn, *testFn, 5 /**epochs**/)
+	train(*trainFn, *testFn, *epochs)
 }
