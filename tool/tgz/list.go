@@ -6,7 +6,7 @@ import (
 	"io/ioutil"
 )
 
-// ListFile list contents in a .tar.gz file.
+// ListFile list regular files in a .tar.gz file.
 func ListFile(fn string) ([]*tar.Header, error) {
 	r, e := OpenFile(fn)
 	if e != nil {
@@ -17,11 +17,15 @@ func ListFile(fn string) ([]*tar.Header, error) {
 	l := make([]*tar.Header, 0)
 	for {
 		hdr, e := r.Next()
-		switch {
-		case e == io.EOF:
-			return l, nil
-		case e != nil:
+		if e == io.EOF {
+			break
+		}
+		if e != nil {
 			return nil, e
+		}
+
+		if hdr == nil {
+			continue
 		}
 
 		switch hdr.Typeflag {

@@ -81,10 +81,10 @@ func divide(input, output string) error {
 
 	for {
 		hdr, e := in.Next()
-		switch {
-		case e == io.EOF:
-			return nil
-		case e != nil:
+		if e == io.EOF {
+			break
+		}
+		if e != nil {
 			return e
 		}
 

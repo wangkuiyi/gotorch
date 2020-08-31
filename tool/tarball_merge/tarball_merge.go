@@ -50,12 +50,12 @@ func merge(ins []*tgz.Reader, w *tgz.Writer) error {
 		for i, r := range ins {
 			if r != nil {
 				hdr, e := r.Next()
-				switch {
-				case e == io.EOF:
+				if e == io.EOF {
 					r.Close()
 					closed++
 					ins[i] = nil // Mark invalid
-				case e != nil:
+				}
+				if e != nil {
 					return fmt.Errorf("Reading tarball: %v", e)
 				}
 
