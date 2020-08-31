@@ -289,6 +289,16 @@ func TestItem(t *testing.T) {
 	assert.NotEqual(t, int8(1), y)
 	assert.Equal(t, reflect.TypeOf(y).Kind(), reflect.Uint8)
 
+	x = torch.NewTensor([]bool{true})
+	y = x.Item()
+	assert.Equal(t, true, y)
+	assert.Equal(t, reflect.TypeOf(y).Kind(), reflect.Bool)
+
+	x = torch.NewTensor([]bool{false})
+	y = x.Item()
+	assert.Equal(t, false, y)
+	assert.Equal(t, reflect.TypeOf(y).Kind(), reflect.Bool)
+
 	x = torch.NewTensor([]int8{1})
 	y = x.Item()
 	assert.Equal(t, int8(1), y)
