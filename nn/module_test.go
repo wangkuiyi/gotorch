@@ -76,6 +76,7 @@ func TestModulePanicIfNotInit(t *testing.T) {
 	m := myModel(false)
 	assert.Panics(t, func() { m.Train(true) })
 	assert.Panics(t, func() { m.To(torch.NewDevice("cpu")) })
+	assert.Panics(t, func() { m.To(torch.NewDevice("cpu"), torch.Int) })
 	assert.Panics(t, func() { m.NamedParameters() })
 	assert.Panics(t, func() { m.NamedBuffers() })
 }
