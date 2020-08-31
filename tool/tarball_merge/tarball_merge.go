@@ -1,4 +1,14 @@
-// This program is supposed to run together with tarball_divide, which
+// This program is supposed to run together with tarball_divide, which divides a
+// .tar.gz file into one or more smaller tarball files, where each contains
+// files in the same base directory and named by the base directory.  This
+// program merge these smaller tarball files back, keeping the property that
+// successive files in the merged tarball belong to different base directory.
+//
+// You can run this program using the following commands:
+//
+// go install ./...
+// tarball_merge -out=/tmp/merged.tar.gz /tmp/[0-9].tar.gz
+//
 package main
 
 import (
