@@ -77,6 +77,8 @@ const char *Argmin(Tensor a, int64_t *dim, int8_t keepdim, Tensor *result);
 const char *Argmax(Tensor a, int64_t *dim, int8_t keepdim, Tensor *result);
 // TODO(qijun) only support float
 const char *Item(Tensor a, float *result);
+const char *ItemInt64(Tensor a, int64_t *result);
+const char *ItemFloat64(Tensor a, double *result);
 const char *Mean(Tensor a, Tensor *result);
 const char *Stack(Tensor *tensors, int64_t tensors_size, int64_t dim,
                   Tensor *result);

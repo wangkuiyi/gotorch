@@ -1,6 +1,7 @@
 package gotorch_test
 
 import (
+	"reflect"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -134,12 +135,6 @@ func TestIndexSelect(t *testing.T) {
 	y := torch.IndexSelect(x, 0, indices)
 	assert.Equal(t, int64(2), y.Shape()[0])
 	assert.Equal(t, int64(4), y.Shape()[1])
-}
-
-func TestItem(t *testing.T) {
-	x := torch.NewTensor([]float32{1})
-	y := x.Item()
-	assert.Equal(t, float32(1), y)
 }
 
 // >>> torch.nn.functional.leaky_relu(torch.tensor([[-0.5, -1.], [1., 0.5]]))
@@ -285,4 +280,61 @@ func TestArgmax(t *testing.T) {
 	assert.Equal(t, " 0  0\n[ CPULongType{1,2} ]", x.Argmax(0, true).String())
 	// x.argmax(1, True)
 	assert.Equal(t, " 1\n 0\n[ CPULongType{2,1} ]", x.Argmax(1, true).String())
+}
+
+func TestItem(t *testing.T) {
+	x := torch.NewTensor([]byte{1})
+	y := x.Item()
+	assert.Equal(t, byte(1), y)
+	assert.NotEqual(t, int8(1), y)
+	assert.Equal(t, reflect.TypeOf(y).Kind(), reflect.Uint8)
+
+	x = torch.NewTensor([]int8{1})
+	y = x.Item()
+	assert.Equal(t, int8(1), y)
+	assert.NotEqual(t, byte(1), y)
+	assert.Equal(t, reflect.TypeOf(y).Kind(), reflect.Int8)
+
+	x = torch.NewTensor([]int16{1})
+	y = x.Item()
+	assert.Equal(t, int16(1), y)
+	assert.Equal(t, reflect.TypeOf(y).Kind(), reflect.Int16)
+
+	x = torch.NewTensor([]int32{1})
+	y = x.Item()
+	assert.Equal(t, int32(1), y)
+	assert.NotEqual(t, int64(1), y)
+	assert.Equal(t, reflect.TypeOf(y).Kind(), reflect.Int32)
+
+	x = torch.NewTensor([]int64{1})
+	y = x.Item()
+	assert.Equal(t, int64(1), y)
+	assert.NotEqual(t, int32(1), y)
+	assert.Equal(t, reflect.TypeOf(y).Kind(), reflect.Int64)
+
+	x = torch.NewTensor([]int32{0x7FFF_FFFF})
+	y = x.Item()
+	assert.Equal(t, int32(0x7FFF_FFFF), y)
+
+	x = torch.NewTensor([]int32{-0x8000_0000})
+	y = x.Item()
+	assert.Equal(t, int32(-0x8000_0000), y)
+
+	x = torch.NewTensor([]float32{1.0})
+	y = x.Item()
+	assert.Equal(t, float32(1.0), y)
+	assert.Equal(t, reflect.TypeOf(y).Kind(), reflect.Float32)
+
+	x = torch.NewTensor([]float32{-1.0})
+	y = x.Item()
+	assert.Equal(t, float32(-1.0), y)
+
+	x = torch.NewTensor([]float64{1.0})
+	y = x.Item()
+	assert.Equal(t, float64(1), y)
+	assert.Equal(t, reflect.TypeOf(y).Kind(), reflect.Float64)
+
+	x = torch.NewTensor([]float64{-1})
+	y = x.Item()
+	assert.Equal(t, float64(-1), y)
 }

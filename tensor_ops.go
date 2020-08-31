@@ -183,11 +183,41 @@ func (a Tensor) IndexSelect(dim int64, index Tensor) Tensor {
 	return IndexSelect(a, dim, index)
 }
 
-// Item torch.item
-func (a Tensor) Item() float32 {
-	var t float32
-	MustNil(unsafe.Pointer(C.Item(C.Tensor(*a.T), (*C.float)(&t))))
-	return t
+// Item returns 0-dim tensor's value as an interface
+// users should do type assertion and get the value like:
+// v, ok := a.Item().(float64)
+func (a Tensor) Item() interface{} {
+	dtype := a.Dtype()
+	switch dtype {
+	case Byte, Bool, Char, Short, Int, Long:
+		var v int64
+		MustNil(unsafe.Pointer(C.ItemInt64(C.Tensor(*a.T), (*C.int64_t)(&v))))
+		switch dtype {
+		case Byte:
+			return byte(v)
+		case Bool:
+			return bool(v != 0)
+		case Char:
+			return int8(v)
+		case Short:
+			return int16(v)
+		case Int:
+			return int32(v)
+		case Long:
+			return v
+		}
+	case Half, Float, Double:
+		var v float64
+		MustNil(unsafe.Pointer(C.ItemFloat64(C.Tensor(*a.T), (*C.double)(&v))))
+		switch dtype {
+		case Half, Float:
+			return float32(v)
+		case Double:
+			return v
+		}
+	}
+	log.Panicf("DType %d not supported now.", a.Dtype())
+	return nil
 }
 
 // LeakyRelu returns leaky relu of the tensor according to negativeSlope

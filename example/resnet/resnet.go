@@ -68,7 +68,7 @@ func accuracy(output, target torch.Tensor, topk []int64) []float32 {
 	for _, k := range topk {
 		kt := torch.NewTensor(rangeI(k)).CopyTo(device)
 		correctK := correct.IndexSelect(0, kt).View([]int64{-1}).CastTo(torch.Float).SumByDim(0, true)
-		res = append(res, correctK.Item()*100/float32(mbSize))
+		res = append(res, correctK.Item().(float32)*100/float32(mbSize))
 	}
 	return res
 }
@@ -95,7 +95,7 @@ func trainOneMinibatch(image, target torch.Tensor, model *models.ResnetModule, o
 	acc5 := acc[1]
 	loss.Backward()
 	opt.Step()
-	return loss.Item(), acc1, acc5
+	return loss.Item().(float32), acc1, acc5
 }
 
 func main() {
