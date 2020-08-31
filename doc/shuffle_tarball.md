@@ -34,7 +34,7 @@ czf` command to create tarballs.  For example, to archive a directory
 tar czf mnist_png.tar.gz mnist_png
 ```
 
-We can download this tarball from https://github.com/myleott/mnist_png.
+We can download this tarball from this GitHub [repo](https://github.com/myleott/mnist_png).
 
 We can use the `tar tvf` command to read the content sequentially and print the
 image file names.
