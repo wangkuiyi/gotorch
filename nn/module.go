@@ -103,7 +103,7 @@ func (m *Module) To(device torch.Device) {
 		func(f reflect.StructField, v reflect.Value, prefix string) error {
 			t := v.Interface().(torch.Tensor)
 			if t.T != nil {
-				v.Set(reflect.ValueOf(t.To(device, t.Dtype())))
+				t.SetData(t.To(device, t.Dtype()))
 			}
 			return nil
 		})
