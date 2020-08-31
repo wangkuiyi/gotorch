@@ -6,6 +6,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	torch "github.com/wangkuiyi/gotorch"
+	"github.com/x448/float16"
 )
 
 // >>> t = torch.tensor([[-0.5, -1.], [1., 0.5]])
@@ -282,6 +283,10 @@ func TestArgmax(t *testing.T) {
 	assert.Equal(t, " 1\n 0\n[ CPULongType{2,1} ]", x.Argmax(1, true).String())
 }
 
+func f16(x float32) uint16 {
+	return float16.Fromfloat32(x).Bits()
+}
+
 func TestItem(t *testing.T) {
 	x := torch.NewTensor([]byte{1})
 	y := x.Item()
@@ -329,6 +334,20 @@ func TestItem(t *testing.T) {
 	x = torch.NewTensor([]int32{-0x8000_0000})
 	y = x.Item()
 	assert.Equal(t, int32(-0x8000_0000), y)
+
+	// half
+	x = torch.NewTensor([]uint16{f16(1)})
+	y = x.Item()
+	assert.Equal(t, float32(1), y)
+
+	// max half
+	x = torch.NewTensor([]uint16{f16(65504)})
+	y = x.Item()
+	assert.Equal(t, float32(65504), y)
+
+	x = torch.NewTensor([]uint16{f16(0.25)})
+	y = x.Item()
+	assert.Equal(t, float32(0.25), y)
 
 	x = torch.NewTensor([]float32{1.0})
 	y = x.Item()

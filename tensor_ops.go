@@ -186,6 +186,7 @@ func (a Tensor) IndexSelect(dim int64, index Tensor) Tensor {
 // Item returns 0-dim tensor's value as an interface
 // users should do type assertion and get the value like:
 // v, ok := a.Item().(float64)
+// Currently not support unsigned Tensor.
 func (a Tensor) Item() interface{} {
 	dtype := a.Dtype()
 	switch dtype {
