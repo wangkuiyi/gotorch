@@ -4,7 +4,6 @@ import (
 	"archive/tar"
 	"io"
 	"io/ioutil"
-	"log"
 )
 
 // ListFile list contents in a .tar.gz file.
@@ -29,8 +28,7 @@ func ListFile(fn string) ([]*tar.Header, error) {
 		case tar.TypeDir:
 		case tar.TypeReg:
 			l = append(l, hdr)
-			n, e := io.Copy(ioutil.Discard, r)
-			log.Println(n, e)
+			io.Copy(ioutil.Discard, r)
 		}
 	}
 	return l, nil

@@ -24,12 +24,16 @@ func main() {
 	out := flag.String("out", "./merged.tar.gz", "The output .tar.gz file")
 	flag.Parse()
 
-	ins, e := openInputs()
+	mergeFiles(flag.Args(), *out)
+}
+
+func mergeFiles(fns []string, out string) {
+	ins, e := openInputs(fns)
 	if e != nil {
 		log.Fatal(e)
 	}
 
-	w, e := tgz.CreateFile(*out)
+	w, e := tgz.CreateFile(out)
 	if e != nil {
 		log.Fatal(e)
 	}
@@ -72,9 +76,9 @@ func merge(ins []*tgz.Reader, w *tgz.Writer) error {
 	return nil
 }
 
-func openInputs() ([]*tgz.Reader, error) {
+func openInputs(fns []string) ([]*tgz.Reader, error) {
 	in := make([]*tgz.Reader, 0)
-	for _, fn := range flag.Args() {
+	for _, fn := range fns {
 		r, e := tgz.OpenFile(fn)
 		if e != nil {
 			return nil, fmt.Errorf("Cannot open %s: %v", fn, e)
