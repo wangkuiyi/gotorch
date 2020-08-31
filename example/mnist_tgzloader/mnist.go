@@ -159,7 +159,7 @@ func loadModel(modelFn string) *models.MLPModule {
 	defer f.Close()
 
 	states := make(map[string]torch.Tensor)
-	if e := gob.NewDecoder(f).Decode(states); e != nil {
+	if e := gob.NewDecoder(f).Decode(&states); e != nil {
 		log.Fatal(e)
 	}
 
