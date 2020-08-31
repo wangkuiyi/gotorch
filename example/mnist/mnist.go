@@ -7,6 +7,7 @@ import (
 	"image"
 	"log"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -24,7 +25,6 @@ func main() {
 
 	toTrain := flag.Bool("train", true, "Train or predict")
 	modelFn := flag.String("model", "/tmp/mnist_model.gob", "Model filename")
-	inputs := flag.String("inputs", "", "colon-separated input image files")
 	epochs := flag.Int("epochs", 5, "The total number of epochs to train")
 	flag.Parse()
 
@@ -34,7 +34,7 @@ func main() {
 	if *toTrain {
 		e = train(*modelFn, *epochs)
 	} else {
-		e = predict(*modelFn, *inputs)
+		e = predict(*modelFn, flag.Args())
 	}
 	if e != nil {
 		log.Print(e)
@@ -88,6 +88,7 @@ func defaultDevice() torch.Device {
 }
 
 func saveModel(model nn.IModule, modelFn string) error {
+	log.Println("Saving model to", modelFn)
 	f, e := os.Create(modelFn)
 	if e != nil {
 		return fmt.Errorf("Cannot create file to save model: %v", e)
@@ -96,28 +97,44 @@ func saveModel(model nn.IModule, modelFn string) error {
 	return gob.NewEncoder(f).Encode(model.StateDict())
 }
 
-func predict(modelFn, inputs string) error {
+func predict(modelFn string, inputs []string) error {
 	m, e := loadModel(modelFn)
 	if e != nil {
 		return e
 	}
 
-	for _, fn := range strings.Split(inputs, ":") {
-		f, e := os.Open(fn)
-		if e != nil {
-			return fmt.Errorf("Cannot open input file: %v", e)
-		}
-		defer f.Close()
+	for _, in := range inputs {
+		for _, pa := range strings.Split(in, ":") {
+			fns, e := filepath.Glob(pa)
+			if e != nil {
+				return e
+			}
 
-		img, _, e := image.Decode(f)
-		if e != nil {
-			return fmt.Errorf("Cannot decode input image: %v", e)
+			for _, fn := range fns {
+				if e := predictFile(fn, m); e != nil {
+					return e
+				}
+			}
 		}
-
-		t := transforms.ToTensor().Run(img)
-		n := transforms.Normalize([]float64{0.1307}, []float64{0.3081}).Run(t)
-		fmt.Println(m.Forward(n).Argmin().Item())
 	}
+	return nil
+}
+
+func predictFile(fn string, m *models.MLPModule) error {
+	f, e := os.Open(fn)
+	if e != nil {
+		return fmt.Errorf("Cannot open input file: %v", e)
+	}
+	defer f.Close()
+
+	img, _, e := image.Decode(f)
+	if e != nil {
+		return fmt.Errorf("Cannot decode input image: %v", e)
+	}
+
+	t := transforms.ToTensor().Run(img)
+	n := transforms.Normalize([]float64{0.1307}, []float64{0.3081}).Run(t)
+	fmt.Println(m.Forward(n).Argmax().Item())
 	return nil
 }
 
