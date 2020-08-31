@@ -46,7 +46,7 @@ func main() {
 			loss := F.NllLoss(pred, target, torch.Tensor{}, -100, "mean")
 			loss.Backward()
 			opt.Step()
-			lastLoss = loss.Item()
+			lastLoss = loss.Item().(float32)
 			iters++
 		}
 		log.Printf("Epoch: %d, Loss: %.4f", epoch, lastLoss)

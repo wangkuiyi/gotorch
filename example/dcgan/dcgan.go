@@ -122,7 +122,7 @@ func main() {
 			output = netD.Forward(fake.Detach()).(torch.Tensor).View([]int64{-1, 1}).Squeeze(1)
 			errDFake := F.BinaryCrossEntropy(output, label, torch.Tensor{}, "mean")
 			errDFake.Backward()
-			errD := errDReal.Item() + errDFake.Item()
+			errD := errDReal.Item().(float32) + errDFake.Item().(float32)
 			optimizerD.Step()
 
 			// (2) update G network

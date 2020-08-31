@@ -28,6 +28,24 @@ const char *Item(Tensor a, float *result) {
   }
 }
 
+const char *ItemInt64(Tensor a, int64_t *result) {
+  try {
+    *result = a->item<int64_t>();
+    return nullptr;
+  } catch (const std::exception &e) {
+    return exception_str(e.what());
+  }
+}
+
+const char *ItemFloat64(Tensor a, double *result) {
+  try {
+    *result = a->item<double>();
+    return nullptr;
+  } catch (const std::exception &e) {
+    return exception_str(e.what());
+  }
+}
+
 const char *Mean(Tensor a, Tensor *result) {
   try {
     *result = new at::Tensor(a->mean());
