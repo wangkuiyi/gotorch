@@ -3,6 +3,8 @@ package tgz
 import (
 	"archive/tar"
 	"io"
+	"io/ioutil"
+	"log"
 )
 
 // ListFile list contents in a .tar.gz file.
@@ -16,13 +18,20 @@ func ListFile(fn string) ([]*tar.Header, error) {
 	l := make([]*tar.Header, 0)
 	for {
 		hdr, e := r.Next()
-		if e == io.EOF {
+		switch {
+		case e == io.EOF:
 			return l, nil
-		}
-		if e != nil {
+		case e != nil:
 			return nil, e
 		}
-		l = append(l, hdr)
+
+		switch hdr.Typeflag {
+		case tar.TypeDir:
+		case tar.TypeReg:
+			l = append(l, hdr)
+			n, e := io.Copy(ioutil.Discard, r)
+			log.Println(n, e)
+		}
 	}
 	return l, nil
 }

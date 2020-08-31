@@ -20,3 +20,9 @@ func TestDivide(t *testing.T) {
 	assert.NoError(t, e)
 	assert.Equal(t, 5, len(l))
 }
+
+func TestListFile(t *testing.T) {
+	l, e := tgz.ListFile("/tmp/mnist_png.tar.gz")
+	assert.NoError(t, e)
+	t.Log(len(l))
+}
