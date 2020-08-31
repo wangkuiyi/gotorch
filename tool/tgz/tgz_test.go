@@ -1,6 +1,7 @@
 package tgz_test
 
 import (
+	"io/ioutil"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -20,12 +21,12 @@ func TestCreateFileNoPermission(t *testing.T) {
 }
 
 func TestListFile(t *testing.T) {
-	// d, e := ioutil.TempDir("", "gotorch_tarball_divide_test*")
-	// if e != nil {
-	// 	t.Fatal(e)
-	// }
+	d, e := ioutil.TempDir("", "gotorch_tarball_divide_test*")
+	if e != nil {
+		t.Fatal(e)
+	}
 
-	fn := tgz.SynthesizeTarball(t, "./") //debug
+	fn := tgz.SynthesizeTarball(t, d)
 
 	l, e := tgz.ListFile(fn)
 	assert.NoError(t, e)
