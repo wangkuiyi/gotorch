@@ -26,6 +26,24 @@ class Net(nn.Module):
         return F.log_softmax(x, dim=1)
 
 
+def test(model, device, test_loader):
+    model.eval()
+    test_loss = 0
+    correct = 0
+    with torch.no_grad():
+        for data, target in test_loader:
+            data, target = data.to(device), target.to(device)
+            output = model(data)
+            test_loss += F.nll_loss(output, target, reduction='sum').item()  # sum up batch loss
+            pred = output.argmax(dim=1, keepdim=True)  # get the index of the max log-probability
+            correct += pred.eq(target.view_as(pred)).sum().item()
+
+    test_loss /= len(test_loader.dataset)
+
+    print('Test set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)'.format(
+        test_loss, correct, len(test_loader.dataset),
+        100. * correct / len(test_loader.dataset)))
+
 def main():
     device = torch.device("cpu")
 
@@ -35,18 +53,21 @@ def main():
     ])
 
     cache_dir = os.path.join(str(pathlib.Path.home()), ".cache/mnist")
-    dataset = datasets.MNIST(cache_dir, train=True, download=True,
+    dataset1 = datasets.MNIST(cache_dir, train=True, download=True,
                              transform=transform)
+    dataset2 = datasets.MNIST(cache_dir, train=False,
+                       transform=transform)
 
-    train_loader = torch.utils.data.DataLoader(dataset, batch_size=64)
+    train_loader = torch.utils.data.DataLoader(dataset1, batch_size=64)
+    test_loader =torch.utils.data.DataLoader(dataset2, batch_size=64)
 
     model = Net().to(device)
     model.train()
     optimizer = optim.SGD(model.parameters(), lr=0.01, momentum=0.5)
 
-    start = time.time()
     epochs = 5
     for epoch in range(epochs):
+        start = time.time()
         for batch_idx, (data, target) in enumerate(train_loader):
             data, target = data.to(device), target.to(device)
             optimizer.zero_grad()
@@ -54,9 +75,10 @@ def main():
             loss = F.nll_loss(output, target)
             loss.backward()
             optimizer.step()
-
-    throughput = len(dataset) * epochs * 1.0 / (time.time() - start)
-    print("The throughput: {} samples/sec".format(throughput))
+        throughput = len(dataset1) * 1.0 / (time.time() - start)
+        print('Train Epoch: {}, Loss: {:.6f}, throughput: {} samples/sec'.format(
+                epoch, loss.item(), throughput))
+        test(model, device, test_loader)
 
 
 if __name__ == '__main__':
