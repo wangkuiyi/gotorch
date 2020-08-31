@@ -8,7 +8,19 @@ import (
 	"github.com/wangkuiyi/gotorch/tool/tgz"
 )
 
-func TestDivide(t *testing.T) {
+func TestOpenFileNotExist(t *testing.T) {
+	r, e := tgz.OpenFile("not-there")
+	assert.Nil(t, r)
+	assert.Error(t, e)
+}
+
+func TestCreateFileNoPermission(t *testing.T) {
+	w, e := tgz.CreateFile("/")
+	assert.Nil(t, w)
+	assert.Error(t, e)
+}
+
+func TestListFile(t *testing.T) {
 	d, e := ioutil.TempDir("", "gotorch_tarball_divide_test*")
 	if e != nil {
 		t.Fatal(e)
