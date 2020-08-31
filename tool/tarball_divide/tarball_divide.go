@@ -34,7 +34,8 @@
 // go install ./...
 // tarball_divide -out=/tmp /tmp/mnist_png.tar.gz
 //
-// The above command generates /tmp/[0-9].tar.gz.
+// The above command generates /tmp/[0-9].tar.gz, each of which contains only
+// regular image files, no longer the directories.
 package main
 
 import (

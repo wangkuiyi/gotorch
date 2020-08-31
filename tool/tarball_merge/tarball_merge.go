@@ -1,3 +1,4 @@
+// This program is supposed to run together with tarball_divide, which
 package main
 
 import (
@@ -22,6 +23,7 @@ func main() {
 	if e != nil {
 		log.Fatal(e)
 	}
+	defer w.Close()
 
 	if e := merge(ins, w); e != nil {
 		log.Fatal(e)
@@ -34,10 +36,17 @@ func merge(ins []*tgz.Reader, w *tgz.Writer) error {
 		for i, r := range ins {
 			if r != nil {
 				hdr, e := r.Next()
-				if e == io.EOF {
+				switch {
+				case e == io.EOF:
 					r.Close()
 					closed++
 					ins[i] = nil // Mark invalid
+				case e != nil:
+					return fmt.Errorf("Reading tarball: %v", e)
+				}
+
+				if hdr == nil {
+					continue // Undocumented must-handle case.
 				}
 
 				if e := w.WriteHeader(hdr); e != nil {
