@@ -30,14 +30,11 @@
 package main
 
 import (
-	"archive/tar"
 	"flag"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"os"
-	"path/filepath"
 
 	"github.com/wangkuiyi/gotorch/tool/tgz"
 )
@@ -75,39 +72,47 @@ func divide(input, output string) error {
 
 	for {
 		hdr, e := in.Next()
+		// if e == io.EOF {
+		// 	log.Println("EOF")
+		// 	break
+		// }
+		// if e != nil {
+		// 	return fmt.Errorf("Failed reading input: %v", e)
+		// }
+
+		// log.Printf("%+v\n", hdr)
+
+		// if hdr.Typeflag == tar.TypeReg {
+		// 	log.Println("Is regular file")
+
+		// 	label := filepath.Base(filepath.Dir(hdr.Name))
+		// 	log.Println(hdr.Name, label)
+		// 	if _, ok := oss[label]; !ok {
+		// 		fn := filepath.Join(output, label+".tar.gz")
+		// 		log.Println("Creating", fn, label)
+		// 		w, e := tgz.CreateFile(fn)
+		// 		if e != nil {
+		// 			return fmt.Errorf("Cannot create output: %v", e)
+		// 		}
+		// 		oss[label] = w
+		// 	}
+
+		// 	w := oss[label]
+		// 	if e := w.WriteHeader(hdr); e != nil {
+		// 		return fmt.Errorf("Failed writing header of %s: %v", hdr.Name, e)
+		// 	}
+
+		// 	if _, e := io.CopyN(w, in, hdr.Size); e != nil {
+		// 		return fmt.Errorf("Failed copy file %s: %v", hdr.Name, e)
+		// 	}
+		// } else {
+		// 	log.Println("Not regular file")
+		// 	_, e := io.Copy(ioutil.Discard, in) // Discard or r.Next() returns EOF.
+		// 	log.Println(e)
+		// }
+		log.Println(e, hdr)
 		if e == io.EOF {
-			log.Println("EOF")
 			break
-		}
-		if e != nil {
-			return fmt.Errorf("Failed reading input: %v", e)
-		}
-
-		log.Printf("%+v\n", hdr)
-
-		if hdr.Typeflag == tar.TypeReg {
-			label := filepath.Base(filepath.Dir(hdr.Name))
-			log.Println(hdr.Name, label)
-			if _, ok := oss[label]; !ok {
-				fn := filepath.Join(output, label+".tar.gz")
-				log.Println("Creating", fn, label)
-				w, e := tgz.CreateFile(fn)
-				if e != nil {
-					return fmt.Errorf("Cannot create output: %v", e)
-				}
-				oss[label] = w
-			}
-
-			w := oss[label]
-			if e := w.WriteHeader(hdr); e != nil {
-				return fmt.Errorf("Failed writing header of %s: %v", hdr.Name, e)
-			}
-
-			if _, e := io.CopyN(w, in, hdr.Size); e != nil {
-				return fmt.Errorf("Failed copy file %s: %v", hdr.Name, e)
-			}
-		} else {
-			io.Copy(ioutil.Discard, in) // Discard or r.Next() returns EOF.
 		}
 	}
 	return nil
