@@ -14,3 +14,9 @@ func TestManualSeed(t *testing.T) {
 	expected := float32(0.66135216)
 	a.Equal(expected, x.Item())
 }
+
+func TestNormal(t *testing.T) {
+	x := torch.Empty([]int64{2, 3}, false)
+	Normal(&x, 0.1, 0.2)
+	assert.NotNil(t, x.T)
+}

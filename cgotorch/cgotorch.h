@@ -120,6 +120,8 @@ const char *Zeros_(Tensor *tensor);
 const char *Ones_(Tensor *tensor);
 // torch.nn.init.uniform_
 const char *Uniform_(Tensor *tensor, double low, double high);
+// torch.nn.init.normal_
+const char *Normal_(Tensor *tensor, double mean, double std);
 // torch.nn.init.kaiming_uniform_
 const char *KaimingUniform_(double a, const char *fan_mod,
                             const char *non_linearity, Tensor *tensor);

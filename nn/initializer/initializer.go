@@ -32,6 +32,11 @@ func Uniform(a *torch.Tensor, low, high float64) {
 	torch.MustNil(unsafe.Pointer(C.Uniform_((*C.Tensor)(a.T), C.double(low), C.double(high))))
 }
 
+// Normal initialization, torch.nn.init.normal_
+func Normal(a *torch.Tensor, low, high float64) {
+	torch.MustNil(unsafe.Pointer(C.Normal_((*C.Tensor)(a.T), C.double(low), C.double(high))))
+}
+
 // KaimingUniform initialization, torch.nn.init.kaiming_uniform_
 func KaimingUniform(input *torch.Tensor, a float64, fanMode string,
 	nonLinearity string) {
