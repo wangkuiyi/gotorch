@@ -17,7 +17,7 @@ type IModule interface {
 	IsTraining() bool
 	// To corresponds to torch.nn.Module.to().  It recursively casts all
 	// parameters to the given `dtype` and `device`.
-	To(device torch.Device)
+	To(device torch.Device, dtype ...int8)
 }
 
 // Module contains default implementation of `Module`s
@@ -97,13 +97,19 @@ func (m *Module) IsTraining() bool {
 }
 
 // To recursively casts all parameters to the given `dtype` and `device`.
-func (m *Module) To(device torch.Device) {
+func (m *Module) To(device torch.Device, dtype ...int8) {
 	must(m.outer != nil, "GoTorch requires calling `Init` before using")
 	visitTensors(m.outer, reflect.TypeOf(m.outer).Elem().Name(),
 		func(f reflect.StructField, v reflect.Value, prefix string, noSuffix bool) error {
 			t := v.Interface().(torch.Tensor)
 			if t.T != nil {
-				t.SetData(t.To(device, t.Dtype()))
+				var d int8
+				if len(dtype) == 1 {
+					d = dtype[0]
+				} else {
+					d = t.Dtype()
+				}
+				t.SetData(t.To(device, d))
 			}
 			return nil
 		})
