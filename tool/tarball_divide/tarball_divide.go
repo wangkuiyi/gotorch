@@ -30,13 +30,13 @@
 package main
 
 import (
-	"archive/tar"
-	"compress/gzip"
 	"flag"
 	"fmt"
 	"io"
 	"os"
 	"path/filepath"
+
+	"github.com/wangkuiyi/gotorch/tool/tgz"
 )
 
 func main() {
@@ -51,14 +51,14 @@ func main() {
 }
 
 func divide(input, output string) error {
-	oss := make(map[string]*TarGzWriter)
-	defer func(oss map[string]*TarGzWriter) {
+	oss := make(map[string]*tgz.Writer)
+	defer func(oss map[string]*tgz.Writer) {
 		for _, w := range oss {
 			w.Close()
 		}
 	}(oss)
 
-	in, e := OpenTarGzFile(input)
+	in, e := OpenFile(input)
 	if e != nil {
 		return fmt.Errorf("Cannot create reader: %v", e)
 	}
@@ -75,7 +75,7 @@ func divide(input, output string) error {
 
 		label := filepath.Base(filepath.Dir(hdr.Name))
 		if _, ok := oss[label]; !ok {
-			w, e := CreatTarGzFile(filepath.Join(output, label+".tar.gz"))
+			w, e := CreateFile(filepath.Join(output, label+".tar.gz"))
 			if e != nil {
 				return fmt.Errorf("Cannot create output: %v", e)
 			}
@@ -92,100 +92,4 @@ func divide(input, output string) error {
 		}
 	}
 	return nil
-}
-
-// TarGzReader includes a tar reader and its underlying readers.
-type TarGzReader struct {
-	*tar.Reader
-	g *gzip.Reader
-	f *os.File
-}
-
-// OpenTarGzFile returns a TarGzReader
-func OpenTarGzFile(fn string) (*TarGzReader, error) {
-	f, e := os.Open(fn)
-	if e != nil {
-		return nil, e
-	}
-
-	g, e := gzip.NewReader(f)
-	if e != nil {
-		return nil, e
-	}
-
-	return &TarGzReader{
-		Reader: tar.NewReader(g),
-		g:      g,
-		f:      f,
-	}, nil
-}
-
-// Close calls gzip.Reader.Close() and os.File.Close if the underlying storage
-// is a file.
-func (r *TarGzReader) Close() error {
-	if e := r.g.Close(); e != nil {
-		return e
-	}
-	if r.f != nil {
-		return r.f.Close()
-	}
-	return nil
-}
-
-// TarGzWriter defines a writer to a .tar.gz file.
-type TarGzWriter struct {
-	*tar.Writer
-	g *gzip.Writer
-	f *os.File
-}
-
-// CreatTarGzFile creates a writer.
-func CreatTarGzFile(fn string) (*TarGzWriter, error) {
-	f, e := os.Create(fn)
-	if e != nil {
-		return nil, e
-	}
-
-	g := gzip.NewWriter(f)
-	return &TarGzWriter{
-		Writer: tar.NewWriter(g),
-		g:      g,
-		f:      f}, nil
-}
-
-// Close calls the tar.Writer.Close(), gzip.Writer.Close(), and if the
-// underlying storage is a file, os.File.Close().
-func (w *TarGzWriter) Close() error {
-	if e := w.Writer.Close(); e != nil {
-		return e
-	}
-	if e := w.g.Close(); e != nil {
-		return e
-	}
-	if w.f != nil {
-		return w.f.Close()
-	}
-	return nil
-}
-
-// ListTarGzFile list contents in a .tar.gz file.
-func ListTarGzFile(fn string) ([]*tar.Header, error) {
-	r, e := OpenTarGzFile(fn)
-	if e != nil {
-		return nil, e
-	}
-	defer r.Close()
-
-	l := make([]*tar.Header, 0)
-	for {
-		hdr, e := r.Next()
-		if e == io.EOF {
-			return l, nil
-		}
-		if e != nil {
-			return nil, e
-		}
-		l = append(l, hdr)
-	}
-	return l, nil
 }
