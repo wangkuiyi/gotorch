@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/wangkuiyi/gotorch/tool/tgz"
 )
 
 func TestDivide(t *testing.T) {

@@ -58,7 +58,7 @@ func divide(input, output string) error {
 		}
 	}(oss)
 
-	in, e := OpenFile(input)
+	in, e := tgz.OpenFile(input)
 	if e != nil {
 		return fmt.Errorf("Cannot create reader: %v", e)
 	}
@@ -75,7 +75,7 @@ func divide(input, output string) error {
 
 		label := filepath.Base(filepath.Dir(hdr.Name))
 		if _, ok := oss[label]; !ok {
-			w, e := CreateFile(filepath.Join(output, label+".tar.gz"))
+			w, e := tgz.CreateFile(filepath.Join(output, label+".tar.gz"))
 			if e != nil {
 				return fmt.Errorf("Cannot create output: %v", e)
 			}
