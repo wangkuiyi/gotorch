@@ -26,10 +26,8 @@ if __name__ == "__main__":
     files = get_files()
     for file in files:
         module = torch.jit.load(file, map_location=torch.device("cpu"))
-        images = list(module.parameters())[0].detach().cpu()
-        img_list.append(
-            vutils.make_grid(images.transpose(2, 3), padding=2,
-                             normalize=True))
+        images = list(module.parameters())[0].detach().cpu().transpose(2, 3)
+        img_list.append(vutils.make_grid(images, padding=2, normalize=True))
 
         if args.save_image:
             # save fake images to directory
@@ -37,7 +35,6 @@ if __name__ == "__main__":
             if not os.path.exists(directory):
                 os.mkdir(directory)
             images = [images[i].reshape(3, 64, 64) for i in range(64)]
-            images = [image.transpose(1, 2) for image in images]
             for i, image in enumerate(images):
                 vutils.save_image(image,
                                   directory + '/' + str(i) + '.png',
