@@ -42,6 +42,23 @@ const char *Rand(int64_t *size, int64_t length, int64_t require_grad,
 // torch.empty
 const char *Empty(int64_t *size, int64_t length, int64_t require_grad,
                   Tensor *result);
+// torch.zeors
+const char *Ones(int64_t *size, int64_t length, int64_t require_grad,
+                 Tensor *result);
+// torch.eye
+const char *Eye(int64_t n, int64_t m, int64_t require_grad, Tensor *result);
+// torch.full, only for float32
+const char *Full(int64_t *size, int64_t length, float value,
+                 int64_t require_grad, Tensor *result);
+// torch.arange
+const char *Arange(float start, float end, float step, int64_t require_grad,
+                   Tensor *result);
+// torch.linspace
+const char *Linspace(float start, float end, int64_t steps,
+                     int64_t require_grad, Tensor *result);
+// torch.logspace
+const char *Logspace(float start, float end, int64_t steps, double base,
+                     int64_t require_grad, Tensor *result);
 
 const char *Equal(Tensor a, Tensor b, int64_t *result);
 
