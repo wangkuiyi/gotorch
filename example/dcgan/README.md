@@ -2,7 +2,8 @@
 
 ## Download CelebA Dataset
 
-We download [CelebA dataset](http://mmlab.ie.cuhk.edu.hk/projects/CelebA.html) to a newly created directory, say `$DATAROOT`.
+We download [CelebA dataset](http://mmlab.ie.cuhk.edu.hk/projects/CelebA.html)
+to a newly created directory, say `$DATAROOT`.
 
 Then, we shuffle the dataset and transform it to new file in tgz format, `train.tgz`.
 
@@ -14,7 +15,8 @@ find . | sort -R | tar czvf train.tgz -T -
 
 ## Build
 
-We first build the gotorch project. For how to build and test, please refer to [CONTRIBUTING.md](https://github.com/wangkuiyi/gotorch/blob/develop/CONTRIBUTING.md).
+We first build the gotorch project. For how to build and test,
+please refer to [CONTRIBUTING.md](https://github.com/wangkuiyi/gotorch/blob/develop/CONTRIBUTING.md).
 
 Then, we run the following command in the root directory to install gotorch project.
 
