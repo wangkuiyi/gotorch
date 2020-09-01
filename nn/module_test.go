@@ -62,8 +62,8 @@ func myModel(init bool) *myModelModule {
 		L1: Linear(cardi, cardi, true /*has bias*/),
 		L2: Linear(cardi, cardi, false /*no bias*/),
 		LL: []*LinearModule{
-			Linear(100, 200, true /*has bias*/),
-			Linear(100, 200, true /*has bias*/),
+			Linear(cardi, cardi, true /*has bias*/),
+			Linear(cardi, cardi, true /*has bias*/),
 		},
 		WW: []torch.Tensor{square(), square()},
 		BB: []torch.Tensor{slim(), slim()},
@@ -120,6 +120,9 @@ func TestModuleApply(t *testing.T) {
 	m := myModel(true)
 	m.Apply(weightInit)
 	assert.Equal(t, " 0  0\n 0  0\n[ CPUFloatType{2,2} ]", m.L1.Weight.String())
+	assert.Equal(t, " 0  0\n 0  0\n[ CPUFloatType{2,2} ]", m.L2.Weight.String())
+	assert.Equal(t, " 0  0\n 0  0\n[ CPUFloatType{2,2} ]", m.LL[0].Weight.String())
+	assert.Equal(t, " 0  0\n 0  0\n[ CPUFloatType{2,2} ]", m.LL[1].Weight.String())
 }
 
 func TestNewModuleWithoutInit(t *testing.T) {
