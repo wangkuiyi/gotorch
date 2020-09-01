@@ -133,7 +133,7 @@ func main() {
 	optimizerG.AddParameters(netG.Parameters())
 
 	epochs := 10
-	checkpointStep := 500
+	checkpointStep := 100
 	checkpointCount := 1
 	batchSize := 64
 
@@ -182,7 +182,7 @@ func main() {
 			if i%checkpointStep == 0 {
 				samples := netG.Forward(fixedNoise).(torch.Tensor)
 				ckName := fmt.Sprintf("dcgan-sample-%d.pt", checkpointCount)
-				samples.Save(ckName)
+				samples.Detach().Save(ckName)
 				checkpointCount++
 			}
 			i++
