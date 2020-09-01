@@ -106,9 +106,6 @@ func (loader *MNISTLoader) Scan() bool {
 	gotorch.GC()
 	if loader.iter == nil {
 		loader.iter = C.MNISTLoader_Begin(loader.loader)
-		if C.MNISTIterator_IsEnd(loader.iter, loader.loader) {
-			return false
-		}
 		loader.batch = minibatch(loader.iter)
 		return true
 	}
