@@ -104,6 +104,8 @@ func trainOneMinibatch(image, target torch.Tensor, model *models.ResnetModule, o
 
 func test(model *models.ResnetModule, loader *datasets.ImageLoader) {
 	testLoss := float32(0)
+	acc1 := float32(0)
+	acc5 := float32(0)
 	correct := int64(0)
 	samples := 0
 	for loader.Scan() {
@@ -111,14 +113,17 @@ func test(model *models.ResnetModule, loader *datasets.ImageLoader) {
 		data = data.To(device, data.Dtype())
 		label = label.To(device, label.Dtype())
 		output := model.Forward(data)
-		loss := F.NllLoss(output, label, torch.Tensor{}, -100, "mean")
+		acc := accuracy(output, label, []int64{1, 5})
+		acc1 += acc[0]
+		acc5 += acc[1]
+		loss := F.CrossEntropy(output, label, torch.Tensor{}, -100, "mean")
 		pred := output.Argmax(1)
 		testLoss += loss.Item().(float32)
 		correct += pred.Eq(label.View(pred.Shape())).SumByDim(0, false).Item().(int64)
 		samples += int(label.Shape()[0])
 	}
-	log.Printf("Test average loss: %.4f, Accuracy: %.2f%%\n",
-		testLoss/float32(samples), 100.0*float32(correct)/float32(samples))
+	log.Printf("Test average loss: %.4f acc1: %.4f acc5: %.4f \n",
+		testLoss/float32(samples), acc1/float32(samples), acc5/float32(samples))
 }
 
 func train(trainFn, testFn, save string, epochs int) {
