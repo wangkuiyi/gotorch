@@ -55,6 +55,7 @@ Here are some generated images after 10 epoches training:
 
 And the script could also generate an animation to visualize
 the training progress of generated fake images.
+`ffmpeg` is needed to save the animation to mp4 format.
 
 ```bash
 python visualize_pickle.py --save_video=1
