@@ -4,11 +4,14 @@ import (
 	"bytes"
 	"encoding/gob"
 	"log"
+	"reflect"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	torch "github.com/wangkuiyi/gotorch"
 	F "github.com/wangkuiyi/gotorch/nn/functional"
+	"github.com/wangkuiyi/gotorch/nn/initializer"
 )
 
 type myModelModule struct {
@@ -41,7 +44,7 @@ func (m *myModelModule) Forward(x torch.Tensor) torch.Tensor {
 	return x
 }
 
-const cardi = 3
+const cardi = 2
 
 func square() torch.Tensor {
 	return torch.RandN([]int64{cardi, cardi}, true)
@@ -97,6 +100,26 @@ func TestModuleTrain(t *testing.T) {
 	assert.False(t, m.L2.IsTraining())
 	assert.False(t, m.LL[0].IsTraining())
 	assert.False(t, m.LL[1].IsTraining())
+}
+
+func weightInit(m IModule) {
+	if strings.Contains(m.Name(), "Linear") {
+		fv := reflect.ValueOf(m.(*Module).outer).Elem()
+		for i := 0; i < fv.NumField(); i++ {
+			v := fv.Field(i)
+			f := fv.Type().Field(i)
+			if f.Name == "Weight" {
+				w := v.Interface().(torch.Tensor)
+				initializer.Zeros(&w)
+			}
+		}
+	}
+}
+
+func TestModuleApply(t *testing.T) {
+	m := myModel(true)
+	m.Apply(weightInit)
+	assert.Equal(t, " 0  0\n 0  0\n[ CPUFloatType{2,2} ]", m.L1.Weight.String())
 }
 
 func TestNewModuleWithoutInit(t *testing.T) {
