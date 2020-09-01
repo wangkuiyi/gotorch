@@ -3,13 +3,9 @@ package main
 import (
 	"encoding/gob"
 	"flag"
-	"fmt"
-	"image"
 	"log"
 	"math"
 	"os"
-	"path/filepath"
-	"strings"
 	"time"
 
 	torch "github.com/wangkuiyi/gotorch"
@@ -167,6 +163,7 @@ func train(trainFn, testFn, save string, epochs int) {
 	}
 	saveModel(model, save)
 }
+
 func saveModel(model *models.ResnetModule, modelFn string) {
 	log.Println("Saving model to", modelFn)
 	f, e := os.Create(modelFn)
@@ -182,60 +179,6 @@ func saveModel(model *models.ResnetModule, modelFn string) {
 	}
 }
 
-func predict(modelFn string, inputs []string) {
-	net := loadModel(modelFn)
-
-	for _, in := range inputs {
-		for _, pa := range strings.Split(in, ":") {
-			fns, e := filepath.Glob(pa)
-			if e != nil {
-				log.Fatal(e)
-			}
-
-			for _, fn := range fns {
-				predictFile(fn, net)
-			}
-		}
-	}
-}
-
-func loadModel(modelFn string) *models.ResnetModule {
-	f, e := os.Open(modelFn)
-	if e != nil {
-		log.Fatal(e)
-	}
-	defer f.Close()
-
-	states := make(map[string]torch.Tensor)
-	if e := gob.NewDecoder(f).Decode(&states); e != nil {
-		log.Fatal(e)
-	}
-
-	net := models.Resnet50()
-	net.SetStateDict(states)
-	return net
-}
-
-func predictFile(fn string, m *models.ResnetModule) {
-	f, e := os.Open(fn)
-	if e != nil {
-		log.Fatal(e)
-	}
-	defer f.Close()
-
-	img, _, e := image.Decode(f)
-	if e != nil {
-		log.Fatalf("Cannot decode input image: %v", e)
-	}
-	trans := transforms.Compose(
-		transforms.RandomResizedCrop(224),
-		transforms.RandomHorizontalFlip(0.5),
-		transforms.ToTensor(),
-		transforms.Normalize([]float64{0.485, 0.456, 0.406}, []float64{0.229, 0.224, 0.225}))
-	in := trans.Run(img)
-	fmt.Println(m.Forward(in.(torch.Tensor)).Argmax().Item())
-}
-
 func main() {
 	if torch.IsCUDAAvailable() {
 		log.Println("CUDA is valid")
@@ -246,26 +189,12 @@ func main() {
 	}
 
 	initializer.ManualSeed(1)
-	trainCmd := flag.NewFlagSet("train", flag.ExitOnError)
-	trainTar := trainCmd.String("data", "/tmp/imagenet_training_shuffled.tar.gz", "data tarball")
-	testTar := trainCmd.String("test", "/tmp/imagenet_testing_shuffled.tar.gz", "data tarball")
-	save := trainCmd.String("save", "/tmp/imagenet_model.gob", "the model file")
-	epochs := trainCmd.Int("epochs", 5, "the number of epochs")
+	trainTar := flag.String("data", "/tmp/imagenet_training_shuffled.tar.gz", "data tarball")
+	testTar := flag.String("test", "/tmp/imagenet_testing_shuffled.tar.gz", "data tarball")
+	save := flag.String("save", "/tmp/imagenet_model.gob", "the model file")
+	epochs := flag.Int("epochs", 5, "the number of epochs")
 
-	predictCmd := flag.NewFlagSet("predict", flag.ExitOnError)
-	load := predictCmd.String("load", "/tmp/mnist_model.gob", "the model file")
 	flag.Parse()
-	if len(os.Args) < 2 {
-		fmt.Fprintf(os.Stderr, "Usage: %s needs subcomamnd train or predict\n", os.Args[0])
-		os.Exit(1)
-	}
 
-	switch os.Args[1] {
-	case "train":
-		trainCmd.Parse(os.Args[2:])
-		train(*trainTar, *testTar, *save, *epochs)
-	case "predict":
-		predictCmd.Parse(os.Args[2:])
-		predict(*load, predictCmd.Args())
-	}
+	train(*trainTar, *testTar, *save, *epochs)
 }
