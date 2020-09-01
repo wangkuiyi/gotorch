@@ -132,8 +132,8 @@ func main() {
 	optimizerG := torch.Adam(lr, 0.5, 0.999, 0.0)
 	optimizerG.AddParameters(netG.Parameters())
 
-	epochs := 100
-	checkpointStep := 1000
+	epochs := 10
+	checkpointStep := 500
 	checkpointCount := 1
 	batchSize := 64
 
