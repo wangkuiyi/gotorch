@@ -42,4 +42,5 @@ func TestImageTgzLoader(t *testing.T) {
 	}
 	// no more data at the third iteration
 	a.False(loader.Scan())
+	a.NoError(loader.Err())
 }
