@@ -4,6 +4,8 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"reflect"
+	"strings"
 
 	torch "github.com/wangkuiyi/gotorch"
 	nn "github.com/wangkuiyi/gotorch/nn"
@@ -61,6 +63,33 @@ func discriminator(nc int64, ndf int64) *nn.SequentialModule {
 	)
 }
 
+func weightInit(m nn.IModule) {
+	if strings.Contains(m.Name(), "Conv") {
+		fv := reflect.ValueOf(m.(*nn.Module).Outer()).Elem()
+		for i := 0; i < fv.NumField(); i++ {
+			v := fv.Field(i)
+			f := fv.Type().Field(i)
+			if f.Name == "Weight" {
+				w := v.Interface().(torch.Tensor)
+				initializer.Normal(&w, 0.0, 0.02)
+			}
+		}
+	} else if strings.Contains(m.Name(), "BatchNorm") {
+		fv := reflect.ValueOf(m.(*nn.Module).Outer()).Elem()
+		for i := 0; i < fv.NumField(); i++ {
+			v := fv.Field(i)
+			f := fv.Type().Field(i)
+			if f.Name == "Weight" {
+				w := v.Interface().(torch.Tensor)
+				initializer.Normal(&w, 1.0, 0.02)
+			} else if f.Name == "Bias" {
+				w := v.Interface().(torch.Tensor)
+				initializer.Zeros(&w)
+			}
+		}
+	}
+}
+
 func celebaLoader(dataroot string, vocab map[string]int64, mbSize int) *datasets.ImageLoader {
 	trans := transforms.Compose(transforms.Resize(64),
 		transforms.CenterCrop(64),
@@ -92,8 +121,10 @@ func main() {
 
 	netG := generator(nz, nc, ngf)
 	netG.To(device)
+	netG.Apply(weightInit)
 	netD := discriminator(nc, ndf)
 	netD.To(device)
+	netD.Apply(weightInit)
 
 	optimizerD := torch.Adam(lr, 0.5, 0.999, 0.0)
 	optimizerD.AddParameters(netD.Parameters())

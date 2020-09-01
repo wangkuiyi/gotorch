@@ -75,6 +75,11 @@ func (m *Module) Name() string {
 	return m.name
 }
 
+// Outer returns module outer
+func (m *Module) Outer() IModule {
+	return m.outer
+}
+
 // Apply function recursively to each module
 func (m *Module) Apply(function func(IModule)) {
 	must(m.outer != nil, "GoTorch requires calling `Init` before using")
