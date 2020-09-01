@@ -5,7 +5,11 @@ import (
 	"reflect"
 )
 
-// ComposeTransformer composes transformers together
+// Transform interface
+// Note: this interface only used in wrapping C dataset
+type Transform interface{}
+
+// ComposeTransformer composes transforms together
 type ComposeTransformer struct {
 	// Transform function should implement a `Run` method that does the real computation.
 	Transforms []interface{}
