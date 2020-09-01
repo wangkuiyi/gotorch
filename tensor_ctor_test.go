@@ -28,7 +28,12 @@ func TestOnes(t *testing.T) {
  1  1  1
  1  1  1
 [ CPUFloatType{3,3} ]`, a.String())
+
 	a = torch.Ones([]int64{1}, false)
+	assert.Equal(t, ` 1
+[ CPUFloatType{1} ]`, a.String())
+
+	a = torch.Ones([]int64{1}, true)
 	assert.Equal(t, ` 1
 [ CPUFloatType{1} ]`, a.String())
 }
@@ -51,6 +56,12 @@ func TestEye(t *testing.T) {
  0
  0
 [ CPUFloatType{3,1} ]`, a.String())
+
+	a = torch.Eye(3, 1, true)
+	assert.Equal(t, ` 1
+ 0
+ 0
+[ CPUFloatType{3,1} ]`, a.String())
 }
 
 func TestFull(t *testing.T) {
@@ -69,6 +80,10 @@ func TestFull(t *testing.T) {
 [ CPUFloatType{3,3} ]`, a.String())
 
 	a = torch.Full([]int64{1}, 100, false)
+	assert.Equal(t, ` 100
+[ CPUFloatType{1} ]`, a.String())
+
+	a = torch.Full([]int64{1}, 100, true)
 	assert.Equal(t, ` 100
 [ CPUFloatType{1} ]`, a.String())
 }
@@ -96,6 +111,10 @@ func TestArange(t *testing.T) {
 	a = torch.Arange(0, 5, 5, false)
 	assert.Equal(t, ` 0
 [ CPUFloatType{1} ]`, a.String())
+
+	a = torch.Arange(0, 5, 5, true)
+	assert.Equal(t, ` 0
+[ CPUFloatType{1} ]`, a.String())
 }
 
 func TestLinspace(t *testing.T) {
@@ -109,6 +128,12 @@ func TestLinspace(t *testing.T) {
 [ CPUFloatType{6} ]`, a.String())
 
 	a = torch.Linspace(0, 5, 3, false)
+	assert.Equal(t, ` 0.0000
+ 2.5000
+ 5.0000
+[ CPUFloatType{3} ]`, a.String())
+
+	a = torch.Linspace(0, 5, 3, true)
 	assert.Equal(t, ` 0.0000
  2.5000
  5.0000
@@ -141,6 +166,15 @@ func TestLogspace(t *testing.T) {
 [ CPUFloatType{1} ]`, a.String())
 
 	a = torch.Logspace(0, 5, 6, 2, false)
+	assert.Equal(t, `  1
+  2
+  4
+  8
+ 16
+ 32
+[ CPUFloatType{6} ]`, a.String())
+
+	a = torch.Logspace(0, 5, 6, 2, true)
 	assert.Equal(t, `  1
   2
   4
