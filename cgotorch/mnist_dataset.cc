@@ -67,3 +67,12 @@ bool MNISTIterator_Next(MNISTIterator iter, MNISTLoader loader) {
   return ++*static_cast<detail::Iterator *>(iter) !=
          static_cast<detail::Loader *>(loader)->end();
 }
+
+bool MNISTIterator_IsEnd(MNISTIterator iter, MNISTLoader loader) {
+  return *static_cast<detail::Iterator *>(iter) ==
+         static_cast<detail::Loader *>(loader)->end();
+}
+
+void MNISTIterator_Close(MNISTIterator iter) {
+  delete static_cast<detail::Iterator *>(iter);
+}

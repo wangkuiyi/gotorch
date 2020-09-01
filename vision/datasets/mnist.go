@@ -82,6 +82,7 @@ func NewMNISTLoader(dataset *MNISTDataset, batchSize int64) *MNISTLoader {
 // Close Loader
 func (loader *MNISTLoader) Close() {
 	C.MNISTLoader_Close(loader.loader)
+	C.MNISTIterator_Close(loader.iter)
 }
 
 // minibatch returns the batch data as Tensor slice

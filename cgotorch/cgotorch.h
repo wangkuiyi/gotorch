@@ -229,6 +229,8 @@ void MNISTLoader_Close(MNISTLoader loader);
 MNISTIterator MNISTLoader_Begin(MNISTLoader loader);
 void MNISTIterator_Batch(MNISTIterator iter, Tensor *data, Tensor *target);
 bool MNISTIterator_Next(MNISTIterator iter, MNISTLoader loader);
+bool MNISTIterator_IsEnd(MNISTIterator iter, MNISTLoader loader);
+void MNISTIterator_Close(MNISTIterator iter);
 
 #ifdef __cplusplus
 }
