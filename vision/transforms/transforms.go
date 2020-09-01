@@ -6,12 +6,12 @@ import (
 )
 
 // Transform interface
+// Note: this interface only used in wrapping C dataset
 type Transform interface{}
 
 // ComposeTransformer composes transforms together
 type ComposeTransformer struct {
-	// Transform function should implement a `Do` method, which accepts any argument type
-	// and returns a value.
+	// Transform function should implement a `Run` method that does the real computation.
 	Transforms []interface{}
 }
 
@@ -20,7 +20,7 @@ func Compose(transforms ...interface{}) *ComposeTransformer {
 	return &ComposeTransformer{Transforms: transforms}
 }
 
-// Run executes the transforms sequentially
+// Run executes the transformers sequentially
 func (t *ComposeTransformer) Run(inputs ...interface{}) interface{} {
 	if len(t.Transforms) == 0 {
 		panic("Cannot call Run() on an empty ComposeTransformer")
