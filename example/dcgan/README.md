@@ -43,12 +43,19 @@ $GOPATH/bin/dcgan -dataroot=$DATAROOT/train.tgz
 ```
 
 The training program periodically generates image samples and saves to pickle files.
-We use the `pickle_to_png.py` to transform the saved pickle files into png format.
+We provide a script to transform the saved pickle files into png format.
 
 ```bash
-python pickle_to_png.py
+python visualize_pickle.py --save_image=1
 ```
 
-Here are some generated images after 150 epoches training:
+Here are some generated images after 10 epoches training:
 
 ![example1](1.png) ![example2](2.png) ![example3](3.png)
+
+And the script could also generate an animation to visualize
+the training progress of generated fake images.
+
+```bash
+python visualize_pickle.py --save_video=1
+```

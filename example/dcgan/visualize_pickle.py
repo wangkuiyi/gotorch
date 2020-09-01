@@ -18,6 +18,7 @@ def get_files():
     files = [f[0] for f in files]
     return files
 
+
 if __name__ == "__main__":
     args = parser.parse_args()
     img_list = []
@@ -26,7 +27,9 @@ if __name__ == "__main__":
     for file in files:
         module = torch.jit.load(file, map_location=torch.device("cpu"))
         images = list(module.parameters())[0].detach().cpu()
-        img_list.append(vutils.make_grid(images.transpose(2, 3), padding=2, normalize=True))
+        img_list.append(
+            vutils.make_grid(images.transpose(2, 3), padding=2,
+                             normalize=True))
 
         if args.save_image:
             # save fake images to directory
