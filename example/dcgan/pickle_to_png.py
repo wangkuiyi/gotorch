@@ -8,7 +8,7 @@ for file in files:
     if not os.path.exists(directory):
         os.mkdir(directory)
 
-    module = torch.jit.load(file, map_location=torch.device("cpu"))
+    module = torch.jit.load(file)
     images = list(module.parameters())[0]
     for i in range(64):
         image = images[i].detach().cpu().reshape(3, 64, 64)
