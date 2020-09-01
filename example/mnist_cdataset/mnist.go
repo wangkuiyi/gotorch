@@ -5,6 +5,7 @@ import (
 	"time"
 
 	torch "github.com/wangkuiyi/gotorch"
+	"github.com/wangkuiyi/gotorch/data"
 	F "github.com/wangkuiyi/gotorch/nn/functional"
 	"github.com/wangkuiyi/gotorch/nn/initializer"
 	"github.com/wangkuiyi/gotorch/vision/datasets"
@@ -25,7 +26,7 @@ func main() {
 	initializer.ManualSeed(1)
 
 	mnist := datasets.MNIST("",
-		[]transforms.Transform{transforms.Normalize([]float64{0.1307}, []float64{0.3081})})
+		[]transforms.Transform{transforms.Normalize([]float64{0.1307}, []float64{0.3081})}, 64)
 
 	net := models.MLP()
 	net.To(device)
@@ -37,10 +38,8 @@ func main() {
 	var lastLoss float32
 	iters := 0
 	for epoch := 0; epoch < epochs; epoch++ {
-		trainLoader := datasets.NewMNISTLoader(mnist, 64)
-		for trainLoader.Scan() {
-			batch := trainLoader.Batch()
-			data, target := batch.Data.To(device, batch.Data.Dtype()), batch.Target.To(device, batch.Target.Dtype())
+		for batch := range data.Loader(mnist) {
+			data, target := batch.Data().To(device), batch.Target().To(device)
 			opt.ZeroGrad()
 			pred := net.Forward(data)
 			loss := F.NllLoss(pred, target, torch.Tensor{}, -100, "mean")
@@ -50,7 +49,6 @@ func main() {
 			iters++
 		}
 		log.Printf("Epoch: %d, Loss: %.4f", epoch, lastLoss)
-		trainLoader.Close()
 	}
 	throughput := float64(60000*epochs) / time.Since(startTime).Seconds()
 	log.Printf("Throughput: %f samples/sec", throughput)
