@@ -61,6 +61,18 @@ func discriminator(nc int64, ndf int64) *nn.SequentialModule {
 	)
 }
 
+func celebaLoader(dataroot string, vocab map[string]int64, mbSize int) *datasets.ImageLoader {
+	trans := transforms.Compose(transforms.Resize(64),
+		transforms.CenterCrop(64),
+		transforms.ToTensor(),
+		transforms.Normalize([]float64{0.5, 0.5, 0.5}, []float64{0.5, 0.5, 0.5}))
+	loader, e := datasets.NewImageLoader(dataroot, vocab, trans, mbSize)
+	if e != nil {
+		panic(e)
+	}
+	return loader
+}
+
 func main() {
 	flag.Parse()
 	if torch.IsCUDAAvailable() {
@@ -94,19 +106,20 @@ func main() {
 	checkpointCount := 1
 	batchSize := 64
 
-	trans := transforms.Compose(transforms.Resize(64),
-		transforms.ToTensor(),
-		transforms.Normalize([]float64{0.5, 0.5, 0.5}, []float64{0.5, 0.5, 0.5}))
-	cifar10, _ := datasets.CIFAR10(*dataroot, true, true, batchSize, trans)
+	vocab, e := datasets.BuildLabelVocabularyFromTgz(*dataroot)
+	if e != nil {
+		panic(e)
+	}
 
 	i := 0
 	for epoch := 0; epoch < epochs; epoch++ {
-		for cifar10.Scan() {
+		trainLoader := celebaLoader(*dataroot, vocab, batchSize)
+		for trainLoader.Scan() {
 			// (1) update D network
 			// train with real
 			optimizerD.ZeroGrad()
 
-			data, _ := cifar10.Batch()
+			data, _ := trainLoader.Minibatch()
 			data = data.CopyTo(device)
 
 			label := torch.Empty([]int64{data.Shape()[0]}, false).CopyTo(device)
@@ -143,7 +156,6 @@ func main() {
 			}
 			i++
 		}
-		cifar10.Reset()
 	}
 	torch.FinishGC()
 }
