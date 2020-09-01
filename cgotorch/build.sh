@@ -14,7 +14,14 @@ LIB_SUFFIX="so"
 INSTALL_NAME=""
 
 if [[ "$OS" == "linux" ]]; then
-    if [[ "$ARCH" =~ arm* ]]; then
+    if [[ "$ARCH" == "aarch64" ]]; then
+	echo "Building for NVIDIA Drive PX2 ...";
+	LIBTORCH_DIR="px2/libtorch"
+	if [[ ! -d "$DIR/$LIBTORCH_DIR" ]]; then
+	    curl -LsO https://github.com/ljk53/pytorch-rpi/raw/master/libtorch-rpi-aarch64-cxx11-abi-shared-without-deps-1.6.0.zip
+	    unzip -qq -o libtorch-rpi-aarch64-cxx11-abi-shared-without-deps-1.6.0.zip -d px2
+	fi
+    elif [[ "$ARCH" =~ arm* ]]; then
         echo "Building for Raspbian ...";
         LIBTORCH_DIR="rpi/libtorch"
         if [[ ! -d "$DIR/$LIBTORCH_DIR" ]]; then
