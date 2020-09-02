@@ -112,6 +112,8 @@ func main() {
 		device = torch.NewDevice("cpu")
 	}
 
+	initializer.ManualSeed(999)
+
 	nc := int64(3)
 	nz := int64(100)
 	ngf := int64(64)
