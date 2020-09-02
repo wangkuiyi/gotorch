@@ -1,16 +1,16 @@
 package main
 
 import (
+	"encoding/gob"
 	"flag"
-	"io"
 	"log"
 	"math"
-	"math/rand"
 	"os"
 	"time"
 
 	torch "github.com/wangkuiyi/gotorch"
 	F "github.com/wangkuiyi/gotorch/nn/functional"
+	"github.com/wangkuiyi/gotorch/nn/initializer"
 	"github.com/wangkuiyi/gotorch/vision/datasets"
 	"github.com/wangkuiyi/gotorch/vision/models"
 	"github.com/wangkuiyi/gotorch/vision/transforms"
@@ -73,18 +73,18 @@ func accuracy(output, target torch.Tensor, topk []int64) []float32 {
 	return res
 }
 
-func imageNetLoader(r io.Reader, vocab map[string]int64, mbSize int, skipSamples int) (*datasets.ImageNetLoader, error) {
+func imageNetLoader(fn string, vocab map[string]int64, mbSize int) *datasets.ImageLoader {
 	trans := transforms.Compose(
 		transforms.RandomResizedCrop(224),
 		transforms.RandomHorizontalFlip(0.5),
 		transforms.ToTensor(),
 		transforms.Normalize([]float64{0.485, 0.456, 0.406}, []float64{0.229, 0.224, 0.225}))
 
-	loader, e := datasets.ImageNet(r, vocab, trans, mbSize, skipSamples)
+	loader, e := datasets.NewImageLoader(fn, vocab, trans, mbSize)
 	if e != nil {
-		return nil, e
+		log.Fatal(e)
 	}
-	return loader, nil
+	return loader
 }
 
 func trainOneMinibatch(image, target torch.Tensor, model *models.ResnetModule, opt torch.Optimizer) (float32, float32, float32) {
@@ -98,18 +98,88 @@ func trainOneMinibatch(image, target torch.Tensor, model *models.ResnetModule, o
 	return loss.Item().(float32), acc1, acc5
 }
 
-func main() {
-	trainFile := flag.String("train-file", "train.tgz", "training images folder with tgz compressed.")
-	flag.Parse()
-	if _, e := os.Open(*trainFile); e != nil {
-		panic(e)
+func test(model *models.ResnetModule, loader *datasets.ImageLoader) {
+	testLoss := float32(0)
+	acc1 := float32(0)
+	acc5 := float32(0)
+	correct := int64(0)
+	samples := 0
+	for loader.Scan() {
+		data, label := loader.Minibatch()
+		data = data.To(device, data.Dtype())
+		label = label.To(device, label.Dtype())
+		output := model.Forward(data)
+		acc := accuracy(output, label, []int64{1, 5})
+		acc1 += acc[0]
+		acc5 += acc[1]
+		loss := F.CrossEntropy(output, label, torch.Tensor{}, -100, "mean")
+		pred := output.Argmax(1)
+		testLoss += loss.Item().(float32)
+		correct += pred.Eq(label.View(pred.Shape())).SumByDim(0, false).Item().(int64)
+		samples += int(label.Shape()[0])
 	}
+	log.Printf("Test average loss: %.4f acc1: %.4f acc5: %.4f \n",
+		testLoss/float32(samples), acc1/float32(samples), acc5/float32(samples))
+}
 
-	mbSize := 32 // minibatch size
-	epochs := 100
+func train(trainFn, testFn, save string, epochs int) {
+	// build label vocabulary
+	vocab, e := datasets.BuildLabelVocabularyFromTgz(trainFn)
+	if e != nil {
+		log.Fatal(e)
+	}
+	log.Print("building label vocabulary done.")
+	model := models.Resnet50()
+	model.To(device)
+	model.Train(true)
+
 	lr := 0.1
 	momentum := 0.9
 	weightDecay := 1e-4
+	mbSize := 32
+	optimizer := torch.SGD(lr, momentum, 0, weightDecay, false)
+	optimizer.AddParameters(model.Parameters())
+
+	for epoch := 0; epoch < epochs; epoch++ {
+		adjustLearningRate(optimizer, epoch, lr)
+		startTime := time.Now()
+		trainLoader := imageNetLoader(trainFn, vocab, mbSize)
+		testLoader := imageNetLoader(testFn, vocab, mbSize)
+		iter := 0
+		samples := int64(0)
+		for trainLoader.Scan() {
+			iter++
+			data, label := trainLoader.Minibatch()
+			samples += data.Shape()[0]
+			optimizer.ZeroGrad()
+			loss, acc1, acc5 := trainOneMinibatch(data.To(device, data.Dtype()), label.To(device, label.Dtype()), model, optimizer)
+			if iter%logInterval == 0 {
+				log.Printf("Train Epoch: %d, Iteration: %d, loss:%f, acc1: %f, acc5:%f", epoch, iter, loss, acc1, acc5)
+			}
+		}
+		throughput := float64(samples) / time.Since(startTime).Seconds()
+		log.Printf("End Epoch: %d, throughput: %f samples/sec", epoch, throughput)
+		test(model, testLoader)
+	}
+	saveModel(model, save)
+}
+
+func saveModel(model *models.ResnetModule, modelFn string) {
+	log.Println("Saving model to", modelFn)
+	f, e := os.Create(modelFn)
+	if e != nil {
+		log.Fatalf("Cannot create file to save model: %v", e)
+	}
+	defer f.Close()
+
+	d := torch.NewDevice("cpu")
+	model.To(d)
+	if e := gob.NewEncoder(f).Encode(model.StateDict()); e != nil {
+		log.Fatal(e)
+	}
+}
+
+func main() {
 	if torch.IsCUDAAvailable() {
 		log.Println("CUDA is valid")
 		device = torch.NewDevice("cuda")
@@ -118,65 +188,13 @@ func main() {
 		device = torch.NewDevice("cpu")
 	}
 
-	model := models.Resnet50()
-	model.To(device)
-	model.Train(true)
+	initializer.ManualSeed(1)
+	trainTar := flag.String("data", "/tmp/imagenet_training_shuffled.tar.gz", "data tarball")
+	testTar := flag.String("test", "/tmp/imagenet_testing_shuffled.tar.gz", "data tarball")
+	save := flag.String("save", "/tmp/imagenet_model.gob", "the model file")
+	epochs := flag.Int("epochs", 5, "the number of epochs")
 
-	optimizer := torch.SGD(lr, momentum, 0, weightDecay, false)
-	optimizer.AddParameters(model.Parameters())
+	flag.Parse()
 
-	f, e := os.Open(*trainFile)
-	if e != nil {
-		log.Fatal(e)
-	}
-	// build label vocabulary
-	vocab, e := datasets.BuildLabelVocabulary(f)
-	if e != nil {
-		log.Fatal(e)
-	}
-	log.Print("building label vocabulary done.")
-
-	iters := numIterPerEpoch(trainSamples, mbSize)
-	iter := 0
-	epoch := 0
-	adjustLearningRate(optimizer, epoch, lr)
-	skipSamples := 0
-	startTime := time.Now()
-	for epoch < epochs {
-		// seek to 0 of the file reader, and create an ImageNet loader
-		if _, e := f.Seek(0, io.SeekStart); e != nil {
-			log.Fatal(e)
-		}
-		loader, e := imageNetLoader(f, vocab, mbSize, skipSamples)
-		if e != nil {
-			panic(e)
-		}
-		for loader.Scan() {
-			iter++
-			image, target := loader.Minibatch()
-			optimizer.ZeroGrad()
-			loss, acc1, acc5 := trainOneMinibatch(image.To(device, torch.Float), target.To(device, torch.Long), model, optimizer)
-			if iter%logInterval == 0 {
-				throughput := float64(iter/logInterval) / time.Since(startTime).Seconds()
-				log.Printf("Epoch: %d, Iteration: %d, loss:%f, acc1: %f, acc5:%f, throughput: %f samples/secs",
-					epoch, iter, loss, acc1, acc5, throughput)
-				startTime = time.Now()
-			}
-			if iter == iters {
-				break
-			}
-		}
-		if iter == iters {
-			// go to next epoch
-			epoch++
-			adjustLearningRate(optimizer, epoch, lr)
-			iter = 0
-			skipSamples = rand.Intn(mbSize)
-			log.Printf("skip %d samples at the next epoch", skipSamples)
-		}
-	}
-}
-
-func numIterPerEpoch(samples, mbSize int) int {
-	return (trainSamples + mbSize - 1) / mbSize
+	train(*trainTar, *testTar, *save, *epochs)
 }
