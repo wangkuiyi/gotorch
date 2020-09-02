@@ -165,4 +165,4 @@ if __name__ == "__main__":
                     fake = netG(fixed_noise).detach()
                     torch.save(fake, ("pytorch-dcgan-sample-%d.pt" % iters))
 
-        iters += 1
+            iters += 1
