@@ -9,20 +9,20 @@ import (
 )
 
 func TestToTensorColorImage(t *testing.T) {
-	m := drawImage(image.Rect(0, 0, 2, 2), color.RGBA{0, 0, 255, 255})
+	m := drawImage(image.Rect(0, 0, 2, 3), color.RGBA{0, 0, 255, 255})
 	out := ToTensor().Run(m)
-	assert.Equal(t, []int64{3, 2, 2}, out.Shape())
+	assert.Equal(t, []int64{3, 3, 2}, out.Shape())
 	assert.Equal(t,
-		"(1,.,.) = \n  0  0\n  0  0\n\n(2,.,.) = \n  0  0\n  0  0\n\n(3,.,.) = \n  1  1\n  1  1\n[ CPUFloatType{3,2,2} ]",
+		"(1,.,.) = \n  0  0\n  0  0\n  0  0\n\n(2,.,.) = \n  0  0\n  0  0\n  0  0\n\n(3,.,.) = \n  1  1\n  1  1\n  1  1\n[ CPUFloatType{3,3,2} ]",
 		out.String())
 }
 
 func TestToTensorGrayImage(t *testing.T) {
-	m := drawGrayImage(image.Rect(0, 0, 2, 2), color.Gray{127})
+	m := drawGrayImage(image.Rect(0, 0, 2, 3), color.Gray{127})
 	out := ToTensor().Run(m)
-	assert.Equal(t, []int64{2, 2}, out.Shape())
+	assert.Equal(t, []int64{3, 2}, out.Shape())
 	assert.Equal(t,
-		" 0.4980  0.4980\n 0.4980  0.4980\n[ CPUFloatType{2,2} ]",
+		" 0.4980  0.4980\n 0.4980  0.4980\n 0.4980  0.4980\n[ CPUFloatType{3,2} ]",
 		out.String())
 }
 
