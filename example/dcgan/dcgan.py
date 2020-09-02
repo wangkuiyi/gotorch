@@ -71,24 +71,30 @@ class Discriminator(nn.Module):
         return self.main(input)
 
 
-dataset = dset.ImageFolder(root=dataroot,
-                           transform=transforms.Compose([
-                               transforms.Resize(image_size),
-                               transforms.CenterCrop(image_size),
-                               transforms.ToTensor(),
-                               transforms.Normalize((0.5, 0.5, 0.5),
-                                                    (0.5, 0.5, 0.5)),
-                           ]))
-# Create the dataloader
-dataloader = torch.utils.data.DataLoader(dataset,
-                                         batch_size=batch_size,
-                                         shuffle=False,
-                                         num_workers=workers)
+def create_dataloader(dataroot):
+    dataset = dset.ImageFolder(root=dataroot,
+                               transform=transforms.Compose([
+                                   transforms.Resize(image_size),
+                                   transforms.CenterCrop(image_size),
+                                   transforms.ToTensor(),
+                                   transforms.Normalize((0.5, 0.5, 0.5),
+                                                        (0.5, 0.5, 0.5)),
+                               ]))
+    # Create the dataloader
+    dataloader = torch.utils.data.DataLoader(dataset,
+                                             batch_size=batch_size,
+                                             shuffle=False,
+                                             num_workers=workers)
+    return dataloader
+
 
 if __name__ == "__main__":
+    args = parser.parse_args()
     device = torch.device("cuda:0" if (
         torch.cuda.is_available() and ngpu > 0) else "cpu")
     torch.manual_seed(999)
+
+    dataloader = create_dataloader(args.dataroot)
 
     workers = 2
     batch_size = 128
