@@ -137,7 +137,7 @@ func main() {
 	epochs := 10
 	checkpointStep := 100
 	checkpointCount := 1
-	batchSize := 64
+	batchSize := 128
 
 	vocab, e := datasets.BuildLabelVocabularyFromTgz(*dataroot)
 	if e != nil {
