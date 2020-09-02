@@ -8,6 +8,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/struCoder/pidusage"
 	torch "github.com/wangkuiyi/gotorch"
 	F "github.com/wangkuiyi/gotorch/nn/functional"
 	"github.com/wangkuiyi/gotorch/nn/initializer"
@@ -135,7 +136,9 @@ func trainFakeData(trainFn, testFn, save string, epochs int) {
 	optimizer.AddParameters(model.Parameters())
 	for epoch := 0; epoch < epochs; epoch++ {
 		adjustLearningRate(optimizer, epoch, lr)
+		iter := 0
 		for {
+			iter++
 			torch.GC()
 			data := torch.RandN([]int64{32, 3, 224, 224}, false)
 			label := torch.RandN([]int64{mbSize}, false)
@@ -145,7 +148,13 @@ func trainFakeData(trainFn, testFn, save string, epochs int) {
 			loss := F.CrossEntropy(output, label.CastTo(torch.Long), torch.Tensor{}, -100, "mean")
 			loss.Backward()
 			optimizer.Step()
+			if iter%logInterval == 0 {
+				sysInfo, _ := pidusage.GetStat(os.Getpid())
+				log.Printf("Train Epoch: %d, Iteration: %d, Memory: %.2f G", epoch, iter, sysInfo.Memory/1024/1024/1024)
+			}
+
 		}
+		log.Printf("End Train Epoch: %d", epoch)
 	}
 }
 

@@ -5,5 +5,6 @@ go 1.13
 require (
 	github.com/disintegration/imaging v1.6.2
 	github.com/stretchr/testify v1.6.1
+	github.com/struCoder/pidusage v0.1.3 // indirect
 	github.com/x448/float16 v0.8.4
 )
