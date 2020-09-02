@@ -58,3 +58,5 @@ the training progress of generated fake images.
 ```bash
 python visualize_pickle.py --save_video=1
 ```
+
+![dcgan](http://cdn.sqlflow.tech/dcgan.gif)
