@@ -121,6 +121,33 @@ func test(model *models.ResnetModule, loader *datasets.ImageLoader) {
 	log.Printf("Test average loss: %.4f acc1: %.4f acc5: %.4f \n",
 		testLoss/float32(samples), acc1/float32(samples), acc5/float32(samples))
 }
+func trainFakeData(trainFn, testFn, save string, epochs int) {
+	log.Print("train with fake data.")
+	model := models.Resnet50()
+	model.To(device)
+	model.Train(true)
+
+	lr := 0.1
+	momentum := 0.9
+	weightDecay := 1e-4
+	mbSize := int64(32)
+	optimizer := torch.SGD(lr, momentum, 0, weightDecay, false)
+	optimizer.AddParameters(model.Parameters())
+	for epoch := 0; epoch < epochs; epoch++ {
+		adjustLearningRate(optimizer, epoch, lr)
+		for {
+			torch.GC()
+			data := torch.RandN([]int64{32, 3, 224, 224}, false)
+			label := torch.RandN([]int64{mbSize}, false)
+			initializer.Uniform(&label, 0, 1000)
+			optimizer.ZeroGrad()
+			model.Forward(data)
+			loss := F.CrossEntropy(output, label.CastTo(torch.Long), torch.Tensor{}, -100, "mean")
+			loss.Backward()
+			optimizer.Step()
+		}
+	}
+}
 
 func train(trainFn, testFn, save string, epochs int) {
 	// build label vocabulary
@@ -187,6 +214,7 @@ func main() {
 		log.Println("No CUDA found; CPU only")
 		device = torch.NewDevice("cpu")
 	}
+	device = torch.NewDevice("cpu")
 
 	initializer.ManualSeed(1)
 	trainTar := flag.String("data", "/tmp/imagenet_training_shuffled.tar.gz", "data tarball")
@@ -195,6 +223,6 @@ func main() {
 	epochs := flag.Int("epochs", 5, "the number of epochs")
 
 	flag.Parse()
-
-	train(*trainTar, *testTar, *save, *epochs)
+	//train(*trainTar, *testTar, *save, *epochs)
+	trainFakeData(*trainTar, *testTar, *save, *epochs)
 }
