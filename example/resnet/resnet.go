@@ -141,7 +141,7 @@ func trainFakeData(trainFn, testFn, save string, epochs int) {
 			label := torch.RandN([]int64{mbSize}, false)
 			initializer.Uniform(&label, 0, 1000)
 			optimizer.ZeroGrad()
-			model.Forward(data)
+			output := model.Forward(data)
 			loss := F.CrossEntropy(output, label.CastTo(torch.Long), torch.Tensor{}, -100, "mean")
 			loss.Backward()
 			optimizer.Step()
