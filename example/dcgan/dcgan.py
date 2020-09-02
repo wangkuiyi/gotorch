@@ -13,6 +13,7 @@ import torchvision.transforms as transforms
 parser = argparse.ArgumentParser()
 parser.add_argument('--dataroot', help='path to dataset')
 
+image_size = 64
 
 class Generator(nn.Module):
     def __init__(self, nz, nc, ngf):
@@ -97,7 +98,6 @@ if __name__ == "__main__":
 
     workers = 2
     batch_size = 128
-    image_size = 64
     nc = 3
     nz = 100
     ngf = 64
