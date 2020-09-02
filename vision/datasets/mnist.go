@@ -11,23 +11,28 @@ import (
 	"log"
 	"unsafe"
 
-	"github.com/wangkuiyi/gotorch"
+	gotorch "github.com/wangkuiyi/gotorch"
+	"github.com/wangkuiyi/gotorch/data"
 	"github.com/wangkuiyi/gotorch/vision/transforms"
 )
 
 // MNISTDataset wraps C.MNISTDataSet
 type MNISTDataset struct {
 	dataset C.MNISTDataset
+	loader  C.MNISTLoader
+	iter    C.MNISTIterator
 }
 
 // Close the Dataset and release memory.
 func (d *MNISTDataset) Close() {
 	// FIXME: Currently, Dataset corresponds to MNIST dataset.
 	C.MNISTDataset_Close(d.dataset)
+	C.MNISTLoader_Close(d.loader)
+	C.MNISTIterator_Close(d.iter)
 }
 
 // MNIST corresponds to torchvision.datasets.MNIST.
-func MNIST(dataRoot string, trans []transforms.Transform) *MNISTDataset {
+func MNIST(dataRoot string, trans []transforms.Transform, batchSize int64) *MNISTDataset {
 	dataRoot = cacheDir(dataRoot)
 	if e := downloadMNIST(dataRoot); e != nil {
 		log.Fatalf("Failed to download MNIST dataset: %v", e)
@@ -52,72 +57,26 @@ func MNIST(dataRoot string, trans []transforms.Transform) *MNISTDataset {
 			panic(fmt.Sprintf("unsupposed transform type: %dataset", t))
 		}
 	}
-
-	return &MNISTDataset{dataset}
+	loader := C.CreateMNISTLoader(dataset, C.int64_t(batchSize))
+	return &MNISTDataset{
+		dataset: dataset,
+		loader:  loader,
+		iter:    C.MNISTLoader_Begin(loader)}
 }
 
-// MNISTLoader struct
-type MNISTLoader struct {
-	loader C.MNISTLoader
-	batch  *Batch
-	iter   C.MNISTIterator
-}
-
-// Batch struct contains data and target
-type Batch struct {
-	Data   gotorch.Tensor
-	Target gotorch.Tensor
-}
-
-// NewMNISTLoader returns Loader pointer
-func NewMNISTLoader(dataset *MNISTDataset, batchSize int64) *MNISTLoader {
-	return &MNISTLoader{
-		loader: C.CreateMNISTLoader(
-			C.MNISTDataset(dataset.dataset), C.int64_t(batchSize)),
-		batch: nil,
-		iter:  nil,
+// Get fetch a batch of examples and collate to one example
+func (d *MNISTDataset) Get() *data.Example {
+	if C.MNISTIterator_IsEnd(d.iter, d.loader) {
+		return nil
 	}
+	var x, y unsafe.Pointer
+	C.MNISTIterator_Batch(d.iter, (*C.Tensor)(&x), (*C.Tensor)(&y))
+	C.MNISTIterator_Next(d.iter, d.loader)
+	return data.NewExample(gotorch.Tensor{&x}, gotorch.Tensor{&y})
 }
 
-// Close Loader
-func (loader *MNISTLoader) Close() {
-	C.MNISTLoader_Close(loader.loader)
-	C.MNISTIterator_Close(loader.iter)
-}
-
-// minibatch returns the batch data as Tensor slice
-func minibatch(iter C.MNISTIterator) *Batch {
-	var data C.Tensor
-	var target C.Tensor
-	C.MNISTIterator_Batch(iter, &data, &target)
-	gotorch.SetTensorFinalizer((*unsafe.Pointer)(&data))
-	gotorch.SetTensorFinalizer((*unsafe.Pointer)(&target))
-	return &Batch{
-		Data:   gotorch.Tensor{(*unsafe.Pointer)(&data)},
-		Target: gotorch.Tensor{(*unsafe.Pointer)(&target)},
-	}
-}
-
-// Scan scans the batch from Loader
-func (loader *MNISTLoader) Scan() bool {
-	// make the previous batch object to be unreachable
-	// to release the Tensor memory.
-	loader.batch = nil
-	gotorch.GC()
-	if loader.iter == nil {
-		loader.iter = C.MNISTLoader_Begin(loader.loader)
-		loader.batch = minibatch(loader.iter)
-		return true
-	}
-	// returns false if no next iteration
-	if C.MNISTIterator_Next(loader.iter, loader.loader) == false {
-		return false
-	}
-	loader.batch = minibatch(loader.iter)
-	return true
-}
-
-// Batch returns the batch data on the current iteration.
-func (loader *MNISTLoader) Batch() *Batch {
-	return loader.batch
+// Reset resets the status of the Dataset
+func (d *MNISTDataset) Reset() {
+	C.MNISTIterator_Close(d.iter)
+	d.iter = C.MNISTLoader_Begin(d.loader)
 }

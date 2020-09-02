@@ -5,6 +5,7 @@ import (
 	"time"
 
 	torch "github.com/wangkuiyi/gotorch"
+	"github.com/wangkuiyi/gotorch/data"
 	nn "github.com/wangkuiyi/gotorch/nn"
 	F "github.com/wangkuiyi/gotorch/nn/functional"
 	"github.com/wangkuiyi/gotorch/vision/datasets"
@@ -31,23 +32,20 @@ func ExampleTrainMNISTSequential() {
 	net.Init(net)
 
 	mnist := datasets.MNIST("",
-		[]transforms.Transform{transforms.Normalize([]float64{0.1307}, []float64{0.3081})})
+		[]transforms.Transform{transforms.Normalize([]float64{0.1307}, []float64{0.3081})}, 64)
 
 	opt := torch.SGD(0.1, 0.5, 0, 0, false)
 	opt.AddParameters(net.Parameters())
 	epochs := 1
 	startTime := time.Now()
 	for i := 0; i < epochs; i++ {
-		trainLoader := datasets.NewMNISTLoader(mnist, 64)
-		for trainLoader.Scan() {
-			batch := trainLoader.Batch()
+		for batch := range data.Loader(mnist) {
 			opt.ZeroGrad()
-			pred := net.Forward(batch.Data)
-			loss := F.NllLoss(pred, batch.Target, torch.Tensor{}, -100, "mean")
+			pred := net.Forward(batch.Data())
+			loss := F.NllLoss(pred, batch.Target(), torch.Tensor{}, -100, "mean")
 			loss.Backward()
 			opt.Step()
 		}
-		trainLoader.Close()
 	}
 	throughput := float64(60000*epochs) / time.Since(startTime).Seconds()
 	log.Printf("Throughput: %f samples/sec", throughput)
