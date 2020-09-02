@@ -105,7 +105,6 @@ func main() {
 
 	epochs := 10
 	checkpointStep := 100
-	checkpointCount := 1
 	batchSize := 128
 
 	vocab, e := datasets.BuildLabelVocabularyFromTgz(*dataroot)
@@ -152,9 +151,8 @@ func main() {
 				epoch, epochs, i, errD, errG.Item())
 			if i%checkpointStep == 0 {
 				samples := netG.Forward(fixedNoise).(torch.Tensor)
-				ckName := fmt.Sprintf("dcgan-sample-%d.pt", checkpointCount)
+				ckName := fmt.Sprintf("gotorch-dcgan-sample-%d.pt", i)
 				samples.Detach().Save(ckName)
-				checkpointCount++
 			}
 			i++
 		}
