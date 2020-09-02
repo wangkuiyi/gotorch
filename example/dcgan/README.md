@@ -1,4 +1,9 @@
-# DCGAN Example
+# DCGAN Demo
+
+In this demo,we train a DCGAN on a faces dataset.
+The following are the generated fake faces by GoTorch(the left one) and PyTorch.
+
+![dcgan](http://cdn.sqlflow.tech/dcgan.gif)
 
 ## Download CelebA Dataset
 

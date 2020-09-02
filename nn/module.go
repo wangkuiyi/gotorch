@@ -24,6 +24,8 @@ type IModule interface {
 	SetStateDict(sd map[string]torch.Tensor) error
 	// Apply function recursively to each module
 	Apply(f func(IModule))
+	// Name returns module type name
+	Name() string
 }
 
 // Module contains default implementation of `Module`s
@@ -61,10 +63,21 @@ func (m *Module) Init(outer IModule) {
 				// Calling Init in a valid Module: struct{*Module} or struct{Module}
 				m.outer = outer
 				m.isTraining = true // training mode by default.
+				m.name = reflect.TypeOf(outer).String()
 			}
 		}
 	}
 	must(m.outer != nil, "GoTorch requires defining modules via embedding a `Module` struct by value")
+}
+
+// Name returns module name
+func (m *Module) Name() string {
+	return m.name
+}
+
+// Outer returns module outer
+func (m *Module) Outer() IModule {
+	return m.outer
 }
 
 // Apply function recursively to each module

@@ -3,7 +3,11 @@ package main
 import (
 	"flag"
 	"fmt"
+	"io"
 	"log"
+	"os"
+	"reflect"
+	"strings"
 
 	torch "github.com/wangkuiyi/gotorch"
 	nn "github.com/wangkuiyi/gotorch/nn"
@@ -15,6 +19,33 @@ import (
 
 var dataroot = flag.String("dataroot", "", "path to dataset")
 var device torch.Device
+
+func weightInit(m nn.IModule) {
+	if strings.Contains(m.Name(), "Conv") {
+		fv := reflect.ValueOf(m.(*nn.Module).Outer()).Elem()
+		for i := 0; i < fv.NumField(); i++ {
+			v := fv.Field(i)
+			f := fv.Type().Field(i)
+			if f.Name == "Weight" {
+				w := v.Interface().(torch.Tensor)
+				initializer.Normal(&w, 0.0, 0.02)
+			}
+		}
+	} else if strings.Contains(m.Name(), "BatchNorm") {
+		fv := reflect.ValueOf(m.(*nn.Module).Outer()).Elem()
+		for i := 0; i < fv.NumField(); i++ {
+			v := fv.Field(i)
+			f := fv.Type().Field(i)
+			if f.Name == "Weight" {
+				w := v.Interface().(torch.Tensor)
+				initializer.Normal(&w, 1.0, 0.02)
+			} else if f.Name == "Bias" {
+				w := v.Interface().(torch.Tensor)
+				initializer.Zeros(&w)
+			}
+		}
+	}
+}
 
 func generator(nz int64, nc int64, ngf int64) *nn.SequentialModule {
 	return nn.Sequential(
@@ -74,6 +105,10 @@ func celebaLoader(dataroot string, vocab map[string]int64, mbSize int) *datasets
 }
 
 func main() {
+	logFile, _ := os.OpenFile("gotorch-dcgan.log", os.O_CREATE|os.O_TRUNC|os.O_RDWR, 0666)
+	mw := io.MultiWriter(os.Stdout, logFile)
+	log.SetOutput(mw)
+
 	flag.Parse()
 	if torch.IsCUDAAvailable() {
 		log.Println("CUDA is valid")
@@ -90,23 +125,24 @@ func main() {
 	ngf := int64(64)
 	ndf := int64(64)
 	lr := 0.0002
+	epochs := 15
+	checkpointStep := 500
+	batchSize := 128
+
 	fixedNoise := torch.RandN([]int64{64, nz, 1, 1}, false).CopyTo(device)
 
 	netG := generator(nz, nc, ngf)
 	netG.To(device)
+	netG.Apply(weightInit)
 	netD := discriminator(nc, ndf)
 	netD.To(device)
+	netD.Apply(weightInit)
 
 	optimizerD := torch.Adam(lr, 0.5, 0.999, 0.0)
 	optimizerD.AddParameters(netD.Parameters())
 
 	optimizerG := torch.Adam(lr, 0.5, 0.999, 0.0)
 	optimizerG.AddParameters(netG.Parameters())
-
-	epochs := 10
-	checkpointStep := 100
-	checkpointCount := 1
-	batchSize := 128
 
 	vocab, e := datasets.BuildLabelVocabularyFromTgz(*dataroot)
 	if e != nil {
@@ -120,10 +156,8 @@ func main() {
 			// (1) update D network
 			// train with real
 			optimizerD.ZeroGrad()
-
 			data, _ := trainLoader.Minibatch()
 			data = data.CopyTo(device)
-
 			label := torch.Empty([]int64{data.Shape()[0]}, false).CopyTo(device)
 			initializer.Ones(&label)
 			output := netD.Forward(data).(torch.Tensor).View([]int64{-1, 1}).Squeeze(1)
@@ -148,13 +182,12 @@ func main() {
 			errG.Backward()
 			optimizerG.Step()
 
-			fmt.Printf("[%d/%d][%d] D_Loss: %f G_Loss: %f\n",
+			log.Printf("| %d/%d | Step: %d | Loss_D: %.4f | Loss_G: %.4f |\n",
 				epoch, epochs, i, errD, errG.Item())
 			if i%checkpointStep == 0 {
 				samples := netG.Forward(fixedNoise).(torch.Tensor)
-				ckName := fmt.Sprintf("dcgan-sample-%d.pt", checkpointCount)
+				ckName := fmt.Sprintf("gotorch-dcgan-sample-%d.pt", i)
 				samples.Detach().Save(ckName)
-				checkpointCount++
 			}
 			i++
 		}
