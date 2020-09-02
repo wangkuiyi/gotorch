@@ -51,10 +51,6 @@ We provide a script to transform the saved pickle files into png format.
 python visualize_pickle.py --save_image=1
 ```
 
-Here are some generated images after 10 epoches training:
-
-![example1](1.png) ![example2](2.png) ![example3](3.png)
-
 And the script could also generate an animation to visualize
 the training progress of generated fake images.
 `ffmpeg` is needed to save the animation to mp4 format.
