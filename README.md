@@ -73,7 +73,7 @@ executable binary  # x86_64, ARM, CUDA, TPU
 - How To
   - [Wrap PyTorch Native Functions](./doc/wrap_native_functions.md) [(汉语)](./doc/wrap_native_functions_cn.md)
   - [Port Functionals and Modules](doc/develop_functionals_and_modules.md) [(汉语)](./doc/develop_functionals_and_modules_cn.md)
-  - [Shuffle Images in Tarballs](doc/shuffle_tarball.md)
+  - [Shuffle Images in Tarballs](doc/shuffle_tarball.md) [(汉语)](./doc/shuffle_tarball_cn.md)
 - Examples
   - [MNIST Training](./example/mnist)
   - [Adversarial Learning](./example/dcgan)

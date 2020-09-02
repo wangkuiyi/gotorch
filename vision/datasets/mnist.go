@@ -17,13 +17,13 @@ import (
 
 // MNISTDataset wraps C.MNISTDataSet
 type MNISTDataset struct {
-	T C.MNISTDataset
+	dataset C.MNISTDataset
 }
 
 // Close the Dataset and release memory.
 func (d *MNISTDataset) Close() {
 	// FIXME: Currently, Dataset corresponds to MNIST dataset.
-	C.MNISTDataset_Close(d.T)
+	C.MNISTDataset_Close(d.dataset)
 }
 
 // MNIST corresponds to torchvision.datasets.MNIST.
@@ -49,7 +49,7 @@ func MNIST(dataRoot string, trans []transforms.Transform) *MNISTDataset {
 				(*C.double)(unsafe.Pointer(&trans.Stddev[0])),
 				C.int64_t(len(trans.Stddev)))
 		default:
-			panic(fmt.Sprintf("unsupposed transform type: %T", t))
+			panic(fmt.Sprintf("unsupposed transform type: %dataset", t))
 		}
 	}
 
@@ -58,9 +58,9 @@ func MNIST(dataRoot string, trans []transforms.Transform) *MNISTDataset {
 
 // MNISTLoader struct
 type MNISTLoader struct {
-	T     C.MNISTLoader
-	batch *Batch
-	iter  C.MNISTIterator
+	loader C.MNISTLoader
+	batch  *Batch
+	iter   C.MNISTIterator
 }
 
 // Batch struct contains data and target
@@ -72,8 +72,8 @@ type Batch struct {
 // NewMNISTLoader returns Loader pointer
 func NewMNISTLoader(dataset *MNISTDataset, batchSize int64) *MNISTLoader {
 	return &MNISTLoader{
-		T: C.CreateMNISTLoader(
-			C.MNISTDataset(dataset.T), C.int64_t(batchSize)),
+		loader: C.CreateMNISTLoader(
+			C.MNISTDataset(dataset.dataset), C.int64_t(batchSize)),
 		batch: nil,
 		iter:  nil,
 	}
@@ -81,7 +81,8 @@ func NewMNISTLoader(dataset *MNISTDataset, batchSize int64) *MNISTLoader {
 
 // Close Loader
 func (loader *MNISTLoader) Close() {
-	C.MNISTLoader_Close(loader.T)
+	C.MNISTLoader_Close(loader.loader)
+	C.MNISTIterator_Close(loader.iter)
 }
 
 // minibatch returns the batch data as Tensor slice
@@ -104,12 +105,12 @@ func (loader *MNISTLoader) Scan() bool {
 	loader.batch = nil
 	gotorch.GC()
 	if loader.iter == nil {
-		loader.iter = C.MNISTLoader_Begin(loader.T)
+		loader.iter = C.MNISTLoader_Begin(loader.loader)
 		loader.batch = minibatch(loader.iter)
 		return true
 	}
 	// returns false if no next iteration
-	if C.MNISTIterator_Next(loader.iter, loader.T) == false {
+	if C.MNISTIterator_Next(loader.iter, loader.loader) == false {
 		return false
 	}
 	loader.batch = minibatch(loader.iter)
