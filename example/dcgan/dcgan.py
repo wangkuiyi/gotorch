@@ -90,8 +90,7 @@ def create_dataloader(dataroot):
 
 if __name__ == "__main__":
     args = parser.parse_args()
-    device = torch.device("cuda:0" if (
-        torch.cuda.is_available() and ngpu > 0) else "cpu")
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     torch.manual_seed(999)
 
     dataloader = create_dataloader(args.dataroot)
