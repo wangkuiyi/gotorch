@@ -91,7 +91,6 @@ if __name__ == "__main__":
     num_epochs = 10
     lr = 0.0002
     beta1 = 0.5
-    ngpu = 1
     checkpoint_step = 100
 
     dataset = dset.ImageFolder(root=args.dataroot,
