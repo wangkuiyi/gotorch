@@ -53,17 +53,17 @@ func getInterfaceInputs(prevReturned []reflect.Value) (r []interface{}) {
 // FunctionalModule wraps a function in a `Module`.
 type FunctionalModule struct {
 	Module
-	Function func(torch.Tensor) torch.Tensor
+	function func(torch.Tensor) torch.Tensor
 }
 
 // Functional returns a new `Functional` instance.
 func Functional(f func(torch.Tensor) torch.Tensor) *FunctionalModule {
-	r := &FunctionalModule{Module: Module{isTraining: true}, Function: f}
+	r := &FunctionalModule{Module: Module{isTraining: true}, function: f}
 	r.Init(r)
 	return r
 }
 
 // Forward feeds the `input` tensor to the underlying function.
 func (f *FunctionalModule) Forward(input torch.Tensor) torch.Tensor {
-	return f.Function(input)
+	return f.function(input)
 }

@@ -8,5 +8,6 @@ data
 *.test
 .DS_store
 *.png
+*.mp4
 *.pt
 trace.out
