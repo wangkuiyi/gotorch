@@ -13,7 +13,6 @@ import torchvision.transforms as transforms
 parser = argparse.ArgumentParser()
 parser.add_argument('--dataroot', help='path to dataset')
 
-image_size = 64
 
 class Generator(nn.Module):
     def __init__(self, nz, nc, ngf):
@@ -73,7 +72,29 @@ class Discriminator(nn.Module):
 
 
 def create_dataloader(dataroot):
-    dataset = dset.ImageFolder(root=dataroot,
+
+    return dataloader
+
+
+if __name__ == "__main__":
+    args = parser.parse_args()
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    torch.manual_seed(999)
+
+    workers = 2
+    image_size = 64
+    batch_size = 128
+    nc = 3
+    nz = 100
+    ngf = 64
+    ndf = 64
+    num_epochs = 10
+    lr = 0.0002
+    beta1 = 0.5
+    ngpu = 1
+    checkpoint_step = 100
+
+    dataset = dset.ImageFolder(root=args.dataroot,
                                transform=transforms.Compose([
                                    transforms.Resize(image_size),
                                    transforms.CenterCrop(image_size),
@@ -86,27 +107,6 @@ def create_dataloader(dataroot):
                                              batch_size=batch_size,
                                              shuffle=False,
                                              num_workers=workers)
-    return dataloader
-
-
-if __name__ == "__main__":
-    args = parser.parse_args()
-    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    torch.manual_seed(999)
-
-    dataloader = create_dataloader(args.dataroot)
-
-    workers = 2
-    batch_size = 128
-    nc = 3
-    nz = 100
-    ngf = 64
-    ndf = 64
-    num_epochs = 10
-    lr = 0.0002
-    beta1 = 0.5
-    ngpu = 1
-    checkpoint_step = 100
 
     netG = Generator(nz, nc, ngf).to(device)
     netD = Discriminator(nc, ndf).to(device)
