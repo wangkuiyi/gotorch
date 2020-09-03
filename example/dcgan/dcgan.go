@@ -90,6 +90,10 @@ func main() {
 	ngf := int64(64)
 	ndf := int64(64)
 	lr := 0.0002
+	epochs := 20
+	checkpointStep := 500
+	batchSize := 128
+
 	fixedNoise := torch.RandN([]int64{64, nz, 1, 1}, false).CopyTo(device)
 
 	netG := generator(nz, nc, ngf)
@@ -102,10 +106,6 @@ func main() {
 
 	optimizerG := torch.Adam(lr, 0.5, 0.999, 0.0)
 	optimizerG.AddParameters(netG.Parameters())
-
-	epochs := 10
-	checkpointStep := 300
-	batchSize := 128
 
 	vocab, e := datasets.BuildLabelVocabularyFromTgz(*dataroot)
 	if e != nil {

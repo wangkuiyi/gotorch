@@ -83,10 +83,18 @@ if __name__ == "__main__":
     nz = 100
     ngf = 64
     ndf = 64
-    num_epochs = 10
+    num_epochs = 20
     lr = 0.0002
     beta1 = 0.5
-    checkpoint_step = 300
+    checkpoint_step = 500
+
+    fixed_noise = torch.randn(64, nz, 1, 1, device=device)
+    netG = Generator(nz, nc, ngf).to(device)
+    netD = Discriminator(nc, ndf).to(device)
+
+    optimizerD = optim.Adam(netD.parameters(), lr=lr, betas=(beta1, 0.999))
+    optimizerG = optim.Adam(netG.parameters(), lr=lr, betas=(beta1, 0.999))
+
 
     dataset = dset.ImageFolder(root=args.dataroot,
                                transform=transforms.Compose([
@@ -102,18 +110,9 @@ if __name__ == "__main__":
                                              shuffle=False,
                                              num_workers=workers)
 
-    netG = Generator(nz, nc, ngf).to(device)
-    netD = Discriminator(nc, ndf).to(device)
-
     criterion = nn.BCELoss()
-
-    fixed_noise = torch.randn(64, nz, 1, 1, device=device)
-
     real_label = 1.
     fake_label = 0.
-
-    optimizerD = optim.Adam(netD.parameters(), lr=lr, betas=(beta1, 0.999))
-    optimizerG = optim.Adam(netG.parameters(), lr=lr, betas=(beta1, 0.999))
 
     iters = 0
     for epoch in range(num_epochs):
