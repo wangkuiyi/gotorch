@@ -22,6 +22,7 @@ if [[ "$OS" == "linux" ]]; then
             unzip -qq -o libtorch-rpi-cxx11-abi-shared-1.6.0.zip -d rpi
         fi
     elif $(whereis cuda | cut -f 2 -d ' ')/bin/nvcc --version > /dev/null; then
+        CXX="clang++"
         CUDA_VERSION=`nvcc --version | grep release | grep -Eo "[0-9]+.[0-9]+" | head -1`
         if [[ "$CUDA_VERSION" == "10.1" ]]; then
             echo "Building for Linux with CUDA 10.1";

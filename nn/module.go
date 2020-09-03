@@ -22,6 +22,8 @@ type IModule interface {
 	StateDict() map[string]torch.Tensor
 	// SetStateDict mimics torch.nn.Module.set_state_dict()
 	SetStateDict(sd map[string]torch.Tensor) error
+	// Apply function recursively to each module
+	Apply(f func(IModule))
 }
 
 // Module contains default implementation of `Module`s
@@ -65,10 +67,10 @@ func (m *Module) Init(outer IModule) {
 	must(m.outer != nil, "GoTorch requires defining modules via embedding a `Module` struct by value")
 }
 
-// Train enables "training" mode
-func (m *Module) Train(on bool) {
+// Apply function recursively to each module
+func (m *Module) Apply(function func(IModule)) {
 	must(m.outer != nil, "GoTorch requires calling `Init` before using")
-	m.isTraining = on
+	function(m)
 	sv := reflect.ValueOf(m.outer).Elem()
 	for i := 0; i < sv.NumField(); i++ {
 		f := sv.Type().Field(i)
@@ -79,7 +81,7 @@ func (m *Module) Train(on bool) {
 					"GoTorch requires exporting Module field %s.%s", sv.Type().Name(), f.Name)
 				if m, ok := v.Index(j).Interface().(IModule); ok {
 					if !reflect.ValueOf(m).IsNil() {
-						m.Train(on)
+						m.Apply(function)
 					}
 				}
 			}
@@ -88,11 +90,16 @@ func (m *Module) Train(on bool) {
 				"GoTorch requires exporting Module field %s.%s", sv.Type().Name(), f.Name)
 			if m, ok := v.Interface().(IModule); ok {
 				if !reflect.ValueOf(m).IsNil() {
-					m.Train(on)
+					m.Apply(function)
 				}
 			}
 		}
 	}
+}
+
+// Train enables "training" mode
+func (m *Module) Train(on bool) {
+	m.Apply(func(n IModule) { n.(*Module).isTraining = on })
 }
 
 // IsTraining returns true if the module is in training mode
