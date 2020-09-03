@@ -1,2 +1,4 @@
 libtorch*
 torch_xla
+*.bz2
+*.zip
