@@ -64,6 +64,11 @@ function build_linux(){
         unzip -qq -o libtorch-shared-with-deps-1.6.0%2Bcpu.zip -d linux
     fi
 
+    if [[ ! -d "$DIR/torch_xla" ]]; then
+        curl -LsO "https://github.com/wangkuiyi/torch_xla_prebuilt/raw/master/torch_xla-1.6.0.tar.bz2"
+        tar xjf torch_xla-1.6.0.tar.bz2
+    fi
+
     if [[ -d "$DIR/torch_xla" ]]; then
         echo "Found XLA library. Use it."
         XLA_LIBS="-Ltorch_xla/lib -lptxla -lxla_computation_client"
