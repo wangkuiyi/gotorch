@@ -71,11 +71,6 @@ class Discriminator(nn.Module):
         return self.main(input)
 
 
-def create_dataloader(dataroot):
-
-    return dataloader
-
-
 if __name__ == "__main__":
     args = parser.parse_args()
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -91,7 +86,7 @@ if __name__ == "__main__":
     num_epochs = 10
     lr = 0.0002
     beta1 = 0.5
-    checkpoint_step = 100
+    checkpoint_step = 300
 
     dataset = dset.ImageFolder(root=args.dataroot,
                                transform=transforms.Compose([
@@ -121,7 +116,6 @@ if __name__ == "__main__":
     optimizerG = optim.Adam(netG.parameters(), lr=lr, betas=(beta1, 0.999))
 
     iters = 0
-
     for epoch in range(num_epochs):
         for i, data in enumerate(dataloader, 0):
             # (1) update D network

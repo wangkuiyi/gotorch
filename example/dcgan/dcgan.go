@@ -104,7 +104,7 @@ func main() {
 	optimizerG.AddParameters(netG.Parameters())
 
 	epochs := 10
-	checkpointStep := 100
+	checkpointStep := 300
 	batchSize := 128
 
 	vocab, e := datasets.BuildLabelVocabularyFromTgz(*dataroot)
@@ -119,10 +119,8 @@ func main() {
 			// (1) update D network
 			// train with real
 			optimizerD.ZeroGrad()
-
 			data, _ := trainLoader.Minibatch()
 			data = data.CopyTo(device)
-
 			label := torch.Empty([]int64{data.Shape()[0]}, false).CopyTo(device)
 			initializer.Ones(&label)
 			output := netD.Forward(data).(torch.Tensor).View([]int64{-1, 1}).Squeeze(1)
