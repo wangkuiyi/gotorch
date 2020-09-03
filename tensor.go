@@ -70,6 +70,9 @@ func (a Tensor) Dim() int64 {
 // Shape returns shape
 func (a Tensor) Shape() []int64 {
 	shape := make([]int64, a.Dim())
+	if len(shape) == 0 {
+		return shape
+	}
 	MustNil(unsafe.Pointer(C.Tensor_Shape(C.Tensor(*a.T), (*C.int64_t)(unsafe.Pointer(&shape[0])))))
 	return shape
 }

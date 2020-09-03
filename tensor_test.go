@@ -76,6 +76,9 @@ func TestShape(t *testing.T) {
 	a := torch.RandN([]int64{2, 3}, false)
 	assert.Equal(t, int64(2), a.Shape()[0])
 	assert.Equal(t, int64(3), a.Shape()[1])
+	// a.Argmax returns a 0-dim tensor
+	b := a.Argmax()
+	assert.Equal(t, 0, len(b.Shape()))
 }
 
 func TestSave(t *testing.T) {
@@ -90,4 +93,12 @@ func TestSave(t *testing.T) {
 	assert.EqualValues(t, a.Shape(), b.Shape())
 	assert.Equal(t, a.Dtype(), b.Dtype())
 	assert.Equal(t, a.String(), b.String())
+}
+
+func TestSetData(t *testing.T) {
+	a := torch.Full([]int64{2, 3}, 0, false)
+	b := torch.Ones([]int64{2, 3}, false)
+	assert.False(t, torch.Equal(a, b))
+	b.SetData(a)
+	assert.True(t, torch.Equal(a, b))
 }
