@@ -88,7 +88,7 @@ if __name__ == "__main__":
     beta1 = 0.5
     checkpoint_step = 500
 
-    fixed_noise = torch.randn(64, nz, 1, 1, device=device)
+    fixed_noise = torch.randn(64, nz, 1, 1).to(device)
     netG = Generator(nz, nc, ngf).to(device)
     netD = Discriminator(nc, ndf).to(device)
 
