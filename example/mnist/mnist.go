@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/struCoder/pidusage"
 	torch "github.com/wangkuiyi/gotorch"
 	F "github.com/wangkuiyi/gotorch/nn/functional"
 	"github.com/wangkuiyi/gotorch/nn/initializer"
@@ -29,7 +30,7 @@ func main() {
 		log.Println("No CUDA found; CPU only")
 		device = torch.NewDevice("cpu")
 	}
-
+	device = torch.NewDevice("cpu")
 	initializer.ManualSeed(1)
 
 	trainCmd := flag.NewFlagSet("train", flag.ExitOnError)
@@ -84,7 +85,8 @@ func train(trainFn, testFn string, epochs int, save string) {
 			trainLoss = loss.Item().(float32)
 		}
 		throughput := float64(totalSamples) / time.Since(startTime).Seconds()
-		log.Printf("Train Epoch: %d, Loss: %.4f, throughput: %f samples/sec", epoch, trainLoss, throughput)
+		sysInfo, _ := pidusage.GetStat(os.Getpid())
+		log.Printf("Train Epoch: %d, Loss: %.4f, throughput: %f samples/sec, memory usage: %.2f G", epoch, trainLoss, throughput, sysInfo.Memory/1024/1024/1024)
 		test(net, testLoader)
 	}
 	saveModel(net, save)

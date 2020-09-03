@@ -1,9 +1,12 @@
 /* Copyright 2020, GoTorch Authors */
 #include <torch/torch.h>
+#include <unistd.h>
 
 #include <chrono>  // NOLINT
 #include <cstddef>
 #include <cstdio>
+#include <fstream>
+#include <ios>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -35,6 +38,41 @@ struct Net : torch::nn::Module {
   torch::nn::Linear fc2;
   torch::nn::Linear fc3;
 };
+
+void process_mem_usage(double& resident_set) {
+  using std::ifstream;
+  using std::ios_base;
+  using std::string;
+
+  resident_set = 0.0;
+
+  // 'file' stat seems to give the most reliable results
+  //
+  ifstream stat_stream("/proc/self/stat", ios_base::in);
+
+  // dummy vars for leading entries in stat that we don't care about
+  //
+  string pid, comm, state, ppid, pgrp, session, tty_nr;
+  string tpgid, flags, minflt, cminflt, majflt, cmajflt;
+  string utime, stime, cutime, cstime, priority, nice;
+  string O, itrealvalue, starttime;
+
+  // the two fields we want
+  //
+  int64_t vsize;
+  int64_t rss;
+
+  stat_stream >> pid >> comm >> state >> ppid >> pgrp >> session >> tty_nr >>
+      tpgid >> flags >> minflt >> cminflt >> majflt >> cmajflt >> utime >>
+      stime >> cutime >> cstime >> priority >> nice >> O >> itrealvalue >>
+      starttime >> vsize >> rss;  // don't care about the rest
+
+  stat_stream.close();
+
+  int64_t page_size_kb = sysconf(_SC_PAGE_SIZE) /
+                         1024;  // in case x86-64 is configured to use 2MB pages
+  resident_set = rss * page_size_kb / 1024.0 / 1024.0;
+}
 
 auto main() -> int {
   torch::manual_seed(1);
@@ -70,6 +108,10 @@ auto main() -> int {
       loss.backward();
       optimizer.step();
     }
+    double res_usage;
+    process_mem_usage(res_usage);
+    std::printf("End train epoch: %zu, memory usage: %.4f G\n", epoch,
+                res_usage);
   }
   std::chrono::high_resolution_clock::time_point end_time =
       std::chrono::high_resolution_clock::now();
