@@ -9,7 +9,9 @@ jobs:
     steps:
       - checkout
       - run: pre-commit run -a
-      - run: LD_LIBRARY_PATH=$CIRCLE_WORKING_DIRECTORY/cgotorch/libtorch/lib
+      - run: >-
+          LD_LIBRARY_PATH=$CIRCLE_WORKING_DIRECTORY/cgotorch/libtorch/lib:
+          $CIRCLE_WORKING_DIRECTORY/cgotorch/torch_xla/lib:LD_LIBRARY_PATH
       - run: go generate ./...
       - run: go install ./...
       - run: go test -race -coverprofile=coverage.txt -covermode=atomic -v ./...
