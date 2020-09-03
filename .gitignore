@@ -1,4 +1,3 @@
-libtorch*
 build
 gotorch
 libcgotorch.so

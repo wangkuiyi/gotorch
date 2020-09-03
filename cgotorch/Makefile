@@ -17,7 +17,7 @@ libcgotorch.so : $(srcs) $(hdrs) ${LIBTORCH_DIR}
 	-O -o $@ ${INSTALL_NAME} \
 	-Wl,-rpath,libtorch/lib \
 	-Wl,-${LOAD} libtorch/lib/libc10.${LIB_SUFFIX} \
-	-lc10 -ltorch -ltorch_cpu \
+	-lc10 -ltorch -ltorch_cpu ${XLA_LIBS} \
 	-D_GLIBCXX_USE_CXX11_ABI=${GLIBCXX_USE_CXX11_ABI}
 
 clean:

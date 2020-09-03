@@ -12,8 +12,19 @@ GLIBCXX_USE_CXX11_ABI="1"
 LOAD="force_load"
 LIB_SUFFIX="so"
 INSTALL_NAME=""
+XLA_LIBS=""
 
-if [[ "$OS" == "linux" ]]; then
+if [[ "$OS" == "darwin" ]]; then
+    echo "Building for macOS ...";
+    LIBTORCH_DIR="macos/libtorch"
+    LIB_SUFFIX="dylib"
+    INSTALL_NAME="-install_name @rpath/\$@"
+    LOAD="all_load"
+    if [[ ! -d "$DIR/$LIBTORCH_DIR" ]]; then
+        curl -LsO https://download.pytorch.org/libtorch/cpu/libtorch-macos-1.6.0.zip
+        unzip -qq -o libtorch-macos-1.6.0.zip -d macos
+    fi
+elif [[ "$OS" == "linux" ]]; then
     if [[ "$ARCH" =~ arm* ]]; then
         echo "Building for Raspbian ...";
         LIBTORCH_DIR="rpi/libtorch"
@@ -23,7 +34,8 @@ if [[ "$OS" == "linux" ]]; then
         fi
     elif $(whereis cuda | cut -f 2 -d ' ')/bin/nvcc --version > /dev/null; then
         CXX="clang++"
-        CUDA_VERSION=`nvcc --version | grep release | grep -Eo "[0-9]+.[0-9]+" | head -1`
+        CUDA_VERSION=`$(whereis cuda | cut -f 2 -d ' ')/bin/nvcc --version | grep release | grep -Eo "[0-9]+.[0-9]+" | head -1`
+	echo "CUDA version: $CUDA_VERSION"
         if [[ "$CUDA_VERSION" == "10.1" ]]; then
             echo "Building for Linux with CUDA 10.1";
             LIBTORCH_DIR="linux-cuda101/libtorch"
@@ -39,25 +51,20 @@ if [[ "$OS" == "linux" ]]; then
                 unzip -qq -o libtorch-cxx11-1.6.0-linux-cuda102.zip -d linux-cuda102
             fi
         fi
-    else
-        echo "Building for Linux without CUDA ...";
-        LIBTORCH_DIR="linux/libtorch"
-        GLIBCXX_USE_CXX11_ABI="0"
-        if [[ ! -d "DIR/$LIBTORCH_DIR" ]]; then
-            curl -LsO 'https://download.pytorch.org/libtorch/cpu/libtorch-shared-with-deps-1.6.0%2Bcpu.zip'
-            unzip -qq -o libtorch-shared-with-deps-1.6.0%2Bcpu.zip -d linux
-        fi
+	echo "libtorch doesn't support the CUDA version"
     fi
-elif [[ "$OS" == "darwin" ]]; then
-    echo "Building for macOS ...";
-    LIBTORCH_DIR="macos/libtorch"
-    LIB_SUFFIX="dylib"
-    INSTALL_NAME="-install_name @rpath/\$@"
-    LOAD="all_load"
-    if [[ ! -d "$DIR/$LIBTORCH_DIR" ]]; then
-        curl -LsO https://download.pytorch.org/libtorch/cpu/libtorch-macos-1.6.0.zip
-        unzip -qq -o libtorch-macos-1.6.0.zip -d macos
-    fi
+fi
+
+echo "Building for Linux without CUDA ...";
+LIBTORCH_DIR="linux/libtorch"
+GLIBCXX_USE_CXX11_ABI="0"
+if [[ ! -d "$DIR/$LIBTORCH_DIR" ]]; then
+    curl -LsO 'https://download.pytorch.org/libtorch/cpu/libtorch-shared-with-deps-1.6.0%2Bcpu.zip'
+    unzip -qq -o libtorch-shared-with-deps-1.6.0%2Bcpu.zip -d linux
+fi
+if [[ -d "$DIR/torch_xla" ]]; then
+    echo "Found XLA library. Use it."
+    XLA_LIBS="-Ltorch_xla/lib -lptxla -lxla_computation_client"
 fi
 
 make CXX="$CXX" \
@@ -66,6 +73,7 @@ make CXX="$CXX" \
      LIBTORCH_DIR="$LIBTORCH_DIR" \
      GLIBCXX_USE_CXX11_ABI="$GLIBCXX_USE_CXX11_ABI" \
      LOAD="$LOAD" \
+     XLA_LIBS="$XLA_LIBS" \
      -f Makefile;
 
 popd
