@@ -22,9 +22,6 @@ func Compose(transforms ...interface{}) *ComposeTransformer {
 
 // Run executes the transformers sequentially
 func (t *ComposeTransformer) Run(inputs ...interface{}) interface{} {
-	if len(t.Transforms) == 0 {
-		panic("Cannot call Run() on an empty ComposeTransformer")
-	}
 	for _, transform := range t.Transforms {
 		run := reflect.ValueOf(transform).MethodByName("Run")
 		if !run.IsValid() {
