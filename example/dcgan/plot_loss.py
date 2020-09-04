@@ -23,7 +23,7 @@ def get_loss(prefix):
 
 def plot_loss(prefix):
     step, loss_d, loss_g = get_loss(prefix)
-    plt.figure(figsize=(12, 5))
+    plt.figure(figsize=(8, 4))
     plt.plot(loss_g, label="G")
     plt.plot(loss_d, label="D")
     plt.xlabel("iterations")
