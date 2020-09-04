@@ -22,25 +22,17 @@ func Compose(transforms ...interface{}) *ComposeTransformer {
 
 // Run executes the transformers sequentially
 func (t *ComposeTransformer) Run(inputs ...interface{}) interface{} {
-	if len(t.Transforms) == 0 {
-		panic("Cannot call Run() on an empty ComposeTransformer")
-	}
-	run := reflect.ValueOf(t.Transforms[0]).MethodByName("Run")
-	if !run.IsValid() {
-		panic(fmt.Sprintf("GoTorch required exporting `Run` receiver on %s", reflect.TypeOf(t.Transforms[0])))
-	}
-	input := getInterfaceInputs(run.Call(getReflectInputs(inputs)))
-	for i := 1; i < len(t.Transforms); i++ {
-		run := reflect.ValueOf(t.Transforms[i]).MethodByName("Run")
+	for _, transform := range t.Transforms {
+		run := reflect.ValueOf(transform).MethodByName("Run")
 		if !run.IsValid() {
-			panic(fmt.Sprintf("GoTorch required exporting `Run` receiver on %s", reflect.TypeOf(t.Transforms[0])))
+			panic(fmt.Sprintf("GoTorch required exporting `Run` receiver on %s", reflect.TypeOf(transform)))
 		}
-		input = getInterfaceInputs(run.Call(getReflectInputs(input)))
+		inputs = getInterfaceInputs(run.Call(getReflectInputs(inputs)))
 	}
-	if len(input) != 1 {
-		panic("The last transfrom in Compose must have exactly one return value")
+	if len(inputs) != 1 {
+		panic("The last transform in Compose must have exactly one return value")
 	}
-	return input[0]
+	return inputs[0]
 }
 
 func getReflectInputs(inputs []interface{}) (r []reflect.Value) {
