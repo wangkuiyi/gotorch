@@ -1,6 +1,23 @@
-# DCGAN Example
+# DCGAN Demo
 
-## Download CelebA Dataset
+In this demo, we train a DCGAN using a huamn face dataset,
+[CelebA dataset](http://mmlab.ie.cuhk.edu.hk/projects/CelebA.html), and use the
+train model to synthesize human faces.
+
+The following animation shows fake faces synthesized using the GoTorch version
+(left) and the PyTorch counterpart (right).
+
+![dcgan](http://cdn.sqlflow.tech/dcgan-20200904.gif)
+
+Training loss of GoTorch:
+
+![gotorch-dcgan-loss](gotorch-dcgan-loss.png)
+
+Training loss of PyTorch:
+
+![pytorch-dcgan-loss](pytorch-dcgan-loss.png)
+
+## Download the Dataset
 
 We download [CelebA dataset](http://mmlab.ie.cuhk.edu.hk/projects/CelebA.html)
 to a newly created directory, say `$DATAROOT`.
@@ -32,23 +49,13 @@ Then, we execute the compiled binary in current directory to train the model:
 
 ```bash
 $GOPATH/bin/dcgan -dataroot=$DATAROOT/train.tgz
-[0/10][0] D_Loss: 1.384754 G_Loss: 3.605948
-[0/10][1] D_Loss: 1.666008 G_Loss: 5.663126
-[0/10][2] D_Loss: 0.599109 G_Loss: 6.945201
-[0/10][3] D_Loss: 0.215684 G_Loss: 6.853242
-[0/10][4] D_Loss: 0.599603 G_Loss: 5.772169
-[0/10][5] D_Loss: 0.427933 G_Loss: 7.049569
-[0/10][6] D_Loss: 0.703852 G_Loss: 7.072733
-[0/10][7] D_Loss: 0.365140 G_Loss: 7.365425
-[0/10][8] D_Loss: 0.193228 G_Loss: 7.702262
-[0/10][9] D_Loss: 0.344985 G_Loss: 7.280960
 ```
 
 The training program periodically generates image samples and saves to pickle files.
 We provide a script to transform the saved pickle files into png format.
 
 ```bash
-python visualize_pickle.py --save_image=1
+python visualize_pickle.py --load_gotorch=1 --save_image=1
 ```
 
 And the script could also generate an animation to visualize
@@ -56,5 +63,11 @@ the training progress of generated fake images.
 `ffmpeg` is needed to save the animation to mp4 format.
 
 ```bash
-python visualize_pickle.py --save_video=1
+python visualize_pickle.py --load_gotorch=1 --save_video=1
+```
+
+To see the training loss curve:
+
+```bash
+python plot_loss.py --load_gotorch=1
 ```
