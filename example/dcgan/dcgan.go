@@ -3,9 +3,10 @@ package main
 import (
 	"flag"
 	"fmt"
-	"io"
+	_ "image/gif"
+	_ "image/jpeg"
+	_ "image/png"
 	"log"
-	"os"
 	"reflect"
 	"strings"
 
@@ -17,7 +18,7 @@ import (
 	"github.com/wangkuiyi/gotorch/vision/transforms"
 )
 
-var dataroot = flag.String("dataroot", "", "path to dataset")
+var data = flag.String("data", "", "path to dataset")
 var device torch.Device
 
 func weightInit(m nn.IModule) {
@@ -92,12 +93,13 @@ func discriminator(nc int64, ndf int64) *nn.SequentialModule {
 	)
 }
 
-func celebaLoader(dataroot string, vocab map[string]int64, mbSize int) *datasets.ImageLoader {
-	trans := transforms.Compose(transforms.Resize(64),
-		transforms.CenterCrop(64),
+func celebaLoader(data string, vocab map[string]int64, mbSize int) *datasets.ImageLoader {
+	imageSize := 64
+	trans := transforms.Compose(transforms.Resize(imageSize),
+		transforms.CenterCrop(imageSize),
 		transforms.ToTensor(),
 		transforms.Normalize([]float64{0.5, 0.5, 0.5}, []float64{0.5, 0.5, 0.5}))
-	loader, e := datasets.NewImageLoader(dataroot, vocab, trans, mbSize)
+	loader, e := datasets.NewImageLoader(data, vocab, trans, mbSize)
 	if e != nil {
 		panic(e)
 	}
@@ -105,10 +107,6 @@ func celebaLoader(dataroot string, vocab map[string]int64, mbSize int) *datasets
 }
 
 func main() {
-	logFile, _ := os.OpenFile("gotorch-dcgan.log", os.O_CREATE|os.O_TRUNC|os.O_RDWR, 0666)
-	mw := io.MultiWriter(os.Stdout, logFile)
-	log.SetOutput(mw)
-
 	flag.Parse()
 	if torch.IsCUDAAvailable() {
 		log.Println("CUDA is valid")
@@ -144,14 +142,14 @@ func main() {
 	optimizerG := torch.Adam(lr, 0.5, 0.999, 0.0)
 	optimizerG.AddParameters(netG.Parameters())
 
-	vocab, e := datasets.BuildLabelVocabularyFromTgz(*dataroot)
+	vocab, e := datasets.BuildLabelVocabularyFromTgz(*data)
 	if e != nil {
-		panic(e)
+		log.Fatal(e)
 	}
 
 	i := 0
 	for epoch := 0; epoch < epochs; epoch++ {
-		trainLoader := celebaLoader(*dataroot, vocab, batchSize)
+		trainLoader := celebaLoader(*data, vocab, batchSize)
 		for trainLoader.Scan() {
 			// (1) update D network
 			// train with real
@@ -182,7 +180,7 @@ func main() {
 			errG.Backward()
 			optimizerG.Step()
 
-			log.Printf("| %d/%d | Step: %d | Loss_D: %.4f | Loss_G: %.4f |\n",
+			log.Printf("\t %04d/%05d \t Step: %05d \t Loss_D: %2.4f \t Loss_G: %2.4f \n",
 				epoch, epochs, i, errD, errG.Item())
 			if i%checkpointStep == 0 {
 				samples := netG.Forward(fixedNoise).(torch.Tensor)
@@ -190,6 +188,9 @@ func main() {
 				samples.Detach().Save(ckName)
 			}
 			i++
+		}
+		if e := trainLoader.Err(); e != nil {
+			log.Fatal(e)
 		}
 	}
 	torch.FinishGC()

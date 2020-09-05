@@ -11,7 +11,7 @@ import (
 
 func TestImageTgzLoader(t *testing.T) {
 	a := assert.New(t)
-	d, e := ioutil.TempDir("", "gotorch_tarball_divide_test*")
+	d, e := ioutil.TempDir("", "gotorch_image_tgz_loader*")
 	a.NoError(e)
 
 	fn := tgz.SynthesizeTarball(t, d)

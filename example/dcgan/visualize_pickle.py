@@ -1,6 +1,8 @@
+#!/usr/bin/env python3
 import torch
 import torchvision.utils as vutils
-import glob, os
+import glob
+import os
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 import numpy as np
@@ -62,7 +64,7 @@ if __name__ == "__main__":
             for i in range(num):
                 img = torch.cat((gotorch_img_list[i], torch.ones(
                     3, h, w), pytorch_img_list[i]),
-                                dim=2)
+                    dim=2)
                 img_list.append(img)
 
             fig = plt.figure(figsize=(16, 8))

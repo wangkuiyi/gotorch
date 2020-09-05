@@ -44,15 +44,12 @@ func NewImageLoader(fn string, vocab map[string]int64, trans *transforms.Compose
 
 // Scan return false if no more dat
 func (p *ImageLoader) Scan() bool {
-	if p.err == io.EOF {
-		return false
-	}
 	if p.err != nil {
 		return false
 	}
 	p.tensorGC()
 	p.retreiveMinibatch()
-	return true
+	return p.err == nil || p.err == io.EOF // the next call will return false
 }
 
 func (p *ImageLoader) retreiveMinibatch() {
