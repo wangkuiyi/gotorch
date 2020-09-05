@@ -18,8 +18,17 @@ import (
 	"github.com/wangkuiyi/gotorch/vision/transforms"
 )
 
-var data = flag.String("data", "", "path to dataset")
 var device torch.Device
+
+func init() {
+	if torch.IsCUDAAvailable() {
+		log.Println("CUDA is valid")
+		device = torch.NewDevice("cuda")
+	} else {
+		log.Println("No CUDA found; CPU only")
+		device = torch.NewDevice("cpu")
+	}
+}
 
 func weightInit(m nn.IModule) {
 	if strings.Contains(m.Name(), "Conv") {
@@ -107,14 +116,8 @@ func celebaLoader(data string, vocab map[string]int64, mbSize int) *datasets.Ima
 }
 
 func main() {
+	var data = flag.String("data", "", "path to dataset")
 	flag.Parse()
-	if torch.IsCUDAAvailable() {
-		log.Println("CUDA is valid")
-		device = torch.NewDevice("cuda")
-	} else {
-		log.Println("No CUDA found; CPU only")
-		device = torch.NewDevice("cpu")
-	}
 
 	initializer.ManualSeed(999)
 
@@ -123,9 +126,10 @@ func main() {
 	ngf := int64(64)
 	ndf := int64(64)
 	lr := 0.0002
-	epochs := 15
-	checkpointStep := 500
-	batchSize := 128
+	epochs := 5
+	saveImageAfter := 0
+	saveImagePeriod := 5
+	mbsize := 32
 
 	fixedNoise := torch.RandN([]int64{64, nz, 1, 1}, false).CopyTo(device)
 
@@ -149,7 +153,7 @@ func main() {
 
 	i := 0
 	for epoch := 0; epoch < epochs; epoch++ {
-		trainLoader := celebaLoader(*data, vocab, batchSize)
+		trainLoader := celebaLoader(*data, vocab, mbsize)
 		for trainLoader.Scan() {
 			// (1) update D network
 			// train with real
@@ -180,9 +184,9 @@ func main() {
 			errG.Backward()
 			optimizerG.Step()
 
-			log.Printf("\t Epoch: %04d/%05d \t Step: %05d \t Loss_D: %2.4f \t Loss_G: %2.4f \n",
+			log.Printf("\t Epoch: %02d/%02d \t Step: %05d \t Loss_D: %2.4f \t Loss_G: %2.4f \n",
 				epoch, epochs, i, errD, errG.Item())
-			if i%checkpointStep == 0 {
+			if i >= saveImageAfter && (i-saveImageAfter)%saveImagePeriod == 0 {
 				samples := netG.Forward(fixedNoise).(torch.Tensor)
 				ckName := fmt.Sprintf("gotorch-dcgan-sample-%d.pt", i)
 				samples.Detach().Save(ckName)

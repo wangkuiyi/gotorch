@@ -44,16 +44,16 @@ func colorImageToTensor(img image.Image) torch.Tensor {
 	array := make([]float32, maxY*maxX*3) // 3 channels
 
 	// Convert pixels into the HWC format
-	const denom = float32(0xffff)
+	const denom = float64(0xffff)
 	i := 0
 	for y := 0; y < maxY; y++ {
 		for x := 0; x < maxX; x++ {
 			r, g, b, _ := img.At(x, y).RGBA()
-			array[i] = float32(r) / denom
+			array[i] = float32(float64(r) / denom)
 			i++
-			array[i] = float32(g) / denom
+			array[i] = float32(float64(g) / denom)
 			i++
-			array[i] = float32(b) / denom
+			array[i] = float32(float64(b) / denom)
 			i++
 		}
 	}
