@@ -94,7 +94,7 @@ func discriminator(nc int64, ndf int64) *nn.SequentialModule {
 }
 
 func celebaLoader(data string, vocab map[string]int64, mbSize int) *datasets.ImageLoader {
-	imageSize := 128
+	imageSize := 64
 	trans := transforms.Compose(transforms.Resize(imageSize),
 		transforms.CenterCrop(imageSize),
 		transforms.ToTensor(),

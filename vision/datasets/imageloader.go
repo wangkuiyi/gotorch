@@ -1,7 +1,6 @@
 package datasets
 
 import (
-	"archive/tar"
 	"image"
 
 	"io"
@@ -62,7 +61,7 @@ func (p *ImageLoader) retreiveMinibatch() {
 			break
 		}
 
-		if hdr.Typeflag != tar.TypeReg {
+		if !hdr.FileInfo().Mode().IsRegular() {
 			continue
 		}
 
