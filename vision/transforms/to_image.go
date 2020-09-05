@@ -18,7 +18,7 @@ import (
 //
 // For shapes like [1, h, w], the slice contains a gray image.
 //
-// For shapes like [n, h, w], where n is not 1 or 3, teh slice contains n gray
+// For shapes like [n, h, w], where n is not 1 or 3, the slice contains n gray
 // images.
 //
 // For shapes like [n, 1, h, w], the slice contains n gray images.
