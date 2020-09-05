@@ -1,7 +1,11 @@
 # DCGAN Demo
 
-In this demo,we train a DCGAN on a faces dataset.
-The following are the generated fake faces by GoTorch(the left one) and PyTorch.
+In this demo, we train a DCGAN using a huamn face dataset,
+[CelebA dataset](http://mmlab.ie.cuhk.edu.hk/projects/CelebA.html), and use the
+train model to synthesize human faces.
+
+The following animation shows fake faces synthesized using the GoTorch version
+(left) and the PyTorch counterpart (right).
 
 ![dcgan](http://cdn.sqlflow.tech/dcgan-20200904.gif)
 
@@ -13,7 +17,7 @@ Training loss of PyTorch:
 
 ![pytorch-dcgan-loss](pytorch-dcgan-loss.png)
 
-## Download CelebA Dataset
+## Download the Dataset
 
 We download [CelebA dataset](http://mmlab.ie.cuhk.edu.hk/projects/CelebA.html)
 to a newly created directory, say `$DATAROOT`.
