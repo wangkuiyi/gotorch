@@ -180,13 +180,12 @@ func main() {
 			errG.Backward()
 			optimizerG.Step()
 
-			log.Printf("| %04d/%05d | Step: %05d | Loss_D: %.4f | Loss_G: %.4f |\n",
+			log.Printf("\t %04d/%05d \t Step: %05d \t Loss_D: %2.4f \t Loss_G: %2.4f \n",
 				epoch, epochs, i, errD, errG.Item())
 			if i%checkpointStep == 0 {
 				samples := netG.Forward(fixedNoise).(torch.Tensor)
 				ckName := fmt.Sprintf("gotorch-dcgan-sample-%d.pt", i)
 				samples.Detach().Save(ckName)
-				fmt.Println(samples.Shape()) //debug
 			}
 			i++
 		}
