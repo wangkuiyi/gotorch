@@ -92,10 +92,7 @@ const char *Squeeze(Tensor a, Tensor *result);
 const char *SqueezeWithDim(Tensor a, int64_t dim, Tensor *result);
 const char *Argmin(Tensor a, int64_t *dim, int8_t keepdim, Tensor *result);
 const char *Argmax(Tensor a, int64_t *dim, int8_t keepdim, Tensor *result);
-// TODO(qijun) only support float
-const char *Item(Tensor a, float *result);
-const char *ItemInt64(Tensor a, int64_t *result);
-const char *ItemFloat64(Tensor a, double *result);
+
 const char *Mean(Tensor a, Tensor *result);
 const char *Stack(Tensor *tensors, int64_t tensors_size, int64_t dim,
                   Tensor *result);
@@ -113,7 +110,22 @@ const char *Tensor_Dtype(Tensor tensor, int8_t *dtype);
 const char *Tensor_SetData(Tensor self, Tensor new_data);
 const char *Tensor_FromBlob(void *data, int8_t dtype, int64_t *sizes_data,
                             int64_t sizes_data_len, Tensor *result);
+
+////////////////////////////////////////////////////////////////////////////////
+// Get elements
+////////////////////////////////////////////////////////////////////////////////
+
+const char *Item(Tensor a, float *result);
+const char *ItemInt64(Tensor a, int64_t *result);
+const char *ItemFloat64(Tensor a, double *result);
+
+const char *Tensor_Index(Tensor a, int64_t *index, int64_t index_len,
+                         Tensor *result);
+
+////////////////////////////////////////////////////////////////////////////////
 // Backward, Gradient
+////////////////////////////////////////////////////////////////////////////////
+
 void Tensor_Backward(Tensor a);
 Tensor Tensor_Grad(Tensor a);
 

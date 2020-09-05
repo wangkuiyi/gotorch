@@ -9,6 +9,7 @@ package gotorch
 import "C"
 
 import (
+	"log"
 	"unsafe"
 )
 
@@ -141,7 +142,27 @@ func To(a Tensor, device Device, dtype int8) Tensor {
 // FromBlob creating a Tensor with the give data memory
 func FromBlob(data unsafe.Pointer, dtype int8, sizes []int64) Tensor {
 	var t C.Tensor
-	MustNil(unsafe.Pointer(C.Tensor_FromBlob(data, C.int8_t(dtype), (*C.int64_t)(unsafe.Pointer(&sizes[0])), C.int64_t(len(sizes)), &t)))
+	MustNil(unsafe.Pointer(C.Tensor_FromBlob(
+		data,
+		C.int8_t(dtype),
+		(*C.int64_t)(unsafe.Pointer(&sizes[0])),
+		C.int64_t(len(sizes)),
+		&t)))
+	SetTensorFinalizer((*unsafe.Pointer)(&t))
+	return Tensor{(*unsafe.Pointer)(&t)}
+}
+
+// Index calls Tensor::index to return a single-element tensor of the element at
+// the given index.
+func (a Tensor) Index(index []int64) Tensor {
+	if int64(len(index)) != a.Dim() {
+		log.Panicf("Index %v has length that differs from the tenosr dim %d", index, a.Dim())
+	}
+	var t C.Tensor
+	MustNil(unsafe.Pointer(C.Tensor_Index(
+		C.Tensor(*a.T),
+		(*C.int64_t)(unsafe.Pointer(&index[0])),
+		C.int64_t(len(index)), &t)))
 	SetTensorFinalizer((*unsafe.Pointer)(&t))
 	return Tensor{(*unsafe.Pointer)(&t)}
 }
