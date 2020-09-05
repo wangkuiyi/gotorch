@@ -17,25 +17,33 @@ Training loss of PyTorch:
 
 ![pytorch-dcgan-loss](pytorch-dcgan-loss.png)
 
-## Download the Dataset
+## Prepare the Data
 
-We download [CelebA dataset](http://mmlab.ie.cuhk.edu.hk/projects/CelebA.html)
-to a newly created directory, say `$DATAROOT`.
+From the Web page [CelebA
+dataset](http://mmlab.ie.cuhk.edu.hk/projects/CelebA.html), we can choose to
+download the ZIP archive `img_align_celeba.zip` from Googel Drive or Baidu
+Drive.
 
-Then, we shuffle the dataset and transform it to new file in tgz format, `train.tgz`.
+The following command unzip the archive and creates a tarball `train.tgz` of the
+images shuffled in a random order.
 
 ```bash
-cd $DATAROOT
 unzip img_align_celeba.zip
-find . | sort -R | tar czvf train.tgz -T -
+tar czf train.tgz img_align_celeba
 ```
 
-## Build
+NOTE: If you work on macOS, you must install GNU tar.  Go's standard package
+doesn't recognize macOS's BSD tar format.
 
-We first build the gotorch project. For how to build and test,
-please refer to [CONTRIBUTING.md](https://github.com/wangkuiyi/gotorch/blob/develop/CONTRIBUTING.md).
+```bash
+brew install gnu-tar  # Use gtar instead tar in the above command.
+```
 
-Then, we run the following command in the root directory to install gotorch project.
+## Build the Sample
+
+Please follow the
+[CONTRIBUTING.md](https://github.com/wangkuiyi/gotorch/blob/develop/CONTRIBUTING.md)
+guide to build.
 
 ```bash
 go install ./...
@@ -43,16 +51,16 @@ go install ./...
 
 The `dcgan` binary will be installed at `$GOPATH/bin` directory.
 
-## Run
+## Run the Sample
 
-Then, we execute the compiled binary in current directory to train the model:
+The following command runs the sample program.
 
 ```bash
 $GOPATH/bin/dcgan -dataroot=$DATAROOT/train.tgz
 ```
 
-The training program periodically generates image samples and saves to pickle files.
-We provide a script to transform the saved pickle files into png format.
+The training program periodically generates image samples and saves to pickle
+files.  We provide a script to transform the saved pickle files into PNG format.
 
 ```bash
 python visualize_pickle.py --load_gotorch=1 --save_image=1
