@@ -32,10 +32,10 @@ find . | sort -R | tar czvf train.tgz -T -
 
 ## Build
 
-We first build the gotorch project. For how to build and test,
+We first build the GoTorch project. For how to build and test,
 please refer to [CONTRIBUTING.md](https://github.com/wangkuiyi/gotorch/blob/develop/CONTRIBUTING.md).
 
-Then, we run the following command in the root directory to install gotorch project.
+Then, we run the following command in the root directory to install GoTorch project.
 
 ```bash
 go install ./...
