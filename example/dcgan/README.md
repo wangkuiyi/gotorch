@@ -6,10 +6,9 @@ train model to synthesize human faces.
 
 The following shows fake faces synthesized using the GoTorch version
 (left) and the PyTorch counterpart (right).
+You can watch the detailed animation [here](http://cdn.sqlflow.tech/dcgan.mp4).
 
 ![dcgan](dcgan.png)
-
-[Here](http://cdn.sqlflow.tech/dcgan.mp4) is the detailed animation.
 
 Training loss of GoTorch:
 
