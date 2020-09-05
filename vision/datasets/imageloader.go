@@ -2,7 +2,6 @@ package datasets
 
 import (
 	"image"
-
 	"io"
 	"path/filepath"
 
