@@ -60,11 +60,9 @@ func (p *ImageLoader) retreiveMinibatch() {
 			p.err = err
 			break
 		}
-
 		if !hdr.FileInfo().Mode().IsRegular() {
 			continue
 		}
-
 		classStr := filepath.Base(filepath.Dir(hdr.Name))
 		label := p.vocab[classStr]
 		p.labels = append(p.labels, label)
