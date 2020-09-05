@@ -10,11 +10,11 @@ def get_loss(prefix):
     step = []
     loss_d = []
     loss_g = []
-    with open(prefix + '-dcgan.log') as f:
+    with open(prefix.lower() + '-dcgan.log') as f:
         lines = f.readlines()
         for line in lines:
             if 'Step' in line:
-                fields = line.split('|')
+                fields = line.split('\t')
                 step.append(int(fields[2].split(':')[-1]))
                 loss_d.append(float(fields[3].split(':')[-1]))
                 loss_g.append(float(fields[4].split(':')[-1]))
@@ -37,7 +37,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     if args.load_pytorch:
-        plot_loss("pytorch")
+        plot_loss("PyTorch")
 
     if args.load_gotorch:
-        plot_loss("gotorch")
+        plot_loss("GoTorch")

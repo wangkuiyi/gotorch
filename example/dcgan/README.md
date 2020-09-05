@@ -4,10 +4,11 @@ In this demo, we train a DCGAN using a huamn face dataset,
 [CelebA dataset](http://mmlab.ie.cuhk.edu.hk/projects/CelebA.html), and use the
 train model to synthesize human faces.
 
-The following animation shows fake faces synthesized using the GoTorch version
+The following shows fake faces synthesized using the GoTorch version
 (left) and the PyTorch counterpart (right).
+You can watch the detailed animation [here](http://cdn.sqlflow.tech/dcgan.mp4).
 
-![dcgan](http://cdn.sqlflow.tech/dcgan-20200904.gif)
+![dcgan](dcgan.png)
 
 Training loss of GoTorch:
 
@@ -56,7 +57,7 @@ The `dcgan` binary will be installed at `$GOPATH/bin` directory.
 The following command runs the sample program.
 
 ```bash
-$GOPATH/bin/dcgan -dataroot=$DATAROOT/train.tgz
+$GOPATH/bin/dcgan -data=$SOMEPATH/train.tgz 2>&1 | tee gotorch-dcgan.log
 ```
 
 The training program periodically generates image samples and saves to pickle

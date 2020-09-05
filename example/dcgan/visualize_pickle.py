@@ -24,6 +24,7 @@ def get_ckpt_files(prefix):
 
 
 def load_ckpt_files(prefix, save_image):
+    images_per_ckpt = 64
     files = get_ckpt_files(prefix)
     img_list = []
     for file in files:
@@ -38,7 +39,9 @@ def load_ckpt_files(prefix, save_image):
             directory = os.path.splitext(file)[0]
             if not os.path.exists(directory):
                 os.mkdir(directory)
-            images = [images[i].transpose(1, 2, 0) for i in range(64)]
+            images = [
+                images[i].transpose(1, 2, 0) for i in range(images_per_ckpt)
+            ]
             for i, image in enumerate(images):
                 vutils.save_image(image,
                                   directory + '/' + str(i) + '.png',
@@ -64,7 +67,7 @@ if __name__ == "__main__":
             for i in range(num):
                 img = torch.cat((gotorch_img_list[i], torch.ones(
                     3, h, w), pytorch_img_list[i]),
-                    dim=2)
+                                dim=2)
                 img_list.append(img)
 
             fig = plt.figure(figsize=(16, 8))
@@ -88,3 +91,6 @@ if __name__ == "__main__":
         writer = animation.writers['ffmpeg']
         writer = writer(fps=4, metadata=dict(artist='Me'), bitrate=1800)
         ani.save("dcgan.mp4", writer)
+        # save the last image
+        plt.imshow(np.transpose(img_list[-1], (1, 2, 0)))
+        plt.savefig("dcgan.png")

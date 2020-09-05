@@ -180,7 +180,7 @@ func main() {
 			errG.Backward()
 			optimizerG.Step()
 
-			log.Printf("\t %04d/%05d \t Step: %05d \t Loss_D: %2.4f \t Loss_G: %2.4f \n",
+			log.Printf("\t Epoch: %04d/%05d \t Step: %05d \t Loss_D: %2.4f \t Loss_G: %2.4f \n",
 				epoch, epochs, i, errD, errG.Item())
 			if i%checkpointStep == 0 {
 				samples := netG.Forward(fixedNoise).(torch.Tensor)
