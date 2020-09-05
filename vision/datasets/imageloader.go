@@ -49,7 +49,7 @@ func (p *ImageLoader) Scan() bool {
 	}
 	p.tensorGC()
 	p.retreiveMinibatch()
-	return p.err == nil
+	return p.err == nil || p.err == io.EOF // the next call will return false
 }
 
 func (p *ImageLoader) retreiveMinibatch() {
