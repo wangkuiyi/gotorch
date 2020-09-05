@@ -56,7 +56,7 @@ The `dcgan` binary will be installed at `$GOPATH/bin` directory.
 The following command runs the sample program.
 
 ```bash
-$GOPATH/bin/dcgan -dataroot=$DATAROOT/train.tgz
+$GOPATH/bin/dcgan -data=$SOMEPATH/train.tgz 2>&1 | tee gotorch-dcgan.log
 ```
 
 The training program periodically generates image samples and saves to pickle

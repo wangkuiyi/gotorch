@@ -175,8 +175,9 @@ if __name__ == "__main__":
             errG.backward()
             optimizerG.step()
 
-            logger.info('| %d/%d | Step: %d | Loss_D: %.4f | Loss_G: %.4f |' %
-                        (epoch, num_epochs, iters, errD.item(), errG.item()))
+            logger.info(
+                '\t %04d/%05d \t Step: %05d \t Loss_D: %2.4f \t Loss_G: %2.4f'
+                % (epoch, num_epochs, iters, errD.item(), errG.item()))
             if iters % checkpoint_step == 0:
                 with torch.no_grad():
                     fake = netG(fixed_noise).detach()
