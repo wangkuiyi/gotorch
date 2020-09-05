@@ -172,3 +172,18 @@ const char *Tensor_FromBlob(void *data, int8_t dtype, int64_t *sizes_data,
     return exception_str(e.what());
   }
 }
+
+const char *Tensor_Index(Tensor input, int64_t *index, int64_t index_len,
+                         Tensor *result) {
+  try {
+    std::vector<at::indexing::TensorIndex> indices;
+    for (int i = 0; i < static_cast<int>(index_len); i++) {
+      indices.push_back(at::indexing::TensorIndex(index[i]));
+    }
+    at::ArrayRef<at::indexing::TensorIndex> ref(indices.data(), index_len);
+    *result = new at::Tensor(input->index(ref));
+    return nullptr;
+  } catch (const std::exception &e) {
+    return exception_str(e.what());
+  }
+}

@@ -102,3 +102,14 @@ func TestSetData(t *testing.T) {
 	b.SetData(a)
 	assert.True(t, torch.Equal(a, b))
 }
+
+func TestTensorIndex(t *testing.T) {
+	a := torch.NewTensor([][]float32{{1, 2}, {3, 4}})
+	assert.Equal(t, float32(1), a.Index([]int64{0, 0}).Item().(float32))
+	assert.Equal(t, float32(2), a.Index([]int64{0, 1}).Item().(float32))
+	assert.Equal(t, float32(3), a.Index([]int64{1, 0}).Item().(float32))
+	assert.Equal(t, float32(4), a.Index([]int64{1, 1}).Item().(float32))
+
+	assert.Panics(t, func() { a.Index([]int64{0}).Item() })
+	assert.Panics(t, func() { a.Index([]int64{0, 0, 0}).Item() })
+}
