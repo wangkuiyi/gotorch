@@ -14,7 +14,7 @@ def get_loss(prefix):
         lines = f.readlines()
         for line in lines:
             if 'Step' in line:
-                fields = line.split('|')
+                fields = line.split('\t')
                 step.append(int(fields[2].split(':')[-1]))
                 loss_d.append(float(fields[3].split(':')[-1]))
                 loss_g.append(float(fields[4].split(':')[-1]))

@@ -91,3 +91,6 @@ if __name__ == "__main__":
         writer = animation.writers['ffmpeg']
         writer = writer(fps=4, metadata=dict(artist='Me'), bitrate=1800)
         ani.save("dcgan.mp4", writer)
+        # save the last image
+        plt.imshow(np.transpose(img_list[-1], (1, 2, 0)))
+        plt.savefig("dcgan.png")
