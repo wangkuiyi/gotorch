@@ -129,6 +129,11 @@ func TestToImage(t *testing.T) {
 		y := ToImage().Run(x)
 		assert.Equal(t, 0, len(y)) // Do not support dim=1
 	}
+	{ // case [1,2,3,4,5]
+		x := torch.NewTensor([][][][][]int32{{{{{0, 1}, {1, 0}}}}})
+		y := ToImage().Run(x)
+		assert.Equal(t, 0, len(y)) // Do not support dim=1
+	}
 	{ // case [h, w] but Dtype=Bool
 		x := torch.NewTensor([][]bool{{true, false}, {false, true}})
 		y := ToImage().Run(x)
