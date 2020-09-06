@@ -34,7 +34,7 @@ func ToImage() *ToImageTransformer {
 
 // Run executes the ToImageTransformer and returns a Tensor
 func (t *ToImageTransformer) Run(x torch.Tensor) []image.Image {
-	if x.Dtype() != torch.Float {
+	if x.T != nil && x.Dtype() != torch.Float {
 		x = x.CastTo(torch.Float) // Convert to float32 tensor.
 	}
 
