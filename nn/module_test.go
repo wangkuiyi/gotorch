@@ -79,6 +79,8 @@ func TestModulePanicIfNotInit(t *testing.T) {
 	assert.Panics(t, func() { m.To(torch.NewDevice("cpu"), torch.Int) })
 	assert.Panics(t, func() { m.NamedParameters() })
 	assert.Panics(t, func() { m.NamedBuffers() })
+	assert.Panics(t, func() { m.Parameters() })
+	assert.Panics(t, func() { m.Buffers() })
 }
 
 func TestModuleTrain(t *testing.T) {
@@ -97,14 +99,6 @@ func TestModuleTrain(t *testing.T) {
 	assert.False(t, m.L2.IsTraining())
 	assert.False(t, m.LL[0].IsTraining())
 	assert.False(t, m.LL[1].IsTraining())
-}
-
-func TestNewModuleWithoutInit(t *testing.T) {
-	n := myModel(false)
-	assert.Panics(t, func() { n.Train(true) })
-	assert.Panics(t, func() { n.To(torch.NewDevice("cpu")) })
-	assert.Panics(t, func() { n.NamedParameters() })
-	assert.Panics(t, func() { n.NamedBuffers() })
 }
 
 func TestModuleToDevice(t *testing.T) {
@@ -142,6 +136,8 @@ func TestModuleStateDict(t *testing.T) {
 	assert.Contains(t, sd, "myModelModule.BB[1]")
 	assert.Contains(t, sd, "myModelModule.SS[0]")
 	assert.Contains(t, sd, "myModelModule.SS[1]")
+	assert.Equal(t, 13, len(n.Parameters()))
+	assert.Equal(t, 2, len(n.Buffers()))
 }
 
 func TestModuleGobStateDict(t *testing.T) {
