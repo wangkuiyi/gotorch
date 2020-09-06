@@ -57,10 +57,12 @@ func (t *ToImageTransformer) Run(x torch.Tensor) []image.Image {
 		for n := int64(0); n < s[0]; n++ {
 			r = append(r, toImage(x, []int64{n, 0}, false))
 		}
-	case len(s) == 4 && s[1] == 1:
+		return r
+	case len(s) == 4 && s[1] == 3:
 		for n := int64(0); n < s[0]; n++ {
 			r = append(r, toImage(x, []int64{n}, true))
 		}
+		return r
 	}
 
 	return nil
