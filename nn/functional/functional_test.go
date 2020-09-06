@@ -114,3 +114,16 @@ func TestFunctionalRelu(t *testing.T) {
 	p := Relu(torch.NewTensor([]float64{-1, -0.5, 0, 0.5, 1}), true)
 	assert.Equal(t, e, p.String())
 }
+
+// >>> import torch
+// i>>> import torch.nn.functional as F
+// >>> F.linear(torch.tensor([[1.,2.],[3.,4.]]), torch.tensor([[1.,2.],[3.,4.]]), torch.tensor([1.,2.]))
+// tensor([[ 6., 13.],
+//         [12., 27.]])
+func TestFunctionalLinear(t *testing.T) {
+	o := Linear(
+		torch.NewTensor([][]float64{{1, 2}, {3, 4}}),
+		torch.NewTensor([][]float64{{1, 2}, {3, 4}}),
+		torch.NewTensor([]float64{1, 2}))
+	assert.Equal(t, "  6  13\n 12  27\n[ CPUDoubleType{2,2} ]", o.String())
+}
