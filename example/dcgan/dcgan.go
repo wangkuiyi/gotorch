@@ -3,10 +3,12 @@ package main
 import (
 	"flag"
 	"fmt"
+	"image"
 	_ "image/gif"
 	_ "image/jpeg"
-	_ "image/png"
+	"image/png"
 	"log"
+	"os"
 	"reflect"
 	"strings"
 
@@ -124,8 +126,8 @@ func main() {
 	ndf := int64(64)
 	lr := 0.0002
 	epochs := 15
-	checkpointStep := 500
-	batchSize := 128
+	saveImagePeriod := 500
+	mbsize := 32
 
 	fixedNoise := torch.RandN([]int64{64, nz, 1, 1}, false).CopyTo(device)
 
@@ -149,7 +151,7 @@ func main() {
 
 	i := 0
 	for epoch := 0; epoch < epochs; epoch++ {
-		trainLoader := celebaLoader(*data, vocab, batchSize)
+		trainLoader := celebaLoader(*data, vocab, mbsize)
 		for trainLoader.Scan() {
 			// (1) update D network
 			// train with real
@@ -182,10 +184,10 @@ func main() {
 
 			log.Printf("\t Epoch: %04d/%05d \t Step: %05d \t Loss_D: %2.4f \t Loss_G: %2.4f \n",
 				epoch, epochs, i, errD, errG.Item())
-			if i%checkpointStep == 0 {
+			if i%saveImagePeriod == 0 {
 				samples := netG.Forward(fixedNoise).(torch.Tensor)
-				ckName := fmt.Sprintf("gotorch-dcgan-sample-%d.pt", i)
-				samples.Detach().Save(ckName)
+				saveImages(transforms.ToImage().Run(samples),
+					fmt.Sprintf("gotorch-dcgan-sample-%05d", i))
 			}
 			i++
 		}
@@ -194,4 +196,19 @@ func main() {
 		}
 	}
 	torch.FinishGC()
+}
+
+func saveImages(ims []image.Image, fn string) error {
+	for i, im := range ims {
+		f, e := os.Create(fmt.Sprintf("%s-%05d.png", fn, i))
+		if e != nil {
+			return e
+		}
+		if e := png.Encode(f, im); e != nil {
+			return e
+		}
+		f.Close()
+	}
+	log.Printf("Saved %s-*.png", fn)
+	return nil
 }
