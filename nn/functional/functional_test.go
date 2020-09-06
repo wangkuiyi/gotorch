@@ -77,14 +77,6 @@ func TestFunctionalLogSoftmax(t *testing.T) {
 	assert.Equal(t, g, r.String())
 }
 
-func TestFunctionalBinaryCrossEntropy(t *testing.T) {
-	input := torch.RandN([]int64{3, 2}, true)
-	target := torch.Rand([]int64{3, 2}, false)
-	loss := BinaryCrossEntropy(torch.Sigmoid(input), target, torch.Tensor{}, "mean")
-	assert.NotNil(t, loss.T)
-	loss.Backward()
-}
-
 func TestFunctionalMaxPool2d(t *testing.T) {
 	input := torch.RandN([]int64{20, 16, 50, 32}, false)
 	out := MaxPool2d(input, []int64{3, 2}, []int64{2, 1}, []int64{0, 0}, []int64{1, 1}, false)
@@ -102,10 +94,23 @@ func TestFunctionalAdaptiveAvgPool2d(t *testing.T) {
 // >>> loss = F.binary_cross_entropy(torch.sigmoid(input), target)
 // >>> print(loss)
 // tensor(-5.7473)
-func TestBinaryCrossEntropy(t *testing.T) {
+func TestFunctionalBinaryCrossEntropy(t *testing.T) {
 	input := torch.NewTensor([][]float64{{1, 2}, {3, 4}, {5, 6}})
 	target := torch.NewTensor([][]float64{{6, 5}, {4, 3}, {2, 1}})
 	var weight torch.Tensor
 	loss := BinaryCrossEntropy(torch.Sigmoid(input), target, weight, "mean")
 	assert.Equal(t, "-5.74731\n[ CPUDoubleType{} ]", loss.String())
+}
+
+// >>> import torch
+// >>> import torch.nn.functional as F
+// >>> F.relu(torch.tensor([-1, -0.5, 0, 0.5, 1.]))
+// tensor([0.0000, 0.0000, 0.0000, 0.5000, 1.0000])
+func TestFunctionalRelu(t *testing.T) {
+	e := " 0.0000\n 0.0000\n 0.0000\n 0.5000\n 1.0000\n[ CPUDoubleType{5} ]"
+	o := Relu(torch.NewTensor([]float64{-1, -0.5, 0, 0.5, 1}), false)
+	assert.Equal(t, e, o.String())
+
+	p := Relu(torch.NewTensor([]float64{-1, -0.5, 0, 0.5, 1}), true)
+	assert.Equal(t, e, p.String())
 }
