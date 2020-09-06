@@ -127,3 +127,18 @@ func TestFunctionalLinear(t *testing.T) {
 		torch.NewTensor([]float64{1, 2}))
 	assert.Equal(t, "  6  13\n 12  27\n[ CPUDoubleType{2,2} ]", o.String())
 }
+
+// >>> target = torch.tensor([0,3,4], dtype=torch.int64)
+// >>> input = torch.tensor([[0.,1.,2.,1.,0.],[0.,1.,2.,1.,0.],[0.,1.,2.,1.,0.]])
+// >>> F.cross_entropy(input, target)
+// tensor(2.3630)
+func TestFunctionalCrossEntropy(t *testing.T) {
+	target := torch.NewTensor([]int64{0, 3, 4})
+	input := torch.NewTensor([][]float64{
+		{0, 1, 2, 1, 0.},
+		{0, 1, 2, 1, 0.},
+		{0, 1, 2, 1, 0.}})
+	var weight torch.Tensor
+	o := CrossEntropy(input, target, weight, -100, "mean")
+	assert.Equal(t, "2.36302\n[ CPUDoubleType{} ]", o.String())
+}
