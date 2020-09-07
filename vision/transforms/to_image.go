@@ -88,7 +88,7 @@ func toImage(x torch.Tensor, idxPrefix []int64, colored bool) image.Image {
 				var c [3]float32
 				for ch := int64(0); ch < 3; ch++ {
 					idx := append(idxPrefix, ch, i, j)
-					c[ch] = x.Index(idx).Item().(float32)
+					c[ch] = x.Index(idx...).Item().(float32)
 				}
 				im.Set(int(j), int(i), color.RGBA{
 					R: uint8(float32(0xff) * c[0]),
@@ -97,7 +97,7 @@ func toImage(x torch.Tensor, idxPrefix []int64, colored bool) image.Image {
 					A: 0xff})
 			} else {
 				idx := append(idxPrefix, i, j)
-				g := x.Index(idx).Item().(float32)
+				g := x.Index(idx...).Item().(float32)
 				im.Set(int(j), int(i), color.Gray{
 					uint8(float32(0xff) * g)})
 			}

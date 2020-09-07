@@ -154,7 +154,7 @@ func FromBlob(data unsafe.Pointer, dtype int8, sizes []int64) Tensor {
 
 // Index calls Tensor::index to return a single-element tensor of the element at
 // the given index.
-func (a Tensor) Index(index []int64) Tensor {
+func (a Tensor) Index(index ...int64) Tensor {
 	if int64(len(index)) != a.Dim() {
 		log.Panicf("Index %v has length that differs from the tenosr dim %d", index, a.Dim())
 	}
