@@ -120,7 +120,7 @@ func TestFunctionalRelu(t *testing.T) {
 // >>> F.leaky_relu(torch.tensor([-1, -0.5, 0, 0.5, 1.]))
 // tensor([-0.0100, -0.0050,  0.0000,  0.5000,  1.0000])
 func TestFunctionalLeakyRelu(t *testing.T) {
-	e := "-0.0100\n-0.0050\n 0.0000\n 0.5000\n 1.0000\n[ CPUDoubleType{5}]"
+	e := "-0.0100\n-0.0050\n 0.0000\n 0.5000\n 1.0000\n[ CPUDoubleType{5} ]"
 	o := LeakyRelu(torch.NewTensor([]float64{-1, -0.5, 0, 0.5, 1}), 0.01, false)
 	assert.Equal(t, e, o.String())
 
