@@ -19,6 +19,8 @@ func TestGet(t *testing.T) {
 	assert.Equal(t, false, variadic.Get(opts, "requires_grad"))
 	assert.Equal(t, nil, variadic.Get(opts, "RequiresGrad"))
 	assert.Equal(t, nil, variadic.Get(nil, "anything"))
+	assert.Equal(t, nil, variadic.Get(opts, "anything"))
+	assert.Equal(t, 33, variadic.Get(opts, "anything", 33).(int))
 }
 
 func TestLookup(t *testing.T) {
