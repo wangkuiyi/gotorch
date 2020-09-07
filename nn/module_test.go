@@ -123,6 +123,14 @@ func TestModuleName(t *testing.T) {
 	assert.Equal(t, "nn.LinearModule", hn.LL[0].Name())
 }
 
+func TestModuleOutter(t *testing.T) {
+	hn := myModel(true)
+	assert.Equal(t, hn, hn.Outter())
+	assert.Equal(t, "nn.LinearModule", hn.L1.Name())
+	assert.Equal(t, "nn.LinearModule", hn.L2.Name())
+	assert.Equal(t, "nn.LinearModule", hn.LL[0].Name())
+}
+
 func TestModuleStateDict(t *testing.T) {
 	n := myModel(true)
 	sd := n.StateDict()
