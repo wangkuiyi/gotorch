@@ -277,6 +277,39 @@ func TestTranspose(t *testing.T) {
 	assert.Equal(t, g, x.Transpose(0, 1).String())
 }
 
+// >>> x = torch.randn(4, 4)
+// >>> x.size()
+// torch.Size([4, 4])
+// >>> y = x.view(16)
+// >>> y.size()
+// torch.Size([16])
+// >>> z = x.view(-1, 8)  # the size -1 is inferred from other dimensions
+// >>> z.size()
+// torch.Size([2, 8])
+
+// >>> a = torch.randn(1, 2, 3, 4)
+// >>> a.size()
+// torch.Size([1, 2, 3, 4])
+// >>> b = a.transpose(1, 2)  # Swaps 2nd and 3rd dimension
+// >>> b.size()
+// torch.Size([1, 3, 2, 4])
+// >>> c = a.view(1, 3, 2, 4)  # Does not change tensor layout in memory
+// >>> c.size()
+// torch.Size([1, 3, 2, 4])
+// >>> torch.equal(b, c)
+// False
+func TestTensorView(t *testing.T) {
+	x := torch.Empty([]int64{4, 4}, false)
+	y := x.View(16)
+	assert.Equal(t, []int64{16}, y.Shape())
+	z := x.View(-1, 8)
+	assert.Equal(t, []int64{2, 8}, z.Shape())
+	a := torch.RandN([]int64{1, 2, 3, 4}, false)
+	b := a.Transpose(1, 2)
+	c := a.View(1, 3, 2, 4)
+	assert.False(t, torch.Equal(b, c))
+}
+
 func TestArgmin(t *testing.T) {
 	x := torch.NewTensor([][]float32{{1, 2}, {3, 4}})
 	assert.Equal(t, "0\n[ CPULongType{} ]", x.Argmin().String())

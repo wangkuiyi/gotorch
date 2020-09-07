@@ -401,7 +401,7 @@ func (a Tensor) Transpose(dim0, dim1 int64) Tensor {
 }
 
 // View returns a new Tensor with the same data but of a different shape
-func View(a Tensor, shape []int64) Tensor {
+func View(a Tensor, shape ...int64) Tensor {
 	var t C.Tensor
 	MustNil(unsafe.Pointer(C.View(C.Tensor(*a.T), &t, (*C.int64_t)(unsafe.Pointer(&shape[0])), C.int64_t(len(shape)))))
 	SetTensorFinalizer((*unsafe.Pointer)(&t))
@@ -409,8 +409,8 @@ func View(a Tensor, shape []int64) Tensor {
 }
 
 // View returns a new Tensor with the same data but of a different shape
-func (a Tensor) View(shape []int64) Tensor {
-	return View(a, shape)
+func (a Tensor) View(shape ...int64) Tensor {
+	return View(a, shape...)
 }
 
 // Argmin mimics torch.argmin
