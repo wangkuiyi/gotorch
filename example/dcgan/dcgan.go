@@ -52,19 +52,19 @@ func generator(nz int64, nc int64, ngf int64) *nn.SequentialModule {
 	return nn.Sequential(
 		nn.ConvTranspose2d(nz, ngf*8, 4, 1, 0, 0, 1, false, 1, "zero"),
 		nn.BatchNorm2d(ngf*8, 1e-5, 0.1, true, true),
-		nn.Functional(torch.Relu),
+		nn.Functional(func(in torch.Tensor) torch.Tensor { return F.Relu(in, true) }),
 
 		nn.ConvTranspose2d(ngf*8, ngf*4, 4, 2, 1, 0, 1, false, 1, "zero"),
 		nn.BatchNorm2d(ngf*4, 1e-5, 0.1, true, true),
-		nn.Functional(torch.Relu),
+		nn.Functional(func(in torch.Tensor) torch.Tensor { return F.Relu(in, true) }),
 
 		nn.ConvTranspose2d(ngf*4, ngf*2, 4, 2, 1, 0, 1, false, 1, "zero"),
 		nn.BatchNorm2d(ngf*2, 1e-5, 0.1, true, true),
-		nn.Functional(torch.Relu),
+		nn.Functional(func(in torch.Tensor) torch.Tensor { return F.Relu(in, true) }),
 
 		nn.ConvTranspose2d(ngf*2, ngf, 4, 2, 1, 0, 1, false, 1, "zero"),
 		nn.BatchNorm2d(ngf, 1e-5, 0.1, true, true),
-		nn.Functional(torch.Relu),
+		nn.Functional(func(in torch.Tensor) torch.Tensor { return F.Relu(in, true) }),
 
 		nn.ConvTranspose2d(ngf, nc, 4, 2, 1, 0, 1, false, 1, "zero"),
 		nn.Functional(torch.Tanh),
@@ -74,19 +74,19 @@ func generator(nz int64, nc int64, ngf int64) *nn.SequentialModule {
 func discriminator(nc int64, ndf int64) *nn.SequentialModule {
 	return nn.Sequential(
 		nn.Conv2d(nc, ndf, 4, 2, 1, 1, 1, false, "zeros"),
-		nn.Functional(func(in torch.Tensor) torch.Tensor { return torch.LeakyRelu(in, 0.2) }),
+		nn.Functional(func(in torch.Tensor) torch.Tensor { return F.LeakyRelu(in, 0.2, true) }),
 
 		nn.Conv2d(ndf, ndf*2, 4, 2, 1, 1, 1, false, "zeros"),
 		nn.BatchNorm2d(ndf*2, 1e-5, 0.1, true, true),
-		nn.Functional(func(in torch.Tensor) torch.Tensor { return torch.LeakyRelu(in, 0.2) }),
+		nn.Functional(func(in torch.Tensor) torch.Tensor { return F.LeakyRelu(in, 0.2, true) }),
 
 		nn.Conv2d(ndf*2, ndf*4, 4, 2, 1, 1, 1, false, "zeros"),
 		nn.BatchNorm2d(ndf*4, 1e-5, 0.1, true, true),
-		nn.Functional(func(in torch.Tensor) torch.Tensor { return torch.LeakyRelu(in, 0.2) }),
+		nn.Functional(func(in torch.Tensor) torch.Tensor { return F.LeakyRelu(in, 0.2, true) }),
 
 		nn.Conv2d(ndf*4, ndf*8, 4, 2, 1, 1, 1, false, "zeros"),
 		nn.BatchNorm2d(ndf*8, 1e-5, 0.1, true, true),
-		nn.Functional(func(in torch.Tensor) torch.Tensor { return torch.LeakyRelu(in, 0.2) }),
+		nn.Functional(func(in torch.Tensor) torch.Tensor { return F.LeakyRelu(in, 0.2, true) }),
 
 		nn.Conv2d(ndf*8, 1, 4, 1, 0, 1, 1, false, "zeros"),
 		nn.Functional(torch.Sigmoid),

@@ -175,6 +175,19 @@ func Relu(input torch.Tensor, inplace bool) torch.Tensor {
 	return torch.Tensor{(*unsafe.Pointer)(&t)}
 }
 
+// LeakyRelu torch.nn.functional.leaky_relu
+func LeakyRelu(input torch.Tensor, negativeSlope float64, inplace bool) torch.Tensor {
+	var t C.Tensor
+	var cInplace C.int8_t
+	if inplace {
+		cInplace = 1
+	}
+	torch.MustNil(unsafe.Pointer(C.FLeakyRelu(C.Tensor(*input.T),
+		C.double(negativeSlope), C.int8_t(cInplace), &t)))
+	torch.SetTensorFinalizer((*unsafe.Pointer)(&t))
+	return torch.Tensor{(*unsafe.Pointer)(&t)}
+}
+
 // Linear ports torch.nn.functional.linear
 func Linear(input, weight, bias torch.Tensor) torch.Tensor {
 	var t C.Tensor
