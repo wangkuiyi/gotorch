@@ -130,14 +130,6 @@ func TestFlatten(t *testing.T) {
 	assert.Equal(t, g, r.String())
 }
 
-func TestIndexSelect(t *testing.T) {
-	x := torch.RandN([]int64{3, 4}, false)
-	indices := torch.NewTensor([]int64{0, 2})
-	y := torch.IndexSelect(x, 0, indices)
-	assert.Equal(t, int64(2), y.Shape()[0])
-	assert.Equal(t, int64(4), y.Shape()[1])
-}
-
 // >>> torch.nn.functional.leaky_relu(torch.tensor([[-0.5, -1.], [1., 0.5]]))
 // tensor([[-0.0050, -0.0100],
 //         [ 1.0000,  0.5000]])
@@ -205,13 +197,54 @@ func TestSqueeze(t *testing.T) {
 	assert.NotNil(t, y.T)
 	z := torch.Squeeze(x, 1)
 	assert.NotNil(t, z.T)
+	assert.Panics(t, func() { torch.Squeeze(x, 1, 2) })
 }
 
+// >>> x = torch.tensor([[1,2,3,4],[4,5,6,7],[7,8,9,0]])
+// >>> torch.sum(x)
+// tensor(56)
+// >>> torch.sum(x, 0)
+// tensor([12, 15, 18, 11])
+// >>> torch.sum(x, 1)
+// tensor([10, 22, 24])
+// >>> torch.sum(x, 0, True)
+// tensor([[12, 15, 18, 11]])
+// >>> torch.sum(x, 0, False)
+// tensor([12, 15, 18, 11])
+// >>> torch.sum(x, 1, True)
+// tensor([[10],
+//         [22],
+//         [24]])
+// >>> torch.sum(x, 1, False)
+// tensor([10, 22, 24])
 func TestSum(t *testing.T) {
-	x := torch.NewTensor([]float32{1, 2, 4, 7})
-	y := torch.Sum(x)
-	z := y.Item()
-	assert.Equal(t, float32(14), z)
+	x := torch.NewTensor([][]float32{{1, 2, 3, 4}, {4, 5, 6, 7}, {7, 8, 9, 0}})
+
+	assert.Equal(t, float32(56), x.Sum().Item().(float32))
+
+	y := x.Sum(map[string]interface{}{"dim": 0})
+	assert.True(t, torch.Equal(torch.NewTensor([]float32{12, 15, 18, 11}), y),
+		"Got %v", y)
+
+	y = x.Sum(map[string]interface{}{"dim": 1})
+	assert.True(t, torch.Equal(torch.NewTensor([]float32{10, 22, 24}), y),
+		"Got %v", y)
+
+	y = x.Sum(map[string]interface{}{"dim": 0, "keepDim": true})
+	assert.True(t, torch.Equal(torch.NewTensor([][]float32{{12, 15, 18, 11}}), y),
+		"Got %v", y)
+
+	y = x.Sum(map[string]interface{}{"dim": 0, "keepDim": false})
+	assert.True(t, torch.Equal(torch.NewTensor([]float32{12, 15, 18, 11}), y),
+		"Got %v", y)
+
+	y = x.Sum(map[string]interface{}{"dim": 1, "keepDim": true})
+	assert.True(t, torch.Equal(torch.NewTensor([][]float32{{10}, {22}, {24}}), y),
+		"Got %v", y)
+
+	y = x.Sum(map[string]interface{}{"dim": 1, "keepDim": false})
+	assert.True(t, torch.Equal(torch.NewTensor([]float32{10, 22, 24}), y),
+		"Got %v", y)
 }
 
 func TestTanh(t *testing.T) {
@@ -239,10 +272,42 @@ func TestTopK(t *testing.T) {
 // tensor([[-0.5000,  1.0000],
 //         [-1.0000,  0.5000]])
 func TestTranspose(t *testing.T) {
-	r := torch.Transpose(torch.NewTensor([][]float32{{-0.5, -1}, {1, 0.5}}),
-		0, 1)
+	x := torch.NewTensor([][]float32{{-0.5, -1}, {1, 0.5}})
 	g := "-0.5000  1.0000\n-1.0000  0.5000\n[ CPUFloatType{2,2} ]"
-	assert.Equal(t, g, r.String())
+	assert.Equal(t, g, x.Transpose(0, 1).String())
+}
+
+// >>> x = torch.randn(4, 4)
+// >>> x.size()
+// torch.Size([4, 4])
+// >>> y = x.view(16)
+// >>> y.size()
+// torch.Size([16])
+// >>> z = x.view(-1, 8)  # the size -1 is inferred from other dimensions
+// >>> z.size()
+// torch.Size([2, 8])
+
+// >>> a = torch.randn(1, 2, 3, 4)
+// >>> a.size()
+// torch.Size([1, 2, 3, 4])
+// >>> b = a.transpose(1, 2)  # Swaps 2nd and 3rd dimension
+// >>> b.size()
+// torch.Size([1, 3, 2, 4])
+// >>> c = a.view(1, 3, 2, 4)  # Does not change tensor layout in memory
+// >>> c.size()
+// torch.Size([1, 3, 2, 4])
+// >>> torch.equal(b, c)
+// False
+func TestTensorView(t *testing.T) {
+	x := torch.Empty([]int64{4, 4}, false)
+	y := x.View(16)
+	assert.Equal(t, []int64{16}, y.Shape())
+	z := x.View(-1, 8)
+	assert.Equal(t, []int64{2, 8}, z.Shape())
+	a := torch.RandN([]int64{1, 2, 3, 4}, false)
+	b := a.Transpose(1, 2)
+	c := a.View(1, 3, 2, 4)
+	assert.False(t, torch.Equal(b, c))
 }
 
 func TestArgmin(t *testing.T) {
@@ -262,6 +327,9 @@ func TestArgmin(t *testing.T) {
 	assert.Equal(t, " 1  1\n[ CPULongType{1,2} ]", x.Argmin(0, true).String())
 	// x.argmin(1, True)
 	assert.Equal(t, " 0\n 1\n[ CPULongType{2,1} ]", x.Argmin(1, true).String())
+
+	assert.Panics(t, func() { x.Argmin(1.0 /* must be int*/, true) })
+	assert.Panics(t, func() { x.Argmin(1, 1.0 /*must be bool*/) })
 }
 
 func TestArgmax(t *testing.T) {
@@ -366,4 +434,26 @@ func TestItem(t *testing.T) {
 	x = torch.NewTensor([]float64{-1})
 	y = x.Item()
 	assert.Equal(t, float64(-1), y)
+}
+
+// >>> x = torch.tensor([[1,2,3,4],[4,5,6,7],[7,8,9,0]])
+// >>> x
+// tensor([[1, 2, 3, 4],
+//         [4, 5, 6, 7],
+//         [7, 8, 9, 0]])
+// >>> idx = torch.tensor([0,2])
+// >>> torch.index_select(x, 0, idx)
+// tensor([[1, 2, 3, 4],
+//         [7, 8, 9, 0]])
+// >>> torch.index_select(x, 1, idx)
+// tensor([[1, 3],
+//         [4, 6],
+//         [7, 9]])
+func TestIndexSelect(t *testing.T) {
+	x := torch.NewTensor([][]float32{{1, 2, 3, 4}, {4, 5, 6, 7}, {7, 8, 9, 0}})
+	idx := torch.NewTensor([]int64{0, 2})
+	assert.Equal(t, " 1  2  3  4\n 7  8  9  0\n[ CPUFloatType{2,4} ]",
+		x.IndexSelect(0, idx).String())
+	assert.Equal(t, " 1  3\n 4  6\n 7  9\n[ CPUFloatType{3,2} ]",
+		x.IndexSelect(1, idx).String())
 }

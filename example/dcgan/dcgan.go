@@ -158,7 +158,7 @@ func main() {
 			data = data.CopyTo(device)
 			label := torch.Empty([]int64{data.Shape()[0]}, false).CopyTo(device)
 			initializer.Ones(&label)
-			output := netD.Forward(data).(torch.Tensor).View([]int64{-1, 1}).Squeeze(1)
+			output := netD.Forward(data).(torch.Tensor).View(-1, 1).Squeeze(1)
 			errDReal := F.BinaryCrossEntropy(output, label, torch.Tensor{}, "mean")
 			errDReal.Backward()
 
@@ -166,7 +166,7 @@ func main() {
 			noise := torch.RandN([]int64{data.Shape()[0], nz, 1, 1}, false).CopyTo(device)
 			fake := netG.Forward(noise).(torch.Tensor)
 			initializer.Zeros(&label)
-			output = netD.Forward(fake.Detach()).(torch.Tensor).View([]int64{-1, 1}).Squeeze(1)
+			output = netD.Forward(fake.Detach()).(torch.Tensor).View(-1, 1).Squeeze(1)
 			errDFake := F.BinaryCrossEntropy(output, label, torch.Tensor{}, "mean")
 			errDFake.Backward()
 			errD := errDReal.Item().(float32) + errDFake.Item().(float32)
@@ -175,7 +175,7 @@ func main() {
 			// (2) update G network
 			optimizerG.ZeroGrad()
 			initializer.Ones(&label)
-			output = netD.Forward(fake).(torch.Tensor).View([]int64{-1, 1}).Squeeze(1)
+			output = netD.Forward(fake).(torch.Tensor).View(-1, 1).Squeeze(1)
 			errG := F.BinaryCrossEntropy(output, label, torch.Tensor{}, "mean")
 			errG.Backward()
 			optimizerG.Step()
