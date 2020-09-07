@@ -130,14 +130,6 @@ func TestFlatten(t *testing.T) {
 	assert.Equal(t, g, r.String())
 }
 
-func TestIndexSelect(t *testing.T) {
-	x := torch.RandN([]int64{3, 4}, false)
-	indices := torch.NewTensor([]int64{0, 2})
-	y := torch.IndexSelect(x, 0, indices)
-	assert.Equal(t, int64(2), y.Shape()[0])
-	assert.Equal(t, int64(4), y.Shape()[1])
-}
-
 // >>> torch.nn.functional.leaky_relu(torch.tensor([[-0.5, -1.], [1., 0.5]]))
 // tensor([[-0.0050, -0.0100],
 //         [ 1.0000,  0.5000]])
@@ -367,4 +359,26 @@ func TestItem(t *testing.T) {
 	x = torch.NewTensor([]float64{-1})
 	y = x.Item()
 	assert.Equal(t, float64(-1), y)
+}
+
+// >>> x = torch.tensor([[1,2,3,4],[4,5,6,7],[7,8,9,0]])
+// >>> x
+// tensor([[1, 2, 3, 4],
+//         [4, 5, 6, 7],
+//         [7, 8, 9, 0]])
+// >>> idx = torch.tensor([0,2])
+// >>> torch.index_select(x, 0, idx)
+// tensor([[1, 2, 3, 4],
+//         [7, 8, 9, 0]])
+// >>> torch.index_select(x, 1, idx)
+// tensor([[1, 3],
+//         [4, 6],
+//         [7, 9]])
+func TestIndexSelect(t *testing.T) {
+	x := torch.NewTensor([][]float32{{1, 2, 3, 4}, {4, 5, 6, 7}, {7, 8, 9, 0}})
+	idx := torch.NewTensor([]int64{0, 2})
+	assert.Equal(t, " 1  2  3  4\n 7  8  9  0\n[ CPUFloatType{2,4} ]",
+		x.IndexSelect(0, idx).String())
+	assert.Equal(t, " 1  3\n 4  6\n 7  9\n[ CPUFloatType{3,2} ]",
+		x.IndexSelect(1, idx).String())
 }
