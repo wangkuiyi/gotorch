@@ -1,8 +1,8 @@
 # DCGAN Demo
 
-In this demo, we train a DCGAN using a huamn face dataset,
+In this demo, we train a DCGAN using a human face dataset,
 [CelebA dataset](http://mmlab.ie.cuhk.edu.hk/projects/CelebA.html), and use the
-train model to synthesize human faces.
+trained model to synthesize human faces.
 
 The following shows fake faces synthesized using the GoTorch version
 (left) and the PyTorch counterpart (right).
