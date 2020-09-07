@@ -327,6 +327,9 @@ func TestArgmin(t *testing.T) {
 	assert.Equal(t, " 1  1\n[ CPULongType{1,2} ]", x.Argmin(0, true).String())
 	// x.argmin(1, True)
 	assert.Equal(t, " 0\n 1\n[ CPULongType{2,1} ]", x.Argmin(1, true).String())
+
+	assert.Panics(t, func() { x.Argmin(1.0 /* must be int*/, true) })
+	assert.Panics(t, func() { x.Argmin(1, 1.0 /*must be bool*/) })
 }
 
 func TestArgmax(t *testing.T) {
