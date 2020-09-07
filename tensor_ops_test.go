@@ -205,6 +205,7 @@ func TestSqueeze(t *testing.T) {
 	assert.NotNil(t, y.T)
 	z := torch.Squeeze(x, 1)
 	assert.NotNil(t, z.T)
+	assert.Panics(t, func() { torch.Squeeze(x, 1, 2) })
 }
 
 func TestSum(t *testing.T) {

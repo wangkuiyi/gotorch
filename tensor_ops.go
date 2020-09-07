@@ -309,14 +309,7 @@ func Stack(tensors []Tensor, dim int64) Tensor {
 
 // Squeeze torch.squeeze
 func Squeeze(t Tensor, dim ...int64) Tensor {
-	switch len(dim) {
-	case 0:
-		return t.Squeeze()
-	case 1:
-		return t.Squeeze(dim[0])
-	default:
-		panic("Squeeze only accepts 0-1 dim as input")
-	}
+	return t.Squeeze(dim...)
 }
 
 // Squeeze tensor.squeeze
