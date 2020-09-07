@@ -112,7 +112,7 @@ func test(model *models.MLPModule, loader *datasets.ImageLoader) {
 		loss := F.NllLoss(output, label, torch.Tensor{}, -100, "mean")
 		pred := output.Argmax(1)
 		testLoss += loss.Item().(float32)
-		correct += pred.Eq(label.View(pred.Shape())).SumByDim(0, false).Item().(int64)
+		correct += pred.Eq(label.View(pred.Shape())).Sum(map[string]interface{}{"dim": 0, "keepDim": false}).Item().(int64)
 		samples += int(label.Shape()[0])
 	}
 	log.Printf("Test average loss: %.4f, Accuracy: %.2f%%\n",

@@ -67,7 +67,7 @@ func accuracy(output, target torch.Tensor, topk []int64) []float32 {
 	res := []float32{}
 	for _, k := range topk {
 		kt := torch.NewTensor(rangeI(k)).CopyTo(device)
-		correctK := correct.IndexSelect(0, kt).View([]int64{-1}).CastTo(torch.Float).SumByDim(0, true)
+		correctK := correct.IndexSelect(0, kt).View([]int64{-1}).CastTo(torch.Float).Sum(map[string]interface{}{"dim": 0, "keepDim": true})
 		res = append(res, correctK.Item().(float32)*100/float32(mbSize))
 	}
 	return res
@@ -115,7 +115,7 @@ func test(model *models.ResnetModule, loader *datasets.ImageLoader) {
 		loss := F.CrossEntropy(output, label, torch.Tensor{}, -100, "mean")
 		pred := output.Argmax(1)
 		testLoss += loss.Item().(float32)
-		correct += pred.Eq(label.View(pred.Shape())).SumByDim(0, false).Item().(int64)
+		correct += pred.Eq(label.View(pred.Shape())).Sum(map[string]interface{}{"dim": 0, "keepDim": false}).Item().(int64)
 		samples += int(label.Shape()[0])
 	}
 	log.Printf("Test average loss: %.4f acc1: %.4f acc5: %.4f \n",

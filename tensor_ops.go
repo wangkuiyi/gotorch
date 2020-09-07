@@ -11,6 +11,8 @@ import (
 	"reflect"
 	"strings"
 	"unsafe"
+
+	"github.com/wangkuiyi/gotorch/variadic"
 )
 
 // Add torch.add
@@ -329,29 +331,31 @@ func (a Tensor) Squeeze(dim ...int64) Tensor {
 	}
 }
 
-// Sum returns the sum of all elements in the input tensor
-func Sum(a Tensor) Tensor {
+// Sum is torch.sum
+func Sum(a Tensor, opt ...map[string]interface{}) Tensor {
+	if variadic.Has(opt, "dim") {
+		dim := variadic.Get(opt, "dim").(int)
+		keepDim := variadic.Get(opt, "keepDim", false).(bool)
+
+		k := 0
+		if keepDim {
+			k = 1
+		}
+		var t C.Tensor
+		MustNil(unsafe.Pointer(C.SumByDim(C.Tensor(*a.T), C.int64_t(dim), C.int8_t(k), &t)))
+		SetTensorFinalizer((*unsafe.Pointer)(&t))
+		return Tensor{(*unsafe.Pointer)(&t)}
+	}
+
 	var t C.Tensor
 	MustNil(unsafe.Pointer(C.Sum(C.Tensor(*a.T), &t)))
 	SetTensorFinalizer((*unsafe.Pointer)(&t))
 	return Tensor{(*unsafe.Pointer)(&t)}
 }
 
-// SumByDim torch.sum
-func SumByDim(a Tensor, dim int64, keepDim bool) Tensor {
-	k := 0
-	if keepDim {
-		k = 1
-	}
-	var t C.Tensor
-	MustNil(unsafe.Pointer(C.SumByDim(C.Tensor(*a.T), C.int64_t(dim), C.int8_t(k), &t)))
-	SetTensorFinalizer((*unsafe.Pointer)(&t))
-	return Tensor{(*unsafe.Pointer)(&t)}
-}
-
-// SumByDim torch.sum
-func (a Tensor) SumByDim(dim int64, keepDim bool) Tensor {
-	return SumByDim(a, dim, keepDim)
+// Sum is Tensor.sum
+func (a Tensor) Sum(opt ...map[string]interface{}) Tensor {
+	return Sum(a, opt...)
 }
 
 // Tanh returns tanh of the current tensor

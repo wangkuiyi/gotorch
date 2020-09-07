@@ -200,11 +200,51 @@ func TestSqueeze(t *testing.T) {
 	assert.Panics(t, func() { torch.Squeeze(x, 1, 2) })
 }
 
+// >>> x = torch.tensor([[1,2,3,4],[4,5,6,7],[7,8,9,0]])
+// >>> torch.sum(x)
+// tensor(56)
+// >>> torch.sum(x, 0)
+// tensor([12, 15, 18, 11])
+// >>> torch.sum(x, 1)
+// tensor([10, 22, 24])
+// >>> torch.sum(x, 0, True)
+// tensor([[12, 15, 18, 11]])
+// >>> torch.sum(x, 0, False)
+// tensor([12, 15, 18, 11])
+// >>> torch.sum(x, 1, True)
+// tensor([[10],
+//         [22],
+//         [24]])
+// >>> torch.sum(x, 1, False)
+// tensor([10, 22, 24])
 func TestSum(t *testing.T) {
-	x := torch.NewTensor([]float32{1, 2, 4, 7})
-	y := torch.Sum(x)
-	z := y.Item()
-	assert.Equal(t, float32(14), z)
+	x := torch.NewTensor([][]float32{{1, 2, 3, 4}, {4, 5, 6, 7}, {7, 8, 9, 0}})
+
+	assert.Equal(t, float32(56), x.Sum().Item().(float32))
+
+	y := x.Sum(map[string]interface{}{"dim": 0})
+	assert.True(t, torch.Equal(torch.NewTensor([]float32{12, 15, 18, 11}), y),
+		"Got %v", y)
+
+	y = x.Sum(map[string]interface{}{"dim": 1})
+	assert.True(t, torch.Equal(torch.NewTensor([]float32{10, 22, 24}), y),
+		"Got %v", y)
+
+	y = x.Sum(map[string]interface{}{"dim": 0, "keepDim": true})
+	assert.True(t, torch.Equal(torch.NewTensor([][]float32{{12, 15, 18, 11}}), y),
+		"Got %v", y)
+
+	y = x.Sum(map[string]interface{}{"dim": 0, "keepDim": false})
+	assert.True(t, torch.Equal(torch.NewTensor([]float32{12, 15, 18, 11}), y),
+		"Got %v", y)
+
+	y = x.Sum(map[string]interface{}{"dim": 1, "keepDim": true})
+	assert.True(t, torch.Equal(torch.NewTensor([][]float32{{10}, {22}, {24}}), y),
+		"Got %v", y)
+
+	y = x.Sum(map[string]interface{}{"dim": 1, "keepDim": false})
+	assert.True(t, torch.Equal(torch.NewTensor([]float32{10, 22, 24}), y),
+		"Got %v", y)
 }
 
 func TestTanh(t *testing.T) {
