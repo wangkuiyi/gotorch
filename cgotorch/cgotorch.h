@@ -194,6 +194,8 @@ const char *NllLoss(Tensor input, Tensor target, Tensor weight,
                     Tensor *result);
 
 const char *FRelu(Tensor input, int8_t inplace, Tensor *result);
+const char *FLeakyRelu(Tensor input, double negative_slope, int8_t inplace,
+                       Tensor *result);
 const char *Linear(Tensor input, Tensor weight, Tensor bias, Tensor *result);
 
 const char *MaxPool2d(Tensor input, int64_t *kernel_data, int64_t kernel_len,
