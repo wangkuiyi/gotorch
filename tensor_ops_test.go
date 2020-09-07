@@ -272,10 +272,9 @@ func TestTopK(t *testing.T) {
 // tensor([[-0.5000,  1.0000],
 //         [-1.0000,  0.5000]])
 func TestTranspose(t *testing.T) {
-	r := torch.Transpose(torch.NewTensor([][]float32{{-0.5, -1}, {1, 0.5}}),
-		0, 1)
+	x := torch.NewTensor([][]float32{{-0.5, -1}, {1, 0.5}})
 	g := "-0.5000  1.0000\n-1.0000  0.5000\n[ CPUFloatType{2,2} ]"
-	assert.Equal(t, g, r.String())
+	assert.Equal(t, g, x.Transpose(0, 1).String())
 }
 
 func TestArgmin(t *testing.T) {
