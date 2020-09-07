@@ -79,6 +79,8 @@ func TestModulePanicIfNotInit(t *testing.T) {
 	assert.Panics(t, func() { m.To(torch.NewDevice("cpu"), torch.Int) })
 	assert.Panics(t, func() { m.NamedParameters() })
 	assert.Panics(t, func() { m.NamedBuffers() })
+	assert.Panics(t, func() { m.Parameters() })
+	assert.Panics(t, func() { m.Buffers() })
 }
 
 func TestModuleTrain(t *testing.T) {
@@ -99,14 +101,6 @@ func TestModuleTrain(t *testing.T) {
 	assert.False(t, m.LL[1].IsTraining())
 }
 
-func TestNewModuleWithoutInit(t *testing.T) {
-	n := myModel(false)
-	assert.Panics(t, func() { n.Train(true) })
-	assert.Panics(t, func() { n.To(torch.NewDevice("cpu")) })
-	assert.Panics(t, func() { n.NamedParameters() })
-	assert.Panics(t, func() { n.NamedBuffers() })
-}
-
 func TestModuleToDevice(t *testing.T) {
 	var device torch.Device
 	if torch.IsCUDAAvailable() {
@@ -119,6 +113,23 @@ func TestModuleToDevice(t *testing.T) {
 
 	hn := myModel(true)
 	assert.NotPanics(t, func() { hn.To(device) })
+}
+
+func TestModuleName(t *testing.T) {
+	hn := myModel(true)
+	assert.Equal(t, "nn.myModelModule", hn.Name())
+	assert.Equal(t, "nn.LinearModule", hn.L1.Name())
+	assert.Equal(t, "nn.LinearModule", hn.L2.Name())
+	assert.Equal(t, "nn.LinearModule", hn.LL[0].Name())
+}
+
+func TestModuleOuter(t *testing.T) {
+	hn := myModel(true)
+	assert.Equal(t, hn, hn.Outer())
+
+	assert.Equal(t, hn.L1, hn.L1.Outer())
+	assert.Equal(t, hn.L2, hn.L2.Outer())
+	assert.Equal(t, hn.LL[0], hn.LL[0].Outer())
 }
 
 func TestModuleStateDict(t *testing.T) {
@@ -142,6 +153,8 @@ func TestModuleStateDict(t *testing.T) {
 	assert.Contains(t, sd, "myModelModule.BB[1]")
 	assert.Contains(t, sd, "myModelModule.SS[0]")
 	assert.Contains(t, sd, "myModelModule.SS[1]")
+	assert.Equal(t, 13, len(n.Parameters()))
+	assert.Equal(t, 2, len(n.Buffers()))
 }
 
 func TestModuleGobStateDict(t *testing.T) {
