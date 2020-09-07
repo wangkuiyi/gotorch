@@ -63,7 +63,7 @@ func (m *Module) Init(outer IModule) {
 				// Calling Init in a valid Module: struct{*Module} or struct{Module}
 				m.outer = outer
 				m.isTraining = true // training mode by default.
-				m.name = reflect.TypeOf(outer).String()
+				m.name = reflect.TypeOf(outer).Elem().String()
 			}
 		}
 	}

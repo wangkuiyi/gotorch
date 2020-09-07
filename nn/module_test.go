@@ -115,6 +115,14 @@ func TestModuleToDevice(t *testing.T) {
 	assert.NotPanics(t, func() { hn.To(device) })
 }
 
+func TestModuleName(t *testing.T) {
+	hn := myModel(true)
+	assert.Equal(t, "nn.myModelModule", hn.Name())
+	assert.Equal(t, "nn.LinearModule", hn.L1.Name())
+	assert.Equal(t, "nn.LinearModule", hn.L2.Name())
+	assert.Equal(t, "nn.LinearModule", hn.LL[0].Name())
+}
+
 func TestModuleStateDict(t *testing.T) {
 	n := myModel(true)
 	sd := n.StateDict()
