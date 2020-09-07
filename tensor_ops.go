@@ -387,6 +387,8 @@ func TopK(a Tensor, k, dim int64, largest, sorted bool) (Tensor, Tensor) {
 	}
 	MustNil(unsafe.Pointer(C.TopK(C.Tensor(*a.T), C.int64_t(k), C.int64_t(dim),
 		C.int8_t(l), C.int8_t(s), &values, &indices)))
+	SetTensorFinalizer((*unsafe.Pointer)(&values))
+	SetTensorFinalizer((*unsafe.Pointer)(&indices))
 	return Tensor{(*unsafe.Pointer)(&values)}, Tensor{(*unsafe.Pointer)(&indices)}
 }
 
