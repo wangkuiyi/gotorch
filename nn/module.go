@@ -124,6 +124,7 @@ func (m *Module) IsTraining() bool {
 func (m *Module) To(device torch.Device, dtype ...int8) {
 	must(m.outer != nil, "GoTorch requires calling `Init` before using")
 	torch.GC()
+	defer torch.FinishGC()
 	visitTensors(m.outer, reflect.TypeOf(m.outer).Elem().Name(),
 		func(f reflect.StructField, v reflect.Value, prefix string, noSuffix bool) error {
 			t := v.Interface().(torch.Tensor)
@@ -138,7 +139,6 @@ func (m *Module) To(device torch.Device, dtype ...int8) {
 			}
 			return nil
 		})
-	torch.FinishGC()
 }
 
 // NamedParameters returns trainable parameters (recursively) with their names
