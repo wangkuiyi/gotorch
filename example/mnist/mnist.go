@@ -91,7 +91,7 @@ func train(trainFn, testFn string, epochs int, save string) {
 }
 
 // MNISTLoader returns a ImageLoader with MNIST training or testing tgz file
-func MNISTLoader(fn string, vocab map[string]int64) *datasets.ImageLoader {
+func MNISTLoader(fn string, vocab map[string]int) *datasets.ImageLoader {
 	trans := transforms.Compose(transforms.ToTensor(), transforms.Normalize([]float64{0.1307}, []float64{0.3081}))
 	loader, e := datasets.NewImageLoader(fn, vocab, trans, 64)
 	if e != nil {

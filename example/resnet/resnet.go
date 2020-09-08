@@ -73,7 +73,7 @@ func accuracy(output, target torch.Tensor, topk []int64) []float32 {
 	return res
 }
 
-func imageNetLoader(fn string, vocab map[string]int64, mbSize int) *datasets.ImageLoader {
+func imageNetLoader(fn string, vocab map[string]int, mbSize int) *datasets.ImageLoader {
 	trans := transforms.Compose(
 		transforms.RandomResizedCrop(224),
 		transforms.RandomHorizontalFlip(0.5),
@@ -146,19 +146,18 @@ func train(trainFn, testFn, save string, epochs int) {
 		trainLoader := imageNetLoader(trainFn, vocab, mbSize)
 		testLoader := imageNetLoader(testFn, vocab, mbSize)
 		iter := 0
-		samples := int64(0)
 		for trainLoader.Scan() {
 			iter++
 			data, label := trainLoader.Minibatch()
-			samples += data.Shape()[0]
 			optimizer.ZeroGrad()
 			loss, acc1, acc5 := trainOneMinibatch(data.To(device, data.Dtype()), label.To(device, label.Dtype()), model, optimizer)
 			if iter%logInterval == 0 {
-				log.Printf("Train Epoch: %d, Iteration: %d, loss:%f, acc1: %f, acc5:%f", epoch, iter, loss, acc1, acc5)
+				throughput := float64(data.Shape()[0]*logInterval) / time.Since(startTime).Seconds()
+				log.Printf("Train Epoch: %d, Iteration: %d, loss:%f, acc1: %f, acc5:%f, throughput: %f samples/sec", epoch, iter, loss, acc1, acc5, throughput)
+				startTime = time.Now()
 			}
 		}
-		throughput := float64(samples) / time.Since(startTime).Seconds()
-		log.Printf("End Epoch: %d, throughput: %f samples/sec", epoch, throughput)
+		torch.FinishGC()
 		test(model, testLoader)
 	}
 	saveModel(model, save)
