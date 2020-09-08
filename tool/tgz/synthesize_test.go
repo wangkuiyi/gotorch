@@ -30,3 +30,9 @@ func TestTgzSynthesize(t *testing.T) {
 		assert.Equal(t, fns[i], h.Name)
 	}
 }
+
+func TestTgzSynthesizeWithoutPermission(t *testing.T) {
+	fn, e := tgz.SynthesizeTarball("/somewhere_not_there")
+	assert.Error(t, e)
+	assert.Equal(t, "", fn)
+}
