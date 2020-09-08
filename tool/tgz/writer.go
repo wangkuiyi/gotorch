@@ -28,6 +28,9 @@ func CreateFile(fn string) (*Writer, error) {
 
 // NewWriter wraps an io.Writer into a Writer
 func NewWriter(r io.Writer) *Writer {
+	if r == nil {
+		return nil
+	}
 	g := gzip.NewWriter(r)
 	return &Writer{
 		Writer: tar.NewWriter(g),

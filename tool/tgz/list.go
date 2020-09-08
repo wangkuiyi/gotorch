@@ -14,6 +14,11 @@ func ListFile(fn string) ([]*tar.Header, error) {
 	}
 	defer r.Close()
 
+	return List(r)
+}
+
+// List reads and lists entries read from a reader.
+func List(r *Reader) ([]*tar.Header, error) {
 	l := make([]*tar.Header, 0)
 	for {
 		hdr, e := r.Next()
