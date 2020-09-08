@@ -161,9 +161,9 @@ const char *Tensor_SetData(Tensor self, Tensor new_data) {
   }
 }
 
-// from_blob does not allocate a new space, it's just a tensor view of
-// the array in Go world. When the array in Go world is freed, the
-// tensor in C++ world becomes illegal. We must switch to use deep copy.
+// from_blob does not allocate a new space, it returns a C++ tensor view
+// of a Go array. When the array in Go world is freed, the tensor in C++
+// world becomes illegal. We must switch to use deep copy.
 const char *Tensor_FromBlob(void *data, int8_t dtype, int64_t *sizes_data,
                             int64_t sizes_data_len, Tensor *result) {
   try {
