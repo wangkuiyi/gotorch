@@ -7,6 +7,7 @@ package functional
 import "C"
 
 import (
+	"runtime"
 	"unsafe"
 
 	torch "github.com/wangkuiyi/gotorch"
@@ -43,6 +44,7 @@ func BatchNorm(input, runningMean, runningVar, weight, bias torch.Tensor,
 			C.double(momentum),
 			C.double(eps),
 			&t)))
+	runtime.KeepAlive(input.T)
 	torch.SetTensorFinalizer((*unsafe.Pointer)(&t))
 	return torch.Tensor{(*unsafe.Pointer)(&t)}
 }
@@ -63,6 +65,7 @@ func Conv2d(input, weight, bias torch.Tensor,
 		(*C.int64_t)(unsafe.Pointer(&dilation[0])), C.int64_t(len(dilation)),
 		C.int64_t(groups),
 		&t)))
+	runtime.KeepAlive(input.T)
 	torch.SetTensorFinalizer((*unsafe.Pointer)(&t))
 	return torch.Tensor{(*unsafe.Pointer)(&t)}
 }
@@ -93,6 +96,7 @@ func ConvTranspose2d(
 		C.int64_t(len(dilation)),
 		&t)))
 	torch.SetTensorFinalizer((*unsafe.Pointer)(&t))
+	runtime.KeepAlive(input.T)
 	return torch.Tensor{(*unsafe.Pointer)(&t)}
 }
 
@@ -123,6 +127,7 @@ func NllLoss(input, target, weight torch.Tensor, ignoreIndex int64,
 		C.int64_t(ignoreIndex),
 		C.CString(reduction),
 		&t)))
+	runtime.KeepAlive(input.T)
 	torch.SetTensorFinalizer((*unsafe.Pointer)(&t))
 	return torch.Tensor{(*unsafe.Pointer)(&t)}
 }
@@ -140,6 +145,7 @@ func BinaryCrossEntropy(input, target, weight torch.Tensor,
 		cweight,
 		C.CString(reduction),
 		&t)))
+	runtime.KeepAlive(input.T)
 	torch.SetTensorFinalizer((*unsafe.Pointer)(&t))
 	return torch.Tensor{(*unsafe.Pointer)(&t)}
 }
@@ -158,6 +164,7 @@ func CrossEntropy(input, target, weight torch.Tensor, ignoreIndex int64,
 		C.int64_t(ignoreIndex),
 		C.CString(reduction),
 		&t)))
+	runtime.KeepAlive(input.T)
 	torch.SetTensorFinalizer((*unsafe.Pointer)(&t))
 	return torch.Tensor{(*unsafe.Pointer)(&t)}
 }
@@ -171,6 +178,7 @@ func Relu(input torch.Tensor, inplace bool) torch.Tensor {
 	}
 	torch.MustNil(unsafe.Pointer(C.FRelu(
 		C.Tensor(*input.T), C.int8_t(cInplace), &t)))
+	runtime.KeepAlive(input.T)
 	torch.SetTensorFinalizer((*unsafe.Pointer)(&t))
 	return torch.Tensor{(*unsafe.Pointer)(&t)}
 }
@@ -184,6 +192,7 @@ func LeakyRelu(input torch.Tensor, negativeSlope float64, inplace bool) torch.Te
 	}
 	torch.MustNil(unsafe.Pointer(C.FLeakyRelu(C.Tensor(*input.T),
 		C.double(negativeSlope), C.int8_t(cInplace), &t)))
+	runtime.KeepAlive(input.T)
 	torch.SetTensorFinalizer((*unsafe.Pointer)(&t))
 	return torch.Tensor{(*unsafe.Pointer)(&t)}
 }
@@ -198,6 +207,7 @@ func Linear(input, weight, bias torch.Tensor) torch.Tensor {
 	torch.MustNil(unsafe.Pointer(C.Linear(
 		C.Tensor(*input.T),
 		C.Tensor(*weight.T), cBias, &t)))
+	runtime.KeepAlive(input.T)
 	torch.SetTensorFinalizer((*unsafe.Pointer)(&t))
 	return torch.Tensor{(*unsafe.Pointer)(&t)}
 }
@@ -218,6 +228,7 @@ func MaxPool2d(input torch.Tensor, kernelSize, stride, padding,
 		(*C.int64_t)(unsafe.Pointer(&dilation[0])), C.int64_t(len(dilation)),
 		cMode,
 		&t)))
+	runtime.KeepAlive(input.T)
 	torch.SetTensorFinalizer((*unsafe.Pointer)(&t))
 	return torch.Tensor{(*unsafe.Pointer)(&t)}
 }
@@ -229,6 +240,7 @@ func AdaptiveAvgPool2d(input torch.Tensor, outputSize []int64) torch.Tensor {
 		C.Tensor(*input.T),
 		(*C.int64_t)(unsafe.Pointer(&outputSize[0])), C.int64_t(len(outputSize)),
 		&t)))
+	runtime.KeepAlive(input.T)
 	torch.SetTensorFinalizer((*unsafe.Pointer)(&t))
 	return torch.Tensor{(*unsafe.Pointer)(&t)}
 }
