@@ -139,7 +139,7 @@ func To(a Tensor, device Device, dtype int8) Tensor {
 	return a.To(device, dtype)
 }
 
-// FromBlob creating a Tensor with the give data memory
+// FromBlob returns a deep copy Tensor with the given data memory
 func FromBlob(data unsafe.Pointer, dtype int8, sizes []int64) Tensor {
 	var t C.Tensor
 	MustNil(unsafe.Pointer(C.Tensor_FromBlob(

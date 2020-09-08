@@ -161,11 +161,15 @@ const char *Tensor_SetData(Tensor self, Tensor new_data) {
   }
 }
 
+// from_blob does not allocate a new space, it returns a C++ tensor view
+// of a Go array. When the array in Go world is freed, the tensor in C++
+// world becomes illegal. We must switch to use deep copy.
 const char *Tensor_FromBlob(void *data, int8_t dtype, int64_t *sizes_data,
                             int64_t sizes_data_len, Tensor *result) {
   try {
     auto t = at::from_blob(data, at::IntArrayRef(sizes_data, sizes_data_len),
-                           torch::dtype(at::ScalarType(dtype)));
+                           torch::dtype(at::ScalarType(dtype)))
+                 .clone();
     *result = new at::Tensor(t);
     return nullptr;
   } catch (const std::exception &e) {
