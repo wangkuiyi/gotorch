@@ -1,6 +1,7 @@
 package tgz_test
 
 import (
+	"bytes"
 	"strings"
 	"testing"
 
@@ -16,6 +17,16 @@ func TestOpenFileNotExist(t *testing.T) {
 
 func TestNewReaderInvalidTarball(t *testing.T) {
 	a := strings.NewReader("    ")
-	_, e := tgz.NewReader(a)
+	r, e := tgz.NewReader(a)
 	assert.Error(t, e) // the input is not valid a tarball encoding.
+	assert.Nil(t, r)
+}
+
+func TestNewReaderValidTarball(t *testing.T) {
+	var buf bytes.Buffer
+	w := tgz.NewWriter(&buf)
+	assert.NoError(t, tgz.Synthesize(w))
+
+	_, e := tgz.NewReader(&buf)
+	assert.NoError(t, e) // the input is not valid a tarball encoding.
 }

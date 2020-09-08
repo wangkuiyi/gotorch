@@ -3,24 +3,37 @@ package tgz
 import (
 	"archive/tar"
 	"bytes"
+	"fmt"
 	"image"
 	"image/color"
 	"image/draw"
 	"image/png"
 	"path/filepath"
 	"strings"
-	"testing"
 )
 
-// SynthesizeTarball generates a tar.gz file for testing.
-func SynthesizeTarball(t *testing.T, dir string) string {
+// SynthesizeTarball generates a tarball file.
+func SynthesizeTarball(dir string) (string, error) {
 	fn := filepath.Join(dir, "input.tar.gz")
 
 	w, e := CreateFile(fn)
 	if e != nil {
-		t.Fatalf("Cannot create writer: %v", e)
+		return "", e
 	}
 
+	if e := Synthesize(w); e != nil {
+		return "", e
+	}
+
+	if e := w.Close(); e != nil {
+		return "", e
+	}
+
+	return fn, e
+}
+
+// Synthesize generates a tar.gz file for testing.
+func Synthesize(w *Writer) error {
 	imgFns := []string{
 		"mnist/",
 		"mnist/training/",
@@ -38,7 +51,7 @@ func SynthesizeTarball(t *testing.T, dir string) string {
 	var buf bytes.Buffer
 	img := drawImage(image.Rect(0, 0, 2, 2), color.RGBA{0, 0, 255, 255})
 	if e := png.Encode(&buf, img); e != nil {
-		t.Fatalf("Failed encoding PNG file: %v", e)
+		return fmt.Errorf("Failed encoding PNG file: %v", e)
 	}
 
 	for _, fn := range imgFns {
@@ -50,7 +63,7 @@ func SynthesizeTarball(t *testing.T, dir string) string {
 			}
 
 			if e := w.WriteHeader(hdr); e != nil {
-				t.Fatalf("Failed writing header: %v", e)
+				return fmt.Errorf("Failed writing header: %v", e)
 			}
 		} else { // Regular file
 			hdr := &tar.Header{
@@ -60,19 +73,15 @@ func SynthesizeTarball(t *testing.T, dir string) string {
 			}
 
 			if e := w.WriteHeader(hdr); e != nil {
-				t.Fatalf("Failed writing header: %v", e)
+				return fmt.Errorf("Failed writing header: %v", e)
 			}
 			if _, e := w.Write([]byte(buf.Bytes())); e != nil {
-				t.Fatalf("Failed writing PNG encoding: %v", e)
+				return fmt.Errorf("Failed writing PNG encoding: %v", e)
 			}
 		}
 	}
 
-	if e := w.Close(); e != nil {
-		t.Fatalf("Cannot close the synthesizer: %v", e)
-	}
-
-	return fn
+	return nil
 }
 
 func drawImage(size image.Rectangle, c color.Color) image.Image {
