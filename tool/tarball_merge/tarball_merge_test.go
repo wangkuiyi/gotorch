@@ -15,8 +15,10 @@ func TestMergeFiles(t *testing.T) {
 		t.Fatal(e)
 	}
 
-	fn1 := tgz.SynthesizeTarball(t, d)
-	fn2 := tgz.SynthesizeTarball(t, d)
+	fn1, e := tgz.SynthesizeTarball(d)
+	assert.NoError(t, e)
+	fn2, e := tgz.SynthesizeTarball(d)
+	assert.NoError(t, e)
 
 	out := filepath.Join(d, "merged.tar.gz")
 	mergeFiles([]string{fn1, fn2}, out)

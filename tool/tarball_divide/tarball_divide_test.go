@@ -15,7 +15,8 @@ func TestDivide(t *testing.T) {
 		t.Fatal(e)
 	}
 
-	fn := tgz.SynthesizeTarball(t, d)
+	fn, e := tgz.SynthesizeTarball(d)
+	assert.NoError(t, e)
 
 	l, e := tgz.ListFile(fn)
 	assert.NoError(t, e)
