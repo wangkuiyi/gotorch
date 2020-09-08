@@ -95,8 +95,8 @@ func ConvTranspose2d(
 		(*C.int64_t)(unsafe.Pointer(&dilation[0])),
 		C.int64_t(len(dilation)),
 		&t)))
-	torch.SetTensorFinalizer((*unsafe.Pointer)(&t))
 	runtime.KeepAlive(input.T)
+	torch.SetTensorFinalizer((*unsafe.Pointer)(&t))
 	return torch.Tensor{(*unsafe.Pointer)(&t)}
 }
 
