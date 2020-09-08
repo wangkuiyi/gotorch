@@ -19,7 +19,14 @@ func TestTgzSynthesize(t *testing.T) {
 	assert.NoError(t, e)
 	l, e := tgz.List(r)
 	assert.NoError(t, e)
-	for _, h := range l {
-		t.Log(h.Name)
+	assert.Equal(t, 5, len(l))
+	fns := []string{
+		"mnist/training/0/first.png",
+		"mnist/training/0/second.png",
+		"mnist/training/1/first.png",
+		"mnist/training/1/second.png",
+		"mnist/testing/0/first.png"}
+	for i, h := range l {
+		assert.Equal(t, fns[i], h.Name)
 	}
 }
