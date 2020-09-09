@@ -67,12 +67,6 @@ func TestCopyTo(t *testing.T) {
 	assert.True(t, torch.Equal(a, b))
 }
 
-func TestPinMemory(t *testing.T) {
-	a := torch.NewTensor([]int64{1, 2})
-	b := a.PinMemory()
-	assert.True(t, torch.Equal(a, b))
-}
-
 func TestDim(t *testing.T) {
 	a := torch.RandN([]int64{2, 3}, false)
 	assert.Equal(t, int64(2), a.Dim())
