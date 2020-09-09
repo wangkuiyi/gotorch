@@ -113,3 +113,13 @@ func TestTensorIndex(t *testing.T) {
 	assert.Panics(t, func() { a.Index(0).Item() })
 	assert.Panics(t, func() { a.Index(0, 0, 0).Item() })
 }
+
+func TestTensorPinMemory(t *testing.T) {
+	a := torch.NewTensor([][]float32{{1, 2}, {3, 4}})
+	b := a.PinMemory()
+	if torch.IsCUDAAvailable() {
+		assert.Equal(t, " 1  2\n 3  4\n[ CUDAFloatType{2,2} ]", b.String())
+	} else {
+		assert.Equal(t, " 1  2\n 3  4\n[ CPUFloatType{2,2} ]", b.String())
+	}
+}
