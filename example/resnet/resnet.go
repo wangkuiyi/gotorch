@@ -196,5 +196,5 @@ func main() {
 
 	flag.Parse()
 
-	train(*trainTar, *testTar, *save, *epochs, *pinMemory)
+	train(*trainTar, *testTar, *save, *epochs, *pinMemory && torch.IsCUDAAvailable())
 }
