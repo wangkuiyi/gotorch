@@ -123,7 +123,10 @@ func (m *Module) IsTraining() bool {
 // To recursively casts all parameters to the given `dtype` and `device`.
 func (m *Module) To(device torch.Device, dtype ...int8) {
 	must(m.outer != nil, "GoTorch requires calling `Init` before using")
-	// Recycle memory in time.
+	// Each call to Tensor.To generates a new Go Tensor instance.  We don't
+	// have to recycle the old tensors explicitly, but leaving the work to
+	// Go GC.  However, by actively triggering the GC, the we can recycle
+	// old tensors in time and keep the program memory footprint small.
 	torch.GC()
 	defer torch.FinishGC()
 	visitTensors(m.outer, reflect.TypeOf(m.outer).Elem().Name(),
