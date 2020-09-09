@@ -68,7 +68,6 @@ func TestCopyTo(t *testing.T) {
 }
 
 func TestPinMemory(t *testing.T) {
-	device := torch.NewDevice("cpu")
 	a := torch.NewTensor([]int64{1, 2})
 	b := a.PinMemory()
 	assert.True(t, torch.Equal(a, b))
