@@ -73,14 +73,14 @@ func accuracy(output, target torch.Tensor, topk []int64) []float32 {
 	return res
 }
 
-func imageNetLoader(fn string, vocab map[string]int, mbSize int) *datasets.ImageLoader {
+func imageNetLoader(fn string, vocab map[string]int, mbSize int, pinMemory bool) *datasets.ImageLoader {
 	trans := transforms.Compose(
 		transforms.RandomResizedCrop(224),
 		transforms.RandomHorizontalFlip(0.5),
 		transforms.ToTensor(),
 		transforms.Normalize([]float64{0.485, 0.456, 0.406}, []float64{0.229, 0.224, 0.225}))
 
-	loader, e := datasets.NewImageLoader(fn, vocab, trans, mbSize)
+	loader, e := datasets.NewImageLoader(fn, vocab, trans, mbSize, pinMemory)
 	if e != nil {
 		log.Fatal(e)
 	}
@@ -122,7 +122,7 @@ func test(model *models.ResnetModule, loader *datasets.ImageLoader) {
 		testLoss/float32(samples), acc1/float32(samples), acc5/float32(samples))
 }
 
-func train(trainFn, testFn, save string, epochs int) {
+func train(trainFn, testFn, save string, epochs int, pinMemory bool) {
 	// build label vocabulary
 	vocab, e := datasets.BuildLabelVocabularyFromTgz(trainFn)
 	if e != nil {
@@ -143,8 +143,8 @@ func train(trainFn, testFn, save string, epochs int) {
 	for epoch := 0; epoch < epochs; epoch++ {
 		adjustLearningRate(optimizer, epoch, lr)
 		startTime := time.Now()
-		trainLoader := imageNetLoader(trainFn, vocab, mbSize)
-		testLoader := imageNetLoader(testFn, vocab, mbSize)
+		trainLoader := imageNetLoader(trainFn, vocab, mbSize, pinMemory)
+		testLoader := imageNetLoader(testFn, vocab, mbSize, pinMemory)
 		iter := 0
 		for trainLoader.Scan() {
 			iter++
@@ -192,8 +192,9 @@ func main() {
 	testTar := flag.String("test", "/tmp/imagenet_testing_shuffled.tar.gz", "data tarball")
 	save := flag.String("save", "/tmp/imagenet_model.gob", "the model file")
 	epochs := flag.Int("epochs", 5, "the number of epochs")
+	pinMemory := flag.Bool("pin_memory", false, "use pinned memory")
 
 	flag.Parse()
 
-	train(*trainTar, *testTar, *save, *epochs)
+	train(*trainTar, *testTar, *save, *epochs, *pinMemory)
 }

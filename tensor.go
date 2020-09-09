@@ -128,6 +128,14 @@ func (a Tensor) CopyTo(device Device) Tensor {
 	return Tensor{(*unsafe.Pointer)(&t)}
 }
 
+// PinMemory returns a tensor in pinned memory
+func (a Tensor) PinMemory() Tensor {
+	var t C.Tensor
+	MustNil(unsafe.Pointer(C.Tensor_PinMemory(C.Tensor(*a.T), &t)))
+	SetTensorFinalizer((*unsafe.Pointer)(&t))
+	return Tensor{(*unsafe.Pointer)(&t)}
+}
+
 // SetData sets the tensor data held by b to a
 func (a Tensor) SetData(b Tensor) {
 	MustNil(unsafe.Pointer(C.Tensor_SetData(C.Tensor(*a.T), C.Tensor(*b.T))))

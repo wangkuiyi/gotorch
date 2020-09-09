@@ -17,33 +17,36 @@ type sample struct {
 
 // ImageLoader struct
 type ImageLoader struct {
-	r       *tgz.Reader
-	vocab   map[string]int
-	samples chan sample
-	errChan chan error
-	err     error
-	trans1  *transforms.ComposeTransformer // transforms before `ToTensor`
-	trans2  *transforms.ComposeTransformer // transforms after and include `ToTensor`
-	mbSize  int
-	inputs  []torch.Tensor
-	labels  []int64
+	r         *tgz.Reader
+	vocab     map[string]int
+	samples   chan sample
+	errChan   chan error
+	err       error
+	trans1    *transforms.ComposeTransformer // transforms before `ToTensor`
+	trans2    *transforms.ComposeTransformer // transforms after and include `ToTensor`
+	mbSize    int
+	inputs    []torch.Tensor
+	labels    []int64
+	pinMemory bool
 }
 
 // NewImageLoader returns an ImageLoader
-func NewImageLoader(fn string, vocab map[string]int, trans *transforms.ComposeTransformer, mbSize int) (*ImageLoader, error) {
+func NewImageLoader(fn string, vocab map[string]int, trans *transforms.ComposeTransformer,
+	mbSize int, pinMemory bool) (*ImageLoader, error) {
 	r, e := tgz.OpenFile(fn)
 	if e != nil {
 		return nil, e
 	}
 	trans1, trans2 := splitComposeByToTensor(trans)
 	m := &ImageLoader{
-		r:       r,
-		vocab:   vocab,
-		samples: make(chan sample, mbSize*4),
-		errChan: make(chan error, 1),
-		trans1:  trans1,
-		trans2:  trans2,
-		mbSize:  mbSize,
+		r:         r,
+		vocab:     vocab,
+		samples:   make(chan sample, mbSize*4),
+		errChan:   make(chan error, 1),
+		trans1:    trans1,
+		trans2:    trans2,
+		mbSize:    mbSize,
+		pinMemory: pinMemory,
 	}
 	go m.read()
 	return m, nil
@@ -110,7 +113,12 @@ func (p *ImageLoader) retreiveMinibatch() bool {
 
 // Minibatch returns a minibash with data and label Tensor
 func (p *ImageLoader) Minibatch() (torch.Tensor, torch.Tensor) {
-	return torch.Stack(p.inputs, 0), torch.NewTensor(p.labels)
+	i := torch.Stack(p.inputs, 0)
+	l := torch.NewTensor(p.labels)
+	if p.pinMemory {
+		return i.PinMemory(), l.PinMemory()
+	}
+	return i, l
 }
 
 // Err returns the error during the scan process, if there is any. io.EOF is not
