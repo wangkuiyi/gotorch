@@ -123,6 +123,7 @@ func (m *Module) IsTraining() bool {
 // To recursively casts all parameters to the given `dtype` and `device`.
 func (m *Module) To(device torch.Device, dtype ...int8) {
 	must(m.outer != nil, "GoTorch requires calling `Init` before using")
+	// Recycle memory in time.
 	torch.GC()
 	defer torch.FinishGC()
 	visitTensors(m.outer, reflect.TypeOf(m.outer).Elem().Name(),
