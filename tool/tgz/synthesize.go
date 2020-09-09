@@ -4,12 +4,12 @@ import (
 	"archive/tar"
 	"bytes"
 	"fmt"
-	"image"
 	"image/color"
-	"image/draw"
 	"image/png"
 	"path/filepath"
 	"strings"
+
+	"github.com/wangkuiyi/gotorch/vision"
 )
 
 // SynthesizeTarball generates a tarball file.
@@ -49,7 +49,7 @@ func Synthesize(w *Writer) error {
 	}
 
 	var buf bytes.Buffer
-	img := drawImage(image.Rect(0, 0, 2, 2), color.RGBA{0, 0, 255, 255})
+	img := vision.SynthesizeImage(2, 2, color.RGBA{0, 0, 255, 255})
 	if e := png.Encode(&buf, img); e != nil {
 		return fmt.Errorf("Failed encoding PNG file: %v", e)
 	}
@@ -82,10 +82,4 @@ func Synthesize(w *Writer) error {
 	}
 
 	return nil
-}
-
-func drawImage(size image.Rectangle, c color.Color) image.Image {
-	m := image.NewRGBA(size)
-	draw.Draw(m, m.Bounds(), &image.Uniform{c}, image.ZP, draw.Src)
-	return m
 }
