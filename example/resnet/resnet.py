@@ -54,12 +54,10 @@ def train(epoch, train_loader, model, optimizer, batch_size, device):
         optimizer.step()
 
         if i and i % 10 == 0:
-            print('batch: %d, loss: %f, acc1: %f, acc5: %f' % (
-                i, loss, acc1, acc5))
-
-    throughput = batch_size * len(train_loader) * 1.0 / (time.time() - start)
-    print('epoch: %d, loss: %f, acc1: %f, acc5: %f, throughput: %f \
-        samples/sec' % (epoch, loss, acc1, acc5, throughput))
+            throughput = (10 * batch_size * 1.0) / (time.time() - start)
+            print('epoch: %d, batch: %d, loss: %f, acc1: %f, acc5: %f, throughput: %f' % (
+                epoch, i, loss, acc1, acc5, throughput))
+            start = time.time()
 
 
 if __name__ == "__main__":
