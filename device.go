@@ -24,7 +24,7 @@ func IsCUDAAvailable() bool {
 	return C.IsCUDAAvailable() == C.bool(true)
 }
 
-// IscuDNNAvailable returns true if cuDNN is available
-func IscuDNNAvailable() bool {
+// IsCUDNNAvailable returns true if cuDNN is available
+func IsCUDNNAvailable() bool {
 	return C.IsCUDNNAvailable() == C.bool(true)
 }
