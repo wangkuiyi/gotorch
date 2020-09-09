@@ -89,6 +89,10 @@ func TestImageTgzLoader(t *testing.T) {
 }
 
 func TestImageTgzLoaderHeavy(t *testing.T) {
+	// NOTE: you can download a subset of ImageNet dataset which contains 1k images from https://gotorch-ci.oss-cn-hongkong.aliyuncs.com/imagenet_train_shuffle_1k.tgz
+	// and run `export GOTORCH_TEST_IMAGE_TGZ_PATH=/your/path/imagenet_train_shuffle_1k.tgz` to set the environment variable to run
+	// this unit test.
+	// If you want to generate a custom shuffled tarball, please go to https://github.com/wangkuiyi/gotorch/blob/develop/doc/shuffle_tarball.md
 	if os.Getenv("GOTORCH_TEST_IMAGE_TGZ_PATH") == "" {
 		t.Skip("No GOTORCH_TEST_IMAGE_TGZ_PATH from env, skip test")
 	}

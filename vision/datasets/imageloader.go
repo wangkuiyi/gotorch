@@ -37,11 +37,9 @@ func NewImageLoader(fn string, vocab map[string]int, trans *transforms.ComposeTr
 	}
 	trans1, trans2 := splitComposeByToTensor(trans)
 	m := &ImageLoader{
-		r:     r,
-		vocab: vocab,
-		// TODO(yancey1989): using a buffered channel to get better performance, but
-		// a bug should be fixed before. c.f. https://github.com/wangkuiyi/gotorch/pull/304#issuecomment-688670165
-		samples: make(chan sample),
+		r:       r,
+		vocab:   vocab,
+		samples: make(chan sample, mbSize*4),
 		errChan: make(chan error, 1),
 		trans1:  trans1,
 		trans2:  trans2,
