@@ -1,4 +1,4 @@
-package datasets
+package vision
 
 import (
 	"archive/tar"

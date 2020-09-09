@@ -1,4 +1,4 @@
-package datasets_test
+package vision_test
 
 import (
 	"archive/tar"
@@ -9,11 +9,11 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/wangkuiyi/gotorch/vision/datasets"
+	"github.com/wangkuiyi/gotorch/vision"
 )
 
 func synthesizeImages(w io.Writer) []string {
-	s := datasets.NewSynthesizer(w)
+	s := vision.NewSynthesizer(w)
 	defer s.Close()
 	colors := []color.Color{
 		color.RGBA{0, 0, 255, 255},
