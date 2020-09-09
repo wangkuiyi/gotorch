@@ -130,6 +130,9 @@ func (a Tensor) CopyTo(device Device) Tensor {
 
 // PinMemory returns a tensor in pinned memory. Pinned memory requires CUDA.
 func (a Tensor) PinMemory() Tensor {
+	if !IsCUDAAvailable() {
+		return a
+	}
 	var t C.Tensor
 	MustNil(unsafe.Pointer(C.Tensor_PinMemory(C.Tensor(*a.T), &t)))
 	SetTensorFinalizer((*unsafe.Pointer)(&t))
