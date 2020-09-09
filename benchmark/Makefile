@@ -8,6 +8,7 @@ mnist: main.cpp
 	main.cpp \
 	-O -o mnist \
 	-Wl,-rpath,${GOPATH}/src/github.com/wangkuiyi/gotorch/cgotorch/libtorch/lib \
+	-Wl,-rpath,${GOPATH}/src/github.com/wangkuiyi/gotorch/cgotorch/torch_xla/lib \
 	-pthread \
 	-lc10 -ltorch -ltorch_cpu \
 	-D_GLIBCXX_USE_CXX11_ABI=0
