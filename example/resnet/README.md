@@ -73,7 +73,6 @@ GoTorch and PyTorch samples' throughput.
 
 The throughput of the GoTorch version is about 80 samples/secs.
 
-<!-- markdownlint-disable -->
 ``` bash
 $go run example/resnet/resnet.go -data $IMAGENET_HOME/train_shuffle.tgz -test $IMAGENET_HOME/validation.tgz
 2020/09/09 03:02:16 CUDA is valid
@@ -86,7 +85,6 @@ $go run example/resnet/resnet.go -data $IMAGENET_HOME/train_shuffle.tgz -test $I
 
 The throughput of the PyTorch version is about 23 samples/secs.
 
-<!-- markdownlint-restore -->
 ``` bash
 $python example/resnet/resnet.py -data $IMAGENET_HOME/train -test $IMAGENET_HOME/
 epoch: 0, batch: 10, loss: 9.453032, ... throughput: 21.507074 samples/sec
