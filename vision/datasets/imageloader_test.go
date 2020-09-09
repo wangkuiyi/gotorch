@@ -53,7 +53,8 @@ func TestImageTgzLoader(t *testing.T) {
 	d, e := ioutil.TempDir("", "gotorch_image_tgz_loader*")
 	a.NoError(e)
 
-	fn := tgz.SynthesizeTarball(t, d)
+	fn, e := tgz.SynthesizeTarball(d)
+	a.NoError(e)
 	expectedVocab := map[string]int{"0": 0, "1": 1}
 	vocab, e := BuildLabelVocabularyFromTgz(fn)
 	a.NoError(e)
