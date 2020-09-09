@@ -10,54 +10,72 @@ import (
 	"github.com/wangkuiyi/gotorch/vision/transforms"
 )
 
-// ImageLoader struct
-type ImageLoader struct {
-	r      *tgz.Reader
-	vocab  map[string]int64
-	err    error
-	inputs []torch.Tensor
-	labels []int64
-	trans  *transforms.ComposeTransformer
-	mbSize int
+type sample struct {
+	data  image.Image
+	label int
 }
 
+// ImageLoader struct
+type ImageLoader struct {
+	r       *tgz.Reader
+	vocab   map[string]int
+	samples chan sample
+	errChan chan error
+	err     error
+	trans1  *transforms.ComposeTransformer // transforms before `ToTensor`
+	trans2  *transforms.ComposeTransformer // transforms after and include `ToTensor`
+	mbSize  int
+	inputs  []torch.Tensor
+	labels  []int64
+}
+
+// NewImageLoader returns an ImageLoader
+func NewImageLoader(fn string, vocab map[string]int, trans *transforms.ComposeTransformer, mbSize int) (*ImageLoader, error) {
+	r, e := tgz.OpenFile(fn)
+	if e != nil {
+		return nil, e
+	}
+	trans1, trans2 := splitComposeByToTensor(trans)
+	m := &ImageLoader{
+		r:       r,
+		vocab:   vocab,
+		samples: make(chan sample, mbSize*4),
+		errChan: make(chan error, 1),
+		trans1:  trans1,
+		trans2:  trans2,
+		mbSize:  mbSize,
+	}
+	go m.read()
+	return m, nil
+}
 func (p *ImageLoader) tensorGC() {
 	p.inputs = []torch.Tensor{}
 	p.labels = []int64{}
 	torch.GC()
 }
 
-// NewImageLoader returns an ImageLoader
-func NewImageLoader(fn string, vocab map[string]int64, trans *transforms.ComposeTransformer, mbSize int) (*ImageLoader, error) {
-	r, e := tgz.OpenFile(fn)
-	if e != nil {
-		return nil, e
-	}
-	return &ImageLoader{
-		r:      r,
-		vocab:  vocab,
-		err:    nil,
-		trans:  trans,
-		mbSize: mbSize,
-	}, nil
-}
-
-// Scan return false if no more dat
+// Scan return false if no more data
 func (p *ImageLoader) Scan() bool {
 	p.tensorGC()
-	if p.err != nil {
-		p.r.Close()
-		return false
+	select {
+	case e := <-p.errChan:
+		if e != nil && e != io.EOF {
+			p.err = e
+			return false
+		}
+	default:
+		// no error received
 	}
-	p.retreiveMinibatch()
-	return p.err == nil || p.err == io.EOF // the next call will return false
+	return p.retreiveMinibatch()
 }
 
-func (p *ImageLoader) retreiveMinibatch() {
+func (p *ImageLoader) read() {
+	defer close(p.samples)
+	defer close(p.errChan)
 	for {
 		hdr, err := p.r.Next()
 		if err != nil {
-			p.err = err
+			p.errChan <- err
 			break
 		}
 		if !hdr.FileInfo().Mode().IsRegular() {
@@ -65,20 +83,29 @@ func (p *ImageLoader) retreiveMinibatch() {
 		}
 		classStr := filepath.Base(filepath.Dir(hdr.Name))
 		label := p.vocab[classStr]
-		p.labels = append(p.labels, label)
-
 		m, _, err := image.Decode(p.r)
 		if err != nil {
-			p.err = err
+			p.errChan <- err
 			break
 		}
-		input := p.trans.Run(m)
-		p.inputs = append(p.inputs, input.(torch.Tensor))
+		p.samples <- sample{p.trans1.Run(m).(image.Image), label}
+	}
+}
 
-		if len(p.inputs) == p.mbSize {
-			break
+func (p *ImageLoader) retreiveMinibatch() bool {
+	for i := 0; i < p.mbSize; i++ {
+		sample, ok := <-p.samples
+		if ok {
+			p.inputs = append(p.inputs, p.trans2.Run(sample.data).(torch.Tensor))
+			p.labels = append(p.labels, int64(sample.label))
+		} else {
+			if i == 0 {
+				return false
+			}
+			return true
 		}
 	}
+	return true
 }
 
 // Minibatch returns a minibash with data and label Tensor
@@ -89,15 +116,12 @@ func (p *ImageLoader) Minibatch() (torch.Tensor, torch.Tensor) {
 // Err returns the error during the scan process, if there is any. io.EOF is not
 // considered an error.
 func (p *ImageLoader) Err() error {
-	if p.err == io.EOF {
-		return nil
-	}
 	return p.err
 }
 
 // BuildLabelVocabularyFromTgz build a label vocabulary from the image tgz file
-func BuildLabelVocabularyFromTgz(fn string) (map[string]int64, error) {
-	vocab := make(map[string]int64)
+func BuildLabelVocabularyFromTgz(fn string) (map[string]int, error) {
+	vocab := make(map[string]int)
 	l, e := tgz.ListFile(fn)
 	if e != nil {
 		return nil, e
@@ -106,9 +130,20 @@ func BuildLabelVocabularyFromTgz(fn string) (map[string]int64, error) {
 	for _, hdr := range l {
 		class := filepath.Base(filepath.Dir(hdr.Name))
 		if _, ok := vocab[class]; !ok {
-			vocab[class] = int64(idx)
+			vocab[class] = idx
 			idx++
 		}
 	}
 	return vocab, nil
+}
+
+func splitComposeByToTensor(compose *transforms.ComposeTransformer) (*transforms.ComposeTransformer, *transforms.ComposeTransformer) {
+	idx := len(compose.Transforms)
+	for i, trans := range compose.Transforms {
+		if _, ok := trans.(*transforms.ToTensorTransformer); ok {
+			idx = i
+			break
+		}
+	}
+	return transforms.Compose(compose.Transforms[:idx]...), transforms.Compose(compose.Transforms[idx:]...)
 }
