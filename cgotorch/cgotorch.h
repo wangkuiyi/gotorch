@@ -227,6 +227,7 @@ void Optimizer_Close(Optimizer opt);
 
 const char *Torch_Device(const char *device_type, Device *device);
 bool IsCUDAAvailable();
+bool IsCUDNNAvailable();
 
 const char *Tensor_To(Tensor input, Device device, int8_t dtype,
                       Tensor *output);

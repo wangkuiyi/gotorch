@@ -19,10 +19,12 @@ func NewDevice(deviceType string) Device {
 	return Device{t}
 }
 
-// IsCUDAAvailable returns true if CUDA is availabl
+// IsCUDAAvailable returns true if CUDA is available
 func IsCUDAAvailable() bool {
-	if C.IsCUDAAvailable() == C.bool(true) {
-		return true
-	}
-	return false
+	return C.IsCUDAAvailable() == C.bool(true)
+}
+
+// IsCUDNNAvailable returns true if cuDNN is available
+func IsCUDNNAvailable() bool {
+	return C.IsCUDNNAvailable() == C.bool(true)
 }
