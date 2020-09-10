@@ -20,7 +20,6 @@ import (
 // c.f. https://patrykchrabaszcz.github.io/Imagenet32/
 const (
 	trainSamples = 1281167
-	logInterval  = 10 // in iterations
 )
 
 var device torch.Device
@@ -142,20 +141,19 @@ func train(trainFn, testFn, save string, epochs int, pinMemory bool) {
 
 	for epoch := 0; epoch < epochs; epoch++ {
 		adjustLearningRate(optimizer, epoch, lr)
-		startTime := time.Now()
 		trainLoader := imageNetLoader(trainFn, vocab, mbSize, pinMemory)
 		testLoader := imageNetLoader(testFn, vocab, mbSize, pinMemory)
 		iter := 0
+		endTime := time.Now()
 		for trainLoader.Scan() {
 			iter++
 			data, label := trainLoader.Minibatch()
+			dataTime := time.Since(endTime).Seconds()
 			optimizer.ZeroGrad()
 			loss, acc1, acc5 := trainOneMinibatch(data.To(device, data.Dtype()), label.To(device, label.Dtype()), model, optimizer)
-			if iter%logInterval == 0 {
-				throughput := float64(data.Shape()[0]*logInterval) / time.Since(startTime).Seconds()
-				log.Printf("Train Epoch: %d, Iteration: %d, loss:%f, acc1: %f, acc5:%f, throughput: %f samples/sec", epoch, iter, loss, acc1, acc5, throughput)
-				startTime = time.Now()
-			}
+			batchTime := time.Since(endTime).Seconds()
+			endTime = time.Now()
+			log.Println(dataTime, batchTime, loss, acc1, acc5)
 		}
 		torch.FinishGC()
 		test(model, testLoader)
