@@ -24,9 +24,9 @@ func Linear(in, out int64, bias bool) *LinearModule {
 		InFeatures:  in,
 		OutFeatures: out,
 	}
-	l.Weight = torch.Empty([]int64{out, in}, true)
+	l.Weight = *torch.Empty([]int64{out, in}, true)
 	if bias {
-		l.Bias = torch.Empty([]int64{out}, true)
+		l.Bias = *torch.Empty([]int64{out}, true)
 	}
 	l.Init(l)
 	l.resetParameters()
@@ -34,7 +34,7 @@ func Linear(in, out int64, bias bool) *LinearModule {
 }
 
 // Forward does a linear transformation to the `input` tensor.
-func (l *LinearModule) Forward(x torch.Tensor) torch.Tensor {
+func (l *LinearModule) Forward(x *torch.Tensor) *torch.Tensor {
 	return F.Linear(x, l.Weight, l.Bias)
 }
 

@@ -53,21 +53,26 @@ func adjustLearningRate(opt torch.Optimizer, epoch int, lr float64) {
 	opt.SetLR(newLR)
 }
 
-func accuracy(output, target torch.Tensor, topk []int64) []float32 {
+func accuracy(output, target *torch.Tensor, topk []int64) []float32 {
 	maxk := maxIntSlice(topk)
 	target = target.Detach()
 	output = output.Detach()
 
 	mbSize := target.Shape()[0]
-	_, pred := torch.TopK(output, maxk, 1, true, true)
+	indices, pred := torch.TopK(output, maxk, 1, true, true)
 	pred = pred.Transpose(0, 1)
 	correct := pred.Eq(target.View(1, -1).ExpandAs(pred))
 
-	res := []float32{}
+	resK := []*torch.Tensor{}
 	for _, k := range topk {
-		kt := torch.NewTensor(rangeI(k)).CopyTo(device)
+		kt := torch.NewTensorFromSlice(rangeI(k)).CopyTo(device)
 		correctK := correct.IndexSelect(0, kt).View(-1).CastTo(torch.Float).Sum(map[string]interface{}{"dim": 0, "keepDim": true})
-		res = append(res, correctK.Item().(float32)*100/float32(mbSize))
+		resK = append(resK, correctK)
+	}
+	indices.Close()
+	res := []float32{}
+	for i := range topk {
+		res = append(res, resK[i].Item().(float32)*100/float32(mbSize))
 	}
 	return res
 }
@@ -86,7 +91,7 @@ func imageNetLoader(fn string, vocab map[string]int, mbSize int, pinMemory bool)
 	return loader
 }
 
-func trainOneMinibatch(image, target torch.Tensor, model *models.ResnetModule, opt torch.Optimizer) (float32, float32, float32) {
+func trainOneMinibatch(image, target *torch.Tensor, model *models.ResnetModule, opt torch.Optimizer) (float32, float32, float32) {
 	output := model.Forward(image)
 	loss := F.CrossEntropy(output, target, torch.Tensor{}, -100, "mean")
 	acc := accuracy(output, target, []int64{1, 5})
@@ -135,7 +140,7 @@ func train(trainFn, testFn, save string, epochs int, pinMemory bool) {
 	lr := 0.1
 	momentum := 0.9
 	weightDecay := 1e-4
-	mbSize := 32
+	mbSize := 2
 	optimizer := torch.SGD(lr, momentum, 0, weightDecay, false)
 	optimizer.AddParameters(model.Parameters())
 
@@ -155,7 +160,6 @@ func train(trainFn, testFn, save string, epochs int, pinMemory bool) {
 			endTime = time.Now()
 			log.Println(dataTime, batchTime, loss, acc1, acc5)
 		}
-		torch.FinishGC()
 		test(model, testLoader)
 	}
 	saveModel(model, save)

@@ -39,10 +39,10 @@ func Conv2d(inChannels, outChannels, kernelSize, stride, padding, dilation,
 		Groups:      groups,
 		PaddingMode: "zeros",
 	}
-	c.Weight = torch.Empty([]int64{outChannels, inChannels / groups, kernelSize,
+	c.Weight = *torch.Empty([]int64{outChannels, inChannels / groups, kernelSize,
 		kernelSize}, true)
 	if bias {
-		c.Bias = torch.Empty([]int64{outChannels}, true)
+		c.Bias = *torch.Empty([]int64{outChannels}, true)
 	}
 	c.Init(c)
 	c.resetParameters()
@@ -59,7 +59,7 @@ func (c *Conv2dModule) resetParameters() {
 }
 
 // Forward method
-func (c *Conv2dModule) Forward(x torch.Tensor) torch.Tensor {
+func (c *Conv2dModule) Forward(x *torch.Tensor) *torch.Tensor {
 	return functional.Conv2d(x, c.Weight, c.Bias, []int64{c.Stride, c.Stride},
 		[]int64{c.Padding, c.Padding}, []int64{c.Dilation, c.Dilation}, c.Groups)
 }
@@ -98,10 +98,10 @@ func ConvTranspose2d(inChannels, outChannels, kernelSize, stride, padding,
 		Dilation:    dilation,
 		PaddingMode: "zeros",
 	}
-	c.Weight = torch.Empty([]int64{inChannels, outChannels / groups, kernelSize,
+	c.Weight = *torch.Empty([]int64{inChannels, outChannels / groups, kernelSize,
 		kernelSize}, true)
 	if bias {
-		c.Bias = torch.Empty([]int64{outChannels}, true)
+		c.Bias = *torch.Empty([]int64{outChannels}, true)
 	}
 	c.Init(c)
 	c.resetParameters()
@@ -118,7 +118,7 @@ func (c *ConvTranspose2dModule) resetParameters() {
 }
 
 // Forward method
-func (c *ConvTranspose2dModule) Forward(x torch.Tensor) torch.Tensor {
+func (c *ConvTranspose2dModule) Forward(x *torch.Tensor) *torch.Tensor {
 	return functional.ConvTranspose2d(x, c.Weight, c.Bias,
 		[]int64{c.Stride, c.Stride}, []int64{c.Padding, c.Padding},
 		[]int64{c.OutPadding, c.OutPadding}, c.Groups, []int64{c.Dilation, c.Dilation})

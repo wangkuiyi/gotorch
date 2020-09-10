@@ -15,7 +15,22 @@ import (
 
 // Tensor wrappers a pointer to C.Tensor
 type Tensor struct {
-	T *unsafe.Pointer
+	T        *unsafe.Pointer
+	Parents  []*Tensor
+	RefCount int
+}
+
+//NewTensor creates a tensor
+func NewTensor(t *unsafe.Pointer, parents ...*Tensor) *Tensor {
+	res := &Tensor{
+		T:       t,
+		Parents: make([]*Tensor, 0),
+	}
+	for _, p := range parents {
+		res.Parents = append(res.Parents, p)
+		p.RefCount++
+	}
+	return res
 }
 
 // MustNil asserts error to be nil
@@ -28,15 +43,14 @@ func MustNil(err unsafe.Pointer) {
 }
 
 // Detach tensor.detach
-func (a *Tensor) Detach() Tensor {
+func (a *Tensor) Detach() *Tensor {
 	var t C.Tensor
 	MustNil(unsafe.Pointer(C.Tensor_Detach(C.Tensor(*a.T), &t)))
-	SetTensorFinalizer((*unsafe.Pointer)(&t))
-	return Tensor{(*unsafe.Pointer)(&t)}
+	return NewTensor((*unsafe.Pointer)(&t), a)
 }
 
 // String returns the Tensor as a string
-func (a Tensor) String() string {
+func (a *Tensor) String() string {
 	s := C.Tensor_String(C.Tensor(*a.T))
 	r := C.GoString(s)
 	C.FreeString(s)
@@ -49,27 +63,41 @@ func (a Tensor) Print() {
 }
 
 // Save the tensor to a file
-func (a Tensor) Save(path string) {
+func (a *Tensor) Save(path string) {
 	C.Tensor_Save(C.Tensor(*a.T), C.CString(path))
 }
 
+// Close frees the C++ Tensor recursively
+func (a *Tensor) Close() {
+	if a.T == nil {
+		return
+	}
+	a.RefCount--
+	if a.RefCount <= 0 {
+		C.Tensor_Close(C.Tensor(*a.T))
+		a.T = nil
+	}
+	for _, p := range a.Parents {
+		p.Close()
+	}
+}
+
 // Load tensor from a file
-func Load(path string) Tensor {
+func Load(path string) *Tensor {
 	var t C.Tensor
 	MustNil(unsafe.Pointer(C.Tensor_Load(C.CString(path), &t)))
-	SetTensorFinalizer((*unsafe.Pointer)(&t))
-	return Tensor{(*unsafe.Pointer)(&t)}
+	return NewTensor((*unsafe.Pointer)(&t))
 }
 
 // Dim returns dim
-func (a Tensor) Dim() int64 {
+func (a *Tensor) Dim() int64 {
 	var dim int64
 	MustNil(unsafe.Pointer(C.Tensor_Dim(C.Tensor(*a.T), (*C.int64_t)(&dim))))
 	return dim
 }
 
 // Shape returns shape
-func (a Tensor) Shape() []int64 {
+func (a *Tensor) Shape() []int64 {
 	shape := make([]int64, a.Dim())
 	if len(shape) == 0 {
 		return shape
@@ -79,27 +107,26 @@ func (a Tensor) Shape() []int64 {
 }
 
 // Dtype returns data type
-func (a Tensor) Dtype() int8 {
+func (a *Tensor) Dtype() int8 {
 	var t int8
 	MustNil(unsafe.Pointer(C.Tensor_Dtype(C.Tensor(*a.T), (*C.int8_t)(unsafe.Pointer(&t)))))
 	return t
 }
 
 // Backward compute the gradient of current tensor
-func (a Tensor) Backward() {
+func (a *Tensor) Backward() {
 	C.Tensor_Backward(C.Tensor(*a.T))
 }
 
 // Grad returns a reference of the gradient
-func (a Tensor) Grad() Tensor {
+func (a *Tensor) Grad() *Tensor {
 	t := C.Tensor_Grad(C.Tensor(*a.T))
-	SetTensorFinalizer((*unsafe.Pointer)(&t))
-	return Tensor{(*unsafe.Pointer)(&t)}
+	return NewTensor((*unsafe.Pointer)(&t), a)
 }
 
 // To returns a Tensor on the specified device with the same content as the a.
 // If the specified device doesn't exist, To panics.
-func (a Tensor) To(device Device, dtype ...int8) Tensor {
+func (a *Tensor) To(device Device, dtype ...int8) *Tensor {
 	var t C.Tensor
 	var d int8
 	if len(dtype) == 0 {
@@ -108,50 +135,46 @@ func (a Tensor) To(device Device, dtype ...int8) Tensor {
 		d = dtype[0]
 	}
 	MustNil(unsafe.Pointer(C.Tensor_To(C.Tensor(*a.T), device.T, C.int8_t(d), &t)))
-	SetTensorFinalizer((*unsafe.Pointer)(&t))
-	return Tensor{(*unsafe.Pointer)(&t)}
+	return NewTensor((*unsafe.Pointer)(&t), a)
 }
 
 // CastTo cast tensor dtype
-func (a Tensor) CastTo(dtype int8) Tensor {
+func (a *Tensor) CastTo(dtype int8) *Tensor {
 	var t C.Tensor
 	MustNil(unsafe.Pointer(C.Tensor_CastTo(C.Tensor(*a.T), C.int8_t(dtype), &t)))
-	SetTensorFinalizer((*unsafe.Pointer)(&t))
-	return Tensor{(*unsafe.Pointer)(&t)}
+	return NewTensor((*unsafe.Pointer)(&t), a)
 }
 
 // CopyTo cast tensor dtype
-func (a Tensor) CopyTo(device Device) Tensor {
+func (a *Tensor) CopyTo(device Device) *Tensor {
 	var t C.Tensor
 	MustNil(unsafe.Pointer(C.Tensor_CopyTo(C.Tensor(*a.T), device.T, &t)))
-	SetTensorFinalizer((*unsafe.Pointer)(&t))
-	return Tensor{(*unsafe.Pointer)(&t)}
+	return NewTensor((*unsafe.Pointer)(&t), a)
 }
 
 // PinMemory returns a tensor in pinned memory. Pinned memory requires CUDA.
-func (a Tensor) PinMemory() Tensor {
+func (a *Tensor) PinMemory() *Tensor {
 	if !IsCUDAAvailable() {
 		return a
 	}
 	var t C.Tensor
 	MustNil(unsafe.Pointer(C.Tensor_PinMemory(C.Tensor(*a.T), &t)))
-	SetTensorFinalizer((*unsafe.Pointer)(&t))
-	return Tensor{(*unsafe.Pointer)(&t)}
+	return NewTensor((*unsafe.Pointer)(&t), a)
 }
 
 // SetData sets the tensor data held by b to a
-func (a Tensor) SetData(b Tensor) {
+func (a *Tensor) SetData(b *Tensor) {
 	MustNil(unsafe.Pointer(C.Tensor_SetData(C.Tensor(*a.T), C.Tensor(*b.T))))
 }
 
 // To returns a Tensor on the specified device with the same content as the a.
 // If the specified device doesn't exist, To panics.
-func To(a Tensor, device Device, dtype int8) Tensor {
+func To(a *Tensor, device Device, dtype int8) *Tensor {
 	return a.To(device, dtype)
 }
 
 // FromBlob returns a deep copy Tensor with the given data memory
-func FromBlob(data unsafe.Pointer, dtype int8, sizes []int64) Tensor {
+func FromBlob(data unsafe.Pointer, dtype int8, sizes []int64) *Tensor {
 	var t C.Tensor
 	MustNil(unsafe.Pointer(C.Tensor_FromBlob(
 		data,
@@ -159,13 +182,12 @@ func FromBlob(data unsafe.Pointer, dtype int8, sizes []int64) Tensor {
 		(*C.int64_t)(unsafe.Pointer(&sizes[0])),
 		C.int64_t(len(sizes)),
 		&t)))
-	SetTensorFinalizer((*unsafe.Pointer)(&t))
-	return Tensor{(*unsafe.Pointer)(&t)}
+	return NewTensor((*unsafe.Pointer)(&t))
 }
 
 // Index calls Tensor::index to return a single-element tensor of the element at
 // the given index.
-func (a Tensor) Index(index ...int64) Tensor {
+func (a *Tensor) Index(index ...int64) *Tensor {
 	if int64(len(index)) != a.Dim() {
 		log.Panicf("Index %v has length that differs from the tenosr dim %d", index, a.Dim())
 	}
@@ -174,6 +196,5 @@ func (a Tensor) Index(index ...int64) Tensor {
 		C.Tensor(*a.T),
 		(*C.int64_t)(unsafe.Pointer(&index[0])),
 		C.int64_t(len(index)), &t)))
-	SetTensorFinalizer((*unsafe.Pointer)(&t))
-	return Tensor{(*unsafe.Pointer)(&t)}
+	return NewTensor((*unsafe.Pointer)(&t), a)
 }

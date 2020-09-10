@@ -32,12 +32,12 @@ func BatchNorm2d(numFeatures int64, eps, momentum float64,
 		TrackRunningStats: trackRunningStats,
 	}
 	if b.Affine {
-		b.Weight = torch.Empty([]int64{numFeatures}, true)
-		b.Bias = torch.Empty([]int64{numFeatures}, true)
+		b.Weight = *torch.Empty([]int64{numFeatures}, true)
+		b.Bias = *torch.Empty([]int64{numFeatures}, true)
 	}
 	if b.TrackRunningStats {
-		b.RunningMean = torch.Empty([]int64{numFeatures}, false)
-		b.RunningVar = torch.Empty([]int64{numFeatures}, false)
+		b.RunningMean = *torch.Empty([]int64{numFeatures}, false)
+		b.RunningVar = *torch.Empty([]int64{numFeatures}, false)
 	}
 	b.resetParameters()
 	b.Init(b)
@@ -60,7 +60,7 @@ func (b *BatchNorm2dModule) resetParameters() {
 }
 
 // Forward method
-func (b *BatchNorm2dModule) Forward(x torch.Tensor) torch.Tensor {
+func (b *BatchNorm2dModule) Forward(x *torch.Tensor) *torch.Tensor {
 	bnTraining := (b.RunningMean.T == nil) && (b.RunningVar.T == nil)
 	if b.isTraining {
 		bnTraining = true

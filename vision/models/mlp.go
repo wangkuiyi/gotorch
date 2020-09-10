@@ -12,7 +12,7 @@ type MLPModule struct {
 }
 
 // Forward runs the forward pass
-func (n *MLPModule) Forward(x torch.Tensor) torch.Tensor {
+func (n *MLPModule) Forward(x *torch.Tensor) *torch.Tensor {
 	x = torch.View(x, -1, 28*28)
 	x = n.FC1.Forward(x)
 	x = torch.Tanh(x)

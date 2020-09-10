@@ -18,21 +18,21 @@ func Normalize(mean []float64, stddev []float64) *NormalizeTransformer {
 }
 
 // Run normalize the input (Tensor) of size (C, H, W) using the stats value mean, stddev.
-func (t *NormalizeTransformer) Run(input torch.Tensor) torch.Tensor {
+func (t *NormalizeTransformer) Run(input *torch.Tensor) *torch.Tensor {
 	dtype := input.Dtype()
-	var meanT torch.Tensor
-	var stddevT torch.Tensor
+	var meanT *torch.Tensor
+	var stddevT *torch.Tensor
 	if len(t.Mean) == 1 {
-		meanT = torch.NewTensor([][][]float64{{{t.Mean[0]}}})
+		meanT = torch.NewTensorFromSlice([][][]float64{{{t.Mean[0]}}})
 	} else if len(t.Mean) == 3 {
-		meanT = torch.NewTensor([][][]float64{{{t.Mean[0]}}, {{t.Mean[1]}}, {{t.Mean[2]}}})
+		meanT = torch.NewTensorFromSlice([][][]float64{{{t.Mean[0]}}, {{t.Mean[1]}}, {{t.Mean[2]}}})
 	} else {
 		panic(fmt.Sprintf("len(Mean) should be 1 or 3."))
 	}
 	if len(t.Stddev) == 1 {
-		stddevT = torch.NewTensor([][][]float64{{{t.Stddev[0]}}})
+		stddevT = torch.NewTensorFromSlice([][][]float64{{{t.Stddev[0]}}})
 	} else if len(t.Stddev) == 3 {
-		stddevT = torch.NewTensor([][][]float64{{{t.Stddev[0]}}, {{t.Stddev[1]}}, {{t.Stddev[2]}}})
+		stddevT = torch.NewTensorFromSlice([][][]float64{{{t.Stddev[0]}}, {{t.Stddev[1]}}, {{t.Stddev[2]}}})
 	} else {
 		panic(fmt.Sprintf("len(Stddev) should be 1 or 3."))
 	}

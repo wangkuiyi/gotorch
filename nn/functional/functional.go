@@ -14,8 +14,8 @@ import (
 )
 
 // BatchNorm does batch nomalization for `input`
-func BatchNorm(input, runningMean, runningVar, weight, bias torch.Tensor,
-	training bool, momentum, eps float64) torch.Tensor {
+func BatchNorm(input *torch.Tensor, runningMean, runningVar, weight, bias torch.Tensor,
+	training bool, momentum, eps float64) *torch.Tensor {
 	var cTraining C.int8_t
 	if training {
 		cTraining = 1
@@ -45,13 +45,12 @@ func BatchNorm(input, runningMean, runningVar, weight, bias torch.Tensor,
 			C.double(eps),
 			&t)))
 	runtime.KeepAlive(input.T)
-	torch.SetTensorFinalizer((*unsafe.Pointer)(&t))
-	return torch.Tensor{(*unsafe.Pointer)(&t)}
+	return torch.NewTensor((*unsafe.Pointer)(&t), input)
 }
 
 // Conv2d does 2d-convolution
-func Conv2d(input, weight, bias torch.Tensor,
-	stride, padding, dilation []int64, groups int64) torch.Tensor {
+func Conv2d(input *torch.Tensor, weight, bias torch.Tensor,
+	stride, padding, dilation []int64, groups int64) *torch.Tensor {
 	var cbias, t C.Tensor
 	if bias.T != nil {
 		cbias = C.Tensor(*bias.T)
@@ -66,15 +65,14 @@ func Conv2d(input, weight, bias torch.Tensor,
 		C.int64_t(groups),
 		&t)))
 	runtime.KeepAlive(input.T)
-	torch.SetTensorFinalizer((*unsafe.Pointer)(&t))
-	return torch.Tensor{(*unsafe.Pointer)(&t)}
+	return torch.NewTensor((*unsafe.Pointer)(&t), input)
 }
 
 // ConvTranspose2d does 2d-fractionally-strided convolution
 func ConvTranspose2d(
-	input, weight, bias torch.Tensor,
+	input *torch.Tensor, weight, bias torch.Tensor,
 	stride, padding, outputPadding []int64,
-	groups int64, dilation []int64) torch.Tensor {
+	groups int64, dilation []int64) *torch.Tensor {
 
 	var cbias, t C.Tensor
 	if bias.T != nil {
@@ -96,12 +94,11 @@ func ConvTranspose2d(
 		C.int64_t(len(dilation)),
 		&t)))
 	runtime.KeepAlive(input.T)
-	torch.SetTensorFinalizer((*unsafe.Pointer)(&t))
-	return torch.Tensor{(*unsafe.Pointer)(&t)}
+	return torch.NewTensor((*unsafe.Pointer)(&t), input)
 }
 
 // LogSoftmax torch.nn.functional.log_softmax
-func LogSoftmax(input torch.Tensor, dim int64) torch.Tensor {
+func LogSoftmax(input *torch.Tensor, dim int64) *torch.Tensor {
 	// Clone _get_softmax_dim()
 	if dim < 0 {
 		if d := input.Dim(); d == 0 || d == 1 || d == 3 {
@@ -114,8 +111,8 @@ func LogSoftmax(input torch.Tensor, dim int64) torch.Tensor {
 }
 
 // NllLoss torch.nn.functional.nll_loss
-func NllLoss(input, target, weight torch.Tensor, ignoreIndex int64,
-	reduction string) torch.Tensor {
+func NllLoss(input, target *torch.Tensor, weight torch.Tensor, ignoreIndex int64,
+	reduction string) *torch.Tensor {
 	var cweight, t C.Tensor
 	if weight.T != nil {
 		cweight = C.Tensor(*weight.T)
@@ -128,13 +125,12 @@ func NllLoss(input, target, weight torch.Tensor, ignoreIndex int64,
 		C.CString(reduction),
 		&t)))
 	runtime.KeepAlive(input.T)
-	torch.SetTensorFinalizer((*unsafe.Pointer)(&t))
-	return torch.Tensor{(*unsafe.Pointer)(&t)}
+	return torch.NewTensor((*unsafe.Pointer)(&t), input, target)
 }
 
 // BinaryCrossEntropy torch.nn.functional.binary_cross_entropy
-func BinaryCrossEntropy(input, target, weight torch.Tensor,
-	reduction string) torch.Tensor {
+func BinaryCrossEntropy(input, target *torch.Tensor, weight torch.Tensor,
+	reduction string) *torch.Tensor {
 	var cweight, t C.Tensor
 	if weight.T != nil {
 		cweight = C.Tensor(*weight.T)
@@ -146,13 +142,12 @@ func BinaryCrossEntropy(input, target, weight torch.Tensor,
 		C.CString(reduction),
 		&t)))
 	runtime.KeepAlive(input.T)
-	torch.SetTensorFinalizer((*unsafe.Pointer)(&t))
-	return torch.Tensor{(*unsafe.Pointer)(&t)}
+	return torch.NewTensor((*unsafe.Pointer)(&t), input, target)
 }
 
 // CrossEntropy torch.nn.functional.cross_entropy
-func CrossEntropy(input, target, weight torch.Tensor, ignoreIndex int64,
-	reduction string) torch.Tensor {
+func CrossEntropy(input, target *torch.Tensor, weight torch.Tensor, ignoreIndex int64,
+	reduction string) *torch.Tensor {
 	var cweight, t C.Tensor
 	if weight.T != nil {
 		cweight = C.Tensor(*weight.T)
@@ -165,12 +160,11 @@ func CrossEntropy(input, target, weight torch.Tensor, ignoreIndex int64,
 		C.CString(reduction),
 		&t)))
 	runtime.KeepAlive(input.T)
-	torch.SetTensorFinalizer((*unsafe.Pointer)(&t))
-	return torch.Tensor{(*unsafe.Pointer)(&t)}
+	return torch.NewTensor((*unsafe.Pointer)(&t), input, target)
 }
 
 // Relu torch.nn.functional.relu
-func Relu(input torch.Tensor, inplace bool) torch.Tensor {
+func Relu(input *torch.Tensor, inplace bool) *torch.Tensor {
 	var t C.Tensor
 	var cInplace C.int8_t
 	if inplace {
@@ -179,12 +173,11 @@ func Relu(input torch.Tensor, inplace bool) torch.Tensor {
 	torch.MustNil(unsafe.Pointer(C.FRelu(
 		C.Tensor(*input.T), C.int8_t(cInplace), &t)))
 	runtime.KeepAlive(input.T)
-	torch.SetTensorFinalizer((*unsafe.Pointer)(&t))
-	return torch.Tensor{(*unsafe.Pointer)(&t)}
+	return torch.NewTensor((*unsafe.Pointer)(&t), input)
 }
 
 // LeakyRelu torch.nn.functional.leaky_relu
-func LeakyRelu(input torch.Tensor, negativeSlope float64, inplace bool) torch.Tensor {
+func LeakyRelu(input *torch.Tensor, negativeSlope float64, inplace bool) *torch.Tensor {
 	var t C.Tensor
 	var cInplace C.int8_t
 	if inplace {
@@ -193,12 +186,11 @@ func LeakyRelu(input torch.Tensor, negativeSlope float64, inplace bool) torch.Te
 	torch.MustNil(unsafe.Pointer(C.FLeakyRelu(C.Tensor(*input.T),
 		C.double(negativeSlope), C.int8_t(cInplace), &t)))
 	runtime.KeepAlive(input.T)
-	torch.SetTensorFinalizer((*unsafe.Pointer)(&t))
-	return torch.Tensor{(*unsafe.Pointer)(&t)}
+	return torch.NewTensor((*unsafe.Pointer)(&t), input)
 }
 
 // Linear ports torch.nn.functional.linear
-func Linear(input, weight, bias torch.Tensor) torch.Tensor {
+func Linear(input *torch.Tensor, weight, bias torch.Tensor) *torch.Tensor {
 	var t C.Tensor
 	var cBias C.Tensor
 	if bias.T != nil {
@@ -208,13 +200,12 @@ func Linear(input, weight, bias torch.Tensor) torch.Tensor {
 		C.Tensor(*input.T),
 		C.Tensor(*weight.T), cBias, &t)))
 	runtime.KeepAlive(input.T)
-	torch.SetTensorFinalizer((*unsafe.Pointer)(&t))
-	return torch.Tensor{(*unsafe.Pointer)(&t)}
+	return torch.NewTensor((*unsafe.Pointer)(&t), input)
 }
 
 // MaxPool2d torch.nn.functional.max_pool2d
-func MaxPool2d(input torch.Tensor, kernelSize, stride, padding,
-	dilation []int64, ceilMode bool) torch.Tensor {
+func MaxPool2d(input *torch.Tensor, kernelSize, stride, padding,
+	dilation []int64, ceilMode bool) *torch.Tensor {
 	var cMode C.int8_t
 	if ceilMode {
 		cMode = 1
@@ -229,18 +220,16 @@ func MaxPool2d(input torch.Tensor, kernelSize, stride, padding,
 		cMode,
 		&t)))
 	runtime.KeepAlive(input.T)
-	torch.SetTensorFinalizer((*unsafe.Pointer)(&t))
-	return torch.Tensor{(*unsafe.Pointer)(&t)}
+	return torch.NewTensor((*unsafe.Pointer)(&t), input)
 }
 
 // AdaptiveAvgPool2d torch.nn.functional.adaptive_avg_pool2d
-func AdaptiveAvgPool2d(input torch.Tensor, outputSize []int64) torch.Tensor {
+func AdaptiveAvgPool2d(input *torch.Tensor, outputSize []int64) *torch.Tensor {
 	var t C.Tensor
 	torch.MustNil(unsafe.Pointer(C.AdaptiveAvgPool2d(
 		C.Tensor(*input.T),
 		(*C.int64_t)(unsafe.Pointer(&outputSize[0])), C.int64_t(len(outputSize)),
 		&t)))
 	runtime.KeepAlive(input.T)
-	torch.SetTensorFinalizer((*unsafe.Pointer)(&t))
-	return torch.Tensor{(*unsafe.Pointer)(&t)}
+	return torch.NewTensor((*unsafe.Pointer)(&t), input)
 }

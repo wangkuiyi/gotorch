@@ -33,7 +33,7 @@ func ToImage() *ToImageTransformer {
 }
 
 // Run executes the ToImageTransformer and returns a Tensor
-func (t *ToImageTransformer) Run(x torch.Tensor) []image.Image {
+func (t *ToImageTransformer) Run(x *torch.Tensor) []image.Image {
 	if x.T != nil && x.Dtype() != torch.Float {
 		x = x.CastTo(torch.Float) // Convert to float32 tensor.
 	}
@@ -68,7 +68,7 @@ func (t *ToImageTransformer) Run(x torch.Tensor) []image.Image {
 	return nil
 }
 
-func toImage(x torch.Tensor, idxPrefix []int64, colored bool) image.Image {
+func toImage(x *torch.Tensor, idxPrefix []int64, colored bool) image.Image {
 	s := x.Shape()
 	d := len(s)
 	h := s[d-2]

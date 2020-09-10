@@ -1,8 +1,10 @@
 package gotorch_test
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
+	"reflect"
 	"testing"
 	"unsafe"
 
@@ -69,6 +71,10 @@ func TestCopyTo(t *testing.T) {
 
 func TestDim(t *testing.T) {
 	a := torch.RandN([]int64{2, 3}, false)
+	fmt.Println(a.T)
+	fmt.Println(reflect.TypeOf(a.T))
+	fmt.Println(*a.T)
+	fmt.Println(reflect.TypeOf(*a.T))
 	assert.Equal(t, int64(2), a.Dim())
 }
 

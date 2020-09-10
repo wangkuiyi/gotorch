@@ -14,10 +14,15 @@ import (
 var (
 	tensorFinalizersWG = &sync.WaitGroup{}
 	gcPrepared         = false
+	tracingFlag        = false
 )
 
 // SetTensorFinalizer sets a finalizer to the tensor
 func SetTensorFinalizer(t *unsafe.Pointer) {
+	flag := tracingFlag
+	if flag {
+		return
+	}
 	// We don't want the following conditional and the finalizer using
 	// different gcPrepared values, so we leverage p and closure here.
 	p := gcPrepared
@@ -36,6 +41,16 @@ func SetTensorFinalizer(t *unsafe.Pointer) {
 func FinishGC() {
 	GC()
 	gcPrepared = false
+}
+
+// OpenTracing set tracing flag to true
+func OpenTracing() {
+	tracingFlag = true
+}
+
+// CloseTracing set tracing flag to false
+func CloseTracing() {
+	tracingFlag = false
 }
 
 // GC should be called at the beginning inside a train/predict loop

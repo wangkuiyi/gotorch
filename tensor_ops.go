@@ -16,172 +16,159 @@ import (
 )
 
 // Add torch.add
-func Add(a, other Tensor, alpha float32) Tensor {
+func Add(a, other *Tensor, alpha float32) *Tensor {
 	var t C.Tensor
 	MustNil(unsafe.Pointer(C.Add(C.Tensor(*a.T), C.Tensor(*other.T),
 		C.float(alpha), &t)))
-	SetTensorFinalizer((*unsafe.Pointer)(&t))
-	return Tensor{(*unsafe.Pointer)(&t)}
+	return NewTensor((*unsafe.Pointer)(&t), a, other)
 }
 
 // Add torch.add
-func (a *Tensor) Add(other Tensor, alpha float32) Tensor {
-	return Add(*a, other, alpha)
+func (a *Tensor) Add(other *Tensor, alpha float32) *Tensor {
+	return Add(a, other, alpha)
 }
 
 // AddI adds in-place
-func (a *Tensor) AddI(other Tensor, alpha float32) Tensor {
+func (a *Tensor) AddI(other *Tensor, alpha float32) *Tensor {
 	var t C.Tensor
 	MustNil(unsafe.Pointer(C.Add_(
 		C.Tensor(*a.T),
 		C.Tensor(*other.T),
 		C.float(alpha),
 		&t)))
-	SetTensorFinalizer((*unsafe.Pointer)(&t))
-	return Tensor{(*unsafe.Pointer)(&t)}
+	return NewTensor((*unsafe.Pointer)(&t), a)
 }
 
 // Sub torch.sub
-func Sub(a, other Tensor, alpha float32) Tensor {
+func Sub(a, other *Tensor, alpha float32) *Tensor {
 	var t C.Tensor
 	MustNil(unsafe.Pointer(C.Sub(C.Tensor(*a.T), C.Tensor(*other.T),
 		C.float(alpha), &t)))
-	SetTensorFinalizer((*unsafe.Pointer)(&t))
-	return Tensor{(*unsafe.Pointer)(&t)}
+	return NewTensor((*unsafe.Pointer)(&t), a)
 }
 
 // Sub torch.sub
-func (a *Tensor) Sub(other Tensor, alpha float32) Tensor {
-	return Sub(*a, other, alpha)
+func (a *Tensor) Sub(other *Tensor, alpha float32) *Tensor {
+	return Sub(a, other, alpha)
 }
 
 // SubI subs in-place
-func (a *Tensor) SubI(other Tensor, alpha float32) Tensor {
+func (a *Tensor) SubI(other *Tensor, alpha float32) *Tensor {
 	var t C.Tensor
 	MustNil(unsafe.Pointer(C.Sub_(
 		C.Tensor(*a.T),
 		C.Tensor(*other.T),
 		C.float(alpha),
 		&t)))
-	SetTensorFinalizer((*unsafe.Pointer)(&t))
-	return Tensor{(*unsafe.Pointer)(&t)}
+	return NewTensor((*unsafe.Pointer)(&t), a)
 }
 
 // Mul torch.mul
-func Mul(a, other Tensor) Tensor {
+func Mul(a, other *Tensor) *Tensor {
 	var t C.Tensor
 	MustNil(unsafe.Pointer(C.Mul(C.Tensor(*a.T), C.Tensor(*other.T), &t)))
-	SetTensorFinalizer((*unsafe.Pointer)(&t))
-	return Tensor{(*unsafe.Pointer)(&t)}
+	return NewTensor((*unsafe.Pointer)(&t), a)
 }
 
 // Mul torch.Mul
-func (a *Tensor) Mul(other Tensor) Tensor {
-	return Mul(*a, other)
+func (a *Tensor) Mul(other *Tensor) *Tensor {
+	return Mul(a, other)
 }
 
 // MulI multiplies in-place
-func (a *Tensor) MulI(other Tensor) Tensor {
+func (a *Tensor) MulI(other *Tensor) *Tensor {
 	var t C.Tensor
 	MustNil(unsafe.Pointer(C.Mul_(
 		C.Tensor(*a.T),
 		C.Tensor(*other.T),
 		&t)))
-	SetTensorFinalizer((*unsafe.Pointer)(&t))
-	return Tensor{(*unsafe.Pointer)(&t)}
+	return NewTensor((*unsafe.Pointer)(&t), a)
 }
 
 // Div torch.div
-func Div(a, other Tensor) Tensor {
+func Div(a, other *Tensor) *Tensor {
 	var t C.Tensor
 	MustNil(unsafe.Pointer(C.Div(C.Tensor(*a.T), C.Tensor(*other.T), &t)))
-	SetTensorFinalizer((*unsafe.Pointer)(&t))
-	return Tensor{(*unsafe.Pointer)(&t)}
+	return NewTensor((*unsafe.Pointer)(&t), a)
 }
 
 // Div torch.Div
-func (a *Tensor) Div(other Tensor) Tensor {
-	return Div(*a, other)
+func (a *Tensor) Div(other *Tensor) *Tensor {
+	return Div(a, other)
 }
 
 // DivI run divides in-place
-func (a *Tensor) DivI(other Tensor) Tensor {
+func (a *Tensor) DivI(other *Tensor) *Tensor {
 	var t C.Tensor
 	MustNil(unsafe.Pointer(C.Div_(
 		C.Tensor(*a.T),
 		C.Tensor(*other.T),
 		&t)))
-	SetTensorFinalizer((*unsafe.Pointer)(&t))
-	return Tensor{(*unsafe.Pointer)(&t)}
+	return NewTensor((*unsafe.Pointer)(&t), a)
 }
 
 // Permute transpose the tensor dims.
-func (a *Tensor) Permute(dims []int64) Tensor {
+func (a *Tensor) Permute(dims []int64) *Tensor {
 	var t C.Tensor
 	MustNil(unsafe.Pointer(C.Permute(C.Tensor(*a.T), (*C.int64_t)(&dims[0]), C.int64_t(len(dims)), &t)))
-	SetTensorFinalizer((*unsafe.Pointer)(&t))
-	return Tensor{(*unsafe.Pointer)(&t)}
+	return NewTensor((*unsafe.Pointer)(&t), a)
 }
 
 // Eq wraps torch.eq, which does element-wise comparison between two tensors and returns
 // a tensor of the same size as the operands.
-func Eq(a, other Tensor) Tensor {
+func Eq(a, other *Tensor) *Tensor {
 	var t C.Tensor
 	MustNil(unsafe.Pointer(C.Eq(C.Tensor(*a.T), C.Tensor(*other.T), &t)))
-	SetTensorFinalizer((*unsafe.Pointer)(&t))
-	return Tensor{(*unsafe.Pointer)(&t)}
+	return NewTensor((*unsafe.Pointer)(&t), a, other)
 }
 
 // Eq torch.eq
-func (a Tensor) Eq(other Tensor) Tensor {
+func (a *Tensor) Eq(other *Tensor) *Tensor {
 	return Eq(a, other)
 }
 
 // Equal compares two tensors by their content.
-func Equal(a, b Tensor) bool {
+func Equal(a, b *Tensor) bool {
 	var r int64
 	MustNil(unsafe.Pointer(C.Equal(C.Tensor(*a.T), C.Tensor(*b.T), (*C.int64_t)(&r))))
 	return r != 0
 }
 
 // AllClose returns true if the float tensor are all close.
-func AllClose(a, b Tensor) bool {
+func AllClose(a, b *Tensor) bool {
 	var r int64
 	MustNil(unsafe.Pointer(C.AllClose(C.Tensor(*a.T), C.Tensor(*b.T), (*C.int64_t)(&r))))
 	return r != 0
 }
 
 // ExpandAs torch.expand_as
-func ExpandAs(a, other Tensor) Tensor {
+func ExpandAs(a, other *Tensor) *Tensor {
 	var t C.Tensor
 	MustNil(unsafe.Pointer(C.ExpandAs(C.Tensor(*a.T), C.Tensor(*other.T), &t)))
-	SetTensorFinalizer((*unsafe.Pointer)(&t))
-	return Tensor{(*unsafe.Pointer)(&t)}
+	return NewTensor((*unsafe.Pointer)(&t), a, other)
 }
 
 // ExpandAs torch.expand_as
-func (a Tensor) ExpandAs(other Tensor) Tensor {
+func (a *Tensor) ExpandAs(other *Tensor) *Tensor {
 	return ExpandAs(a, other)
 }
 
 // Flatten torch.flatten
-func Flatten(a Tensor, startDim, endDim int64) Tensor {
+func Flatten(a *Tensor, startDim, endDim int64) *Tensor {
 	var t C.Tensor
 	MustNil(unsafe.Pointer(C.Flatten(C.Tensor(*a.T), C.int64_t(startDim), C.int64_t(endDim), &t)))
-	SetTensorFinalizer((*unsafe.Pointer)(&t))
-	return Tensor{(*unsafe.Pointer)(&t)}
+	return NewTensor((*unsafe.Pointer)(&t), a)
 }
 
 // IndexSelect torch.index_select
-func IndexSelect(a Tensor, dim int64, index Tensor) Tensor {
+func IndexSelect(a *Tensor, dim int64, index *Tensor) *Tensor {
 	var t C.Tensor
 	MustNil(unsafe.Pointer(C.IndexSelect(C.Tensor(*a.T), C.int64_t(dim), C.Tensor(*index.T), &t)))
-	SetTensorFinalizer((*unsafe.Pointer)(&t))
-	return Tensor{(*unsafe.Pointer)(&t)}
+	return NewTensor((*unsafe.Pointer)(&t), a, index)
 }
 
 // IndexSelect torch.index_select
-func (a Tensor) IndexSelect(dim int64, index Tensor) Tensor {
+func (a *Tensor) IndexSelect(dim int64, index *Tensor) *Tensor {
 	return IndexSelect(a, dim, index)
 }
 
@@ -189,12 +176,13 @@ func (a Tensor) IndexSelect(dim int64, index Tensor) Tensor {
 // users should do type assertion and get the value like:
 // v, ok := a.Item().(float64)
 // Currently not support unsigned Tensor.
-func (a Tensor) Item() interface{} {
+func (a *Tensor) Item() interface{} {
 	dtype := a.Dtype()
 	switch dtype {
 	case Byte, Bool, Char, Short, Int, Long:
 		var v int64
 		MustNil(unsafe.Pointer(C.ItemInt64(C.Tensor(*a.T), (*C.int64_t)(&v))))
+		a.Close()
 		switch dtype {
 		case Byte:
 			return byte(v)
@@ -212,6 +200,7 @@ func (a Tensor) Item() interface{} {
 	case Half, Float, Double:
 		var v float64
 		MustNil(unsafe.Pointer(C.ItemFloat64(C.Tensor(*a.T), (*C.double)(&v))))
+		a.Close()
 		switch dtype {
 		case Half, Float:
 			return float32(v)
@@ -224,80 +213,74 @@ func (a Tensor) Item() interface{} {
 }
 
 // LeakyRelu returns leaky relu of the tensor according to negativeSlope
-func LeakyRelu(t Tensor, negativeSlope float64) Tensor {
+func LeakyRelu(t *Tensor, negativeSlope float64) *Tensor {
 	return t.LeakyRelu(negativeSlope)
 }
 
 // LeakyRelu returns leaky relu of the tensor according to negativeSlope
-func (a *Tensor) LeakyRelu(negativeSlope float64) Tensor {
+func (a *Tensor) LeakyRelu(negativeSlope float64) *Tensor {
 	var t C.Tensor
 	MustNil(unsafe.Pointer(C.LeakyRelu(C.Tensor(*a.T), C.double(negativeSlope), &t)))
-	SetTensorFinalizer((*unsafe.Pointer)(&t))
-	return Tensor{(*unsafe.Pointer)(&t)}
+	return NewTensor((*unsafe.Pointer)(&t), a)
 }
 
 // LogSoftmax returns log softmax of the input tensor
-func LogSoftmax(t Tensor, dim int64) Tensor {
+func LogSoftmax(t *Tensor, dim int64) *Tensor {
 	return t.LogSoftmax(dim)
 }
 
 // LogSoftmax returns log softmax of the current tensor
-func (a Tensor) LogSoftmax(dim int64) Tensor {
+func (a *Tensor) LogSoftmax(dim int64) *Tensor {
 	var t C.Tensor
 	MustNil(unsafe.Pointer(C.LogSoftmax(C.Tensor(*a.T), C.int64_t(dim), &t)))
-	SetTensorFinalizer((*unsafe.Pointer)(&t))
-	return Tensor{(*unsafe.Pointer)(&t)}
+	return NewTensor((*unsafe.Pointer)(&t), a)
 }
 
 // Mean returns mean of the current tensor
-func Mean(t Tensor) Tensor {
+func Mean(t *Tensor) *Tensor {
 	return t.Mean()
 }
 
 // Mean torch.mean
-func (a Tensor) Mean() Tensor {
+func (a *Tensor) Mean() *Tensor {
 	var t C.Tensor
 	MustNil(unsafe.Pointer(C.Mean(C.Tensor(*a.T), &t)))
-	SetTensorFinalizer((*unsafe.Pointer)(&t))
-	return Tensor{(*unsafe.Pointer)(&t)}
+	return NewTensor((*unsafe.Pointer)(&t), a)
 }
 
 // MM multiplies each element of the input two tensors
-func MM(a, b Tensor) Tensor {
+func MM(a, b *Tensor) *Tensor {
 	var t C.Tensor
 	MustNil(unsafe.Pointer(C.MM(C.Tensor(*a.T), C.Tensor(*b.T), &t)))
-	SetTensorFinalizer((*unsafe.Pointer)(&t))
-	return Tensor{(*unsafe.Pointer)(&t)}
+	return NewTensor((*unsafe.Pointer)(&t), a, b)
 }
 
 // Relu returns relu of the tensor
-func (a *Tensor) Relu() Tensor {
+func (a *Tensor) Relu() *Tensor {
 	var t C.Tensor
 	MustNil(unsafe.Pointer(C.Relu(C.Tensor(*a.T), &t)))
-	SetTensorFinalizer((*unsafe.Pointer)(&t))
-	return Tensor{(*unsafe.Pointer)(&t)}
+	return NewTensor((*unsafe.Pointer)(&t), a)
 }
 
 // Relu returns relu of the tensor
-func Relu(t Tensor) Tensor {
+func Relu(t *Tensor) *Tensor {
 	return t.Relu()
 }
 
 // Sigmoid returns sigmoid of the current tensor
-func Sigmoid(t Tensor) Tensor {
+func Sigmoid(t *Tensor) *Tensor {
 	return t.Sigmoid()
 }
 
 // Sigmoid returns sigmoid of the current tensor
-func (a Tensor) Sigmoid() Tensor {
+func (a *Tensor) Sigmoid() *Tensor {
 	var t C.Tensor
 	MustNil(unsafe.Pointer(C.Sigmoid(C.Tensor(*a.T), &t)))
-	SetTensorFinalizer((*unsafe.Pointer)(&t))
-	return Tensor{(*unsafe.Pointer)(&t)}
+	return NewTensor((*unsafe.Pointer)(&t), a)
 }
 
 // Stack concatenates sequence of tensors along a new dimension
-func Stack(tensors []Tensor, dim int64) Tensor {
+func Stack(tensors []*Tensor, dim int64) *Tensor {
 	CT := []C.Tensor{}
 	for _, t := range tensors {
 		CT = append(CT, C.Tensor(*t.T))
@@ -305,34 +288,31 @@ func Stack(tensors []Tensor, dim int64) Tensor {
 	p := (*C.Tensor)(unsafe.Pointer(&CT[0]))
 	var t C.Tensor
 	MustNil(unsafe.Pointer(C.Stack(p, C.int64_t(len(CT)), C.int64_t(dim), &t)))
-	SetTensorFinalizer((*unsafe.Pointer)(&t))
-	return Tensor{(*unsafe.Pointer)(&t)}
+	return NewTensor((*unsafe.Pointer)(&t), tensors...)
 }
 
 // Squeeze torch.squeeze
-func Squeeze(t Tensor, dim ...int64) Tensor {
+func Squeeze(t *Tensor, dim ...int64) *Tensor {
 	return t.Squeeze(dim...)
 }
 
 // Squeeze tensor.squeeze
-func (a Tensor) Squeeze(dim ...int64) Tensor {
+func (a *Tensor) Squeeze(dim ...int64) *Tensor {
 	var t C.Tensor
 	switch len(dim) {
 	case 0:
 		MustNil(unsafe.Pointer(C.Squeeze(C.Tensor(*a.T), &t)))
-		SetTensorFinalizer((*unsafe.Pointer)(&t))
-		return Tensor{(*unsafe.Pointer)(&t)}
+		return NewTensor((*unsafe.Pointer)(&t), a)
 	case 1:
 		MustNil(unsafe.Pointer(C.SqueezeWithDim(C.Tensor(*a.T), C.int64_t(dim[0]), &t)))
-		SetTensorFinalizer((*unsafe.Pointer)(&t))
-		return Tensor{(*unsafe.Pointer)(&t)}
+		return NewTensor((*unsafe.Pointer)(&t), a)
 	default:
 		panic("Squeeze only accepts 0-1 dim as input")
 	}
 }
 
 // Sum is torch.sum
-func Sum(a Tensor, opt ...map[string]interface{}) Tensor {
+func Sum(a *Tensor, opt ...map[string]interface{}) *Tensor {
 	if variadic.Has(opt, "dim") {
 		dim := variadic.Get(opt, "dim").(int)
 		keepDim := variadic.Get(opt, "keepDim", false).(bool)
@@ -343,36 +323,33 @@ func Sum(a Tensor, opt ...map[string]interface{}) Tensor {
 		}
 		var t C.Tensor
 		MustNil(unsafe.Pointer(C.SumByDim(C.Tensor(*a.T), C.int64_t(dim), C.int8_t(k), &t)))
-		SetTensorFinalizer((*unsafe.Pointer)(&t))
-		return Tensor{(*unsafe.Pointer)(&t)}
+		return NewTensor((*unsafe.Pointer)(&t), a)
 	}
 
 	var t C.Tensor
 	MustNil(unsafe.Pointer(C.Sum(C.Tensor(*a.T), &t)))
-	SetTensorFinalizer((*unsafe.Pointer)(&t))
-	return Tensor{(*unsafe.Pointer)(&t)}
+	return NewTensor((*unsafe.Pointer)(&t), a)
 }
 
 // Sum is Tensor.sum
-func (a Tensor) Sum(opt ...map[string]interface{}) Tensor {
+func (a *Tensor) Sum(opt ...map[string]interface{}) *Tensor {
 	return Sum(a, opt...)
 }
 
 // Tanh returns tanh of the current tensor
-func Tanh(t Tensor) Tensor {
+func Tanh(t *Tensor) *Tensor {
 	return t.Tanh()
 }
 
 // Tanh returns tanh of the current tensor
-func (a Tensor) Tanh() Tensor {
+func (a *Tensor) Tanh() *Tensor {
 	var t C.Tensor
 	MustNil(unsafe.Pointer(C.Tanh(C.Tensor(*a.T), &t)))
-	SetTensorFinalizer((*unsafe.Pointer)(&t))
-	return Tensor{(*unsafe.Pointer)(&t)}
+	return NewTensor((*unsafe.Pointer)(&t), a)
 }
 
 // TopK torch.topk
-func TopK(a Tensor, k, dim int64, largest, sorted bool) (Tensor, Tensor) {
+func TopK(a *Tensor, k, dim int64, largest, sorted bool) (*Tensor, *Tensor) {
 	var values, indices C.Tensor
 	l := 0
 	if largest {
@@ -384,48 +361,44 @@ func TopK(a Tensor, k, dim int64, largest, sorted bool) (Tensor, Tensor) {
 	}
 	MustNil(unsafe.Pointer(C.TopK(C.Tensor(*a.T), C.int64_t(k), C.int64_t(dim),
 		C.int8_t(l), C.int8_t(s), &values, &indices)))
-	SetTensorFinalizer((*unsafe.Pointer)(&values))
-	SetTensorFinalizer((*unsafe.Pointer)(&indices))
-	return Tensor{(*unsafe.Pointer)(&values)}, Tensor{(*unsafe.Pointer)(&indices)}
+	return NewTensor((*unsafe.Pointer)(&values), a), NewTensor((*unsafe.Pointer)(&indices), a)
 }
 
 // Transpose torch.transpose
-func Transpose(a Tensor, dim0, dim1 int64) Tensor {
+func Transpose(a *Tensor, dim0, dim1 int64) *Tensor {
 	var t C.Tensor
 	MustNil(unsafe.Pointer(C.Transpose(C.Tensor(*a.T), C.int64_t(dim0), C.int64_t(dim1), &t)))
-	SetTensorFinalizer((*unsafe.Pointer)(&t))
-	return Tensor{(*unsafe.Pointer)(&t)}
+	return NewTensor((*unsafe.Pointer)(&t), a)
 }
 
 // Transpose torch.transpose
-func (a Tensor) Transpose(dim0, dim1 int64) Tensor {
+func (a *Tensor) Transpose(dim0, dim1 int64) *Tensor {
 	return Transpose(a, dim0, dim1)
 }
 
 // View returns a new Tensor with the same data but of a different shape
-func View(a Tensor, shape ...int64) Tensor {
+func View(a *Tensor, shape ...int64) *Tensor {
 	var t C.Tensor
 	MustNil(unsafe.Pointer(C.View(C.Tensor(*a.T), &t, (*C.int64_t)(unsafe.Pointer(&shape[0])), C.int64_t(len(shape)))))
-	SetTensorFinalizer((*unsafe.Pointer)(&t))
-	return Tensor{(*unsafe.Pointer)(&t)}
+	return NewTensor((*unsafe.Pointer)(&t), a)
 }
 
 // View returns a new Tensor with the same data but of a different shape
-func (a Tensor) View(shape ...int64) Tensor {
+func (a *Tensor) View(shape ...int64) *Tensor {
 	return View(a, shape...)
 }
 
 // Argmin mimics torch.argmin
-func (a Tensor) Argmin(opts ...interface{}) Tensor {
+func (a *Tensor) Argmin(opts ...interface{}) *Tensor {
 	return a.argMinMax(true, opts...)
 }
 
 // Argmax mimics torch.argmax
-func (a Tensor) Argmax(opts ...interface{}) Tensor {
+func (a *Tensor) Argmax(opts ...interface{}) *Tensor {
 	return a.argMinMax(false, opts...)
 }
 
-func (a Tensor) argMinMax(argmin bool, opts ...interface{}) Tensor {
+func (a *Tensor) argMinMax(argmin bool, opts ...interface{}) *Tensor {
 	var (
 		dimOpt  int64
 		dim     *int64
@@ -457,6 +430,5 @@ func (a Tensor) argMinMax(argmin bool, opts ...interface{}) Tensor {
 	} else {
 		MustNil(unsafe.Pointer(C.Argmax(C.Tensor(*a.T), (*C.int64_t)(dim), C.int8_t(keepdim), &t)))
 	}
-	SetTensorFinalizer((*unsafe.Pointer)(&t))
-	return Tensor{(*unsafe.Pointer)(&t)}
+	return NewTensor((*unsafe.Pointer)(&t), a)
 }

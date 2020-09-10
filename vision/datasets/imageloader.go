@@ -25,7 +25,7 @@ type ImageLoader struct {
 	trans1    *transforms.ComposeTransformer // transforms before `ToTensor`
 	trans2    *transforms.ComposeTransformer // transforms after and include `ToTensor`
 	mbSize    int
-	inputs    []torch.Tensor
+	inputs    []*torch.Tensor
 	labels    []int64
 	pinMemory bool
 }
@@ -52,9 +52,8 @@ func NewImageLoader(fn string, vocab map[string]int, trans *transforms.ComposeTr
 	return m, nil
 }
 func (p *ImageLoader) tensorGC() {
-	p.inputs = []torch.Tensor{}
+	p.inputs = []*torch.Tensor{}
 	p.labels = []int64{}
-	torch.GC()
 }
 
 // Scan return false if no more data
@@ -99,7 +98,7 @@ func (p *ImageLoader) retreiveMinibatch() bool {
 	for i := 0; i < p.mbSize; i++ {
 		sample, ok := <-p.samples
 		if ok {
-			p.inputs = append(p.inputs, p.trans2.Run(sample.data).(torch.Tensor))
+			p.inputs = append(p.inputs, p.trans2.Run(sample.data).(*torch.Tensor))
 			p.labels = append(p.labels, int64(sample.label))
 		} else {
 			if i == 0 {
@@ -112,9 +111,9 @@ func (p *ImageLoader) retreiveMinibatch() bool {
 }
 
 // Minibatch returns a minibash with data and label Tensor
-func (p *ImageLoader) Minibatch() (torch.Tensor, torch.Tensor) {
+func (p *ImageLoader) Minibatch() (*torch.Tensor, *torch.Tensor) {
 	i := torch.Stack(p.inputs, 0)
-	l := torch.NewTensor(p.labels)
+	l := torch.NewTensorFromSlice(p.labels)
 	if p.pinMemory {
 		return i.PinMemory(), l.PinMemory()
 	}

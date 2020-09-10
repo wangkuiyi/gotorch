@@ -45,9 +45,9 @@ const (
 	Invalid = -1
 )
 
-// NewTensor creates a tensor from a Go slice.  We use variadic parameters of
+// NewTensorFromSlice creates a tensor from a Go slice.  We use variadic parameters of
 // type map[string]interface{} to mimic named variadic parameters.
-func NewTensor(data interface{}, options ...map[string]interface{}) Tensor {
+func NewTensorFromSlice(data interface{}, options ...map[string]interface{}) *Tensor {
 	t := reflect.TypeOf(data)
 	if t.Kind() != reflect.Slice {
 		log.Panicf("NewTensor requires a slice; got a %v", t.Kind())

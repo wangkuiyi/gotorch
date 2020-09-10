@@ -31,7 +31,7 @@ func BasicBlock(inplanes, planes, stride int64, downsample *nn.SequentialModule,
 }
 
 // Forward method
-func (b *BasicBlockModule) Forward(x torch.Tensor) torch.Tensor {
+func (b *BasicBlockModule) Forward(x *torch.Tensor) *torch.Tensor {
 	identity := x
 
 	out := b.C1.Forward(x)
@@ -42,7 +42,7 @@ func (b *BasicBlockModule) Forward(x torch.Tensor) torch.Tensor {
 	out = b.BN2.Forward(out)
 
 	if b.Downsample != nil {
-		identity = b.Downsample.Forward(x).(torch.Tensor)
+		identity = b.Downsample.Forward(x).(*torch.Tensor)
 	}
 
 	out.AddI(identity, 1)
@@ -77,7 +77,7 @@ func Bottleneck(inplanes, planes, stride int64, downsample *nn.SequentialModule,
 }
 
 // Forward method
-func (b *BottleneckModule) Forward(x torch.Tensor) torch.Tensor {
+func (b *BottleneckModule) Forward(x *torch.Tensor) *torch.Tensor {
 	identity := x
 	out := b.C1.Forward(x)
 
@@ -91,7 +91,7 @@ func (b *BottleneckModule) Forward(x torch.Tensor) torch.Tensor {
 	out = b.C3.Forward(out)
 	out = b.BN3.Forward(out)
 	if b.Downsample != nil {
-		identity = b.Downsample.Forward(x).(torch.Tensor)
+		identity = b.Downsample.Forward(x).(*torch.Tensor)
 	}
 
 	out.AddI(identity, 1)
@@ -177,16 +177,16 @@ func (r *ResnetModule) makeLayer(block reflect.Type, planes, blocks, stride int6
 }
 
 // Forward method
-func (r *ResnetModule) Forward(x torch.Tensor) torch.Tensor {
+func (r *ResnetModule) Forward(x *torch.Tensor) *torch.Tensor {
 	x = r.C1.Forward(x)
 	x = r.BN1.Forward(x)
 	x = F.Relu(x, true)
 	x = F.MaxPool2d(x, []int64{3, 3}, []int64{2, 2}, []int64{1, 1}, []int64{1, 1}, false)
 
-	x = r.L1.Forward(x).(torch.Tensor)
-	x = r.L2.Forward(x).(torch.Tensor)
-	x = r.L3.Forward(x).(torch.Tensor)
-	x = r.L4.Forward(x).(torch.Tensor)
+	x = r.L1.Forward(x).(*torch.Tensor)
+	x = r.L2.Forward(x).(*torch.Tensor)
+	x = r.L3.Forward(x).(*torch.Tensor)
+	x = r.L4.Forward(x).(*torch.Tensor)
 
 	x = F.AdaptiveAvgPool2d(x, []int64{1, 1})
 	x = torch.Flatten(x, 1, -1)

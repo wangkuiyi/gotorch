@@ -19,7 +19,7 @@ func ToTensor() *ToTensorTransformer {
 }
 
 // Run executes the ToTensorTransformer and returns a Tensor
-func (t ToTensorTransformer) Run(obj interface{}) torch.Tensor {
+func (t ToTensorTransformer) Run(obj interface{}) *torch.Tensor {
 	switch v := obj.(type) {
 	case image.Image:
 		return imageToTensor(obj.(image.Image))
@@ -31,7 +31,7 @@ func (t ToTensorTransformer) Run(obj interface{}) torch.Tensor {
 }
 
 // ToTensor transform c.f. https://github.com/pytorch/vision/blob/ba1b22125723f3719a3c38a2fe7cd6fb77657c57/torchvision/transforms/functional.py#L45
-func imageToTensor(img image.Image) torch.Tensor {
+func imageToTensor(img image.Image) *torch.Tensor {
 	switch img.(type) {
 	case *image.Gray, *image.Gray16:
 		return grayImageToTensor(img)
@@ -39,7 +39,7 @@ func imageToTensor(img image.Image) torch.Tensor {
 	return colorImageToTensor(img)
 }
 
-func colorImageToTensor(img image.Image) torch.Tensor {
+func colorImageToTensor(img image.Image) *torch.Tensor {
 	maxX, maxY := img.Bounds().Max.X, img.Bounds().Max.Y
 	array := make([]float32, maxY*maxX*3) // 3 channels
 
@@ -62,7 +62,7 @@ func colorImageToTensor(img image.Image) torch.Tensor {
 	return hwc.Permute([]int64{2, 0, 1})
 }
 
-func grayImageToTensor(img image.Image) torch.Tensor {
+func grayImageToTensor(img image.Image) *torch.Tensor {
 	maxX, maxY := img.Bounds().Max.X, img.Bounds().Max.Y
 	array := make([]float32, maxY*maxX) // 1 channel
 
@@ -80,7 +80,7 @@ func grayImageToTensor(img image.Image) torch.Tensor {
 		[]int64{int64(maxY), int64(maxX)})
 }
 
-func intToTensor(x int) torch.Tensor {
+func intToTensor(x int) *torch.Tensor {
 	array := make([]int32, 1)
 	array[0] = int32(x)
 	return torch.FromBlob(unsafe.Pointer(&array[0]), torch.Int, []int64{1})
