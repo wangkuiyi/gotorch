@@ -94,9 +94,11 @@ func imageNetLoader(fn string, vocab map[string]int, mbSize int, pinMemory bool)
 func trainOneMinibatch(image, target *torch.Tensor, model *models.ResnetModule, opt torch.Optimizer) (float32, float32, float32) {
 	output := model.Forward(image)
 	loss := F.CrossEntropy(output, target, torch.Tensor{}, -100, "mean")
-	acc := accuracy(output, target, []int64{1, 5})
-	acc1 := acc[0]
-	acc5 := acc[1]
+	// acc := accuracy(output, target, []int64{1, 5})
+	// acc1 := acc[0]
+	// acc5 := acc[1]
+	acc1 := float32(0.0)
+	acc5 := float32(0.0)
 	loss.Backward()
 	opt.Step()
 	return loss.Item().(float32), acc1, acc5
@@ -128,10 +130,10 @@ func test(model *models.ResnetModule, loader *datasets.ImageLoader) {
 
 func train(trainFn, testFn, save string, epochs int, pinMemory bool) {
 	// build label vocabulary
-	vocab, e := datasets.BuildLabelVocabularyFromTgz(trainFn)
-	if e != nil {
-		log.Fatal(e)
-	}
+	// vocab, e := datasets.BuildLabelVocabularyFromTgz(trainFn)
+	// if e != nil {
+	// 	log.Fatal(e)
+	// }
 	log.Print("building label vocabulary done.")
 	model := models.Resnet50()
 	model.To(device)
@@ -146,13 +148,18 @@ func train(trainFn, testFn, save string, epochs int, pinMemory bool) {
 
 	for epoch := 0; epoch < epochs; epoch++ {
 		adjustLearningRate(optimizer, epoch, lr)
-		trainLoader := imageNetLoader(trainFn, vocab, mbSize, pinMemory)
-		testLoader := imageNetLoader(testFn, vocab, mbSize, pinMemory)
+		// trainLoader := imageNetLoader(trainFn, vocab, mbSize, pinMemory)
+		// testLoader := imageNetLoader(testFn, vocab, mbSize, pinMemory)
 		iter := 0
 		endTime := time.Now()
-		for trainLoader.Scan() {
+		// for trainLoader.Scan() {
+		for {
 			iter++
-			data, label := trainLoader.Minibatch()
+			// data, label := trainLoader.Minibatch()
+			data := torch.RandN([]int64{int64(mbSize), 3, 224, 224}, false).To(device, torch.Float)
+			label := torch.Empty([]int64{int64(mbSize)}, false)
+			initializer.Uniform(label, 0, 1000)
+			label = label.To(device, torch.Long)
 			dataTime := time.Since(endTime).Seconds()
 			optimizer.ZeroGrad()
 			loss, acc1, acc5 := trainOneMinibatch(data.To(device, data.Dtype()), label.To(device, label.Dtype()), model, optimizer)
@@ -160,7 +167,7 @@ func train(trainFn, testFn, save string, epochs int, pinMemory bool) {
 			endTime = time.Now()
 			log.Println(dataTime, batchTime, loss, acc1, acc5)
 		}
-		test(model, testLoader)
+		// test(model, testLoader)
 	}
 	saveModel(model, save)
 }

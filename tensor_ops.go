@@ -36,7 +36,7 @@ func (a *Tensor) AddI(other *Tensor, alpha float32) *Tensor {
 		C.Tensor(*other.T),
 		C.float(alpha),
 		&t)))
-	return NewTensor((*unsafe.Pointer)(&t), a)
+	return NewTensor((*unsafe.Pointer)(&t), a, other)
 }
 
 // Sub torch.sub
@@ -44,7 +44,7 @@ func Sub(a, other *Tensor, alpha float32) *Tensor {
 	var t C.Tensor
 	MustNil(unsafe.Pointer(C.Sub(C.Tensor(*a.T), C.Tensor(*other.T),
 		C.float(alpha), &t)))
-	return NewTensor((*unsafe.Pointer)(&t), a)
+	return NewTensor((*unsafe.Pointer)(&t), a, other)
 }
 
 // Sub torch.sub
@@ -60,14 +60,14 @@ func (a *Tensor) SubI(other *Tensor, alpha float32) *Tensor {
 		C.Tensor(*other.T),
 		C.float(alpha),
 		&t)))
-	return NewTensor((*unsafe.Pointer)(&t), a)
+	return NewTensor((*unsafe.Pointer)(&t), a, other)
 }
 
 // Mul torch.mul
 func Mul(a, other *Tensor) *Tensor {
 	var t C.Tensor
 	MustNil(unsafe.Pointer(C.Mul(C.Tensor(*a.T), C.Tensor(*other.T), &t)))
-	return NewTensor((*unsafe.Pointer)(&t), a)
+	return NewTensor((*unsafe.Pointer)(&t), a, other)
 }
 
 // Mul torch.Mul
@@ -82,14 +82,14 @@ func (a *Tensor) MulI(other *Tensor) *Tensor {
 		C.Tensor(*a.T),
 		C.Tensor(*other.T),
 		&t)))
-	return NewTensor((*unsafe.Pointer)(&t), a)
+	return NewTensor((*unsafe.Pointer)(&t), a, other)
 }
 
 // Div torch.div
 func Div(a, other *Tensor) *Tensor {
 	var t C.Tensor
 	MustNil(unsafe.Pointer(C.Div(C.Tensor(*a.T), C.Tensor(*other.T), &t)))
-	return NewTensor((*unsafe.Pointer)(&t), a)
+	return NewTensor((*unsafe.Pointer)(&t), a, other)
 }
 
 // Div torch.Div
@@ -104,7 +104,7 @@ func (a *Tensor) DivI(other *Tensor) *Tensor {
 		C.Tensor(*a.T),
 		C.Tensor(*other.T),
 		&t)))
-	return NewTensor((*unsafe.Pointer)(&t), a)
+	return NewTensor((*unsafe.Pointer)(&t), a, other)
 }
 
 // Permute transpose the tensor dims.
@@ -182,7 +182,6 @@ func (a *Tensor) Item() interface{} {
 	case Byte, Bool, Char, Short, Int, Long:
 		var v int64
 		MustNil(unsafe.Pointer(C.ItemInt64(C.Tensor(*a.T), (*C.int64_t)(&v))))
-		a.Close()
 		switch dtype {
 		case Byte:
 			return byte(v)
@@ -200,7 +199,6 @@ func (a *Tensor) Item() interface{} {
 	case Half, Float, Double:
 		var v float64
 		MustNil(unsafe.Pointer(C.ItemFloat64(C.Tensor(*a.T), (*C.double)(&v))))
-		a.Close()
 		switch dtype {
 		case Half, Float:
 			return float32(v)
