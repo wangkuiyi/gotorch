@@ -47,3 +47,10 @@ func GC() {
 	}
 	tensorFinalizersWG.Wait()
 }
+
+func init() {
+	// Prevent Cgo call from migrating to another system thread, hence the TLS cache in
+	// libtorch would not take too much RAM. See https://github.com/wangkuiyi/gotorch/issues/273
+	// for details.
+	runtime.LockOSThread()
+}
