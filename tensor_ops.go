@@ -286,7 +286,8 @@ func Stack(tensors []*Tensor, dim int64) *Tensor {
 	p := (*C.Tensor)(unsafe.Pointer(&CT[0]))
 	var t C.Tensor
 	MustNil(unsafe.Pointer(C.Stack(p, C.int64_t(len(CT)), C.int64_t(dim), &t)))
-	return NewTensor((*unsafe.Pointer)(&t), tensors...)
+	s := NewTensor((*unsafe.Pointer)(&t), tensors...)
+	return s
 }
 
 // Squeeze torch.squeeze

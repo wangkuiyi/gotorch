@@ -6,10 +6,8 @@ import (
 	"log"
 	"os"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
-	torch "github.com/wangkuiyi/gotorch"
 	tgz "github.com/wangkuiyi/gotorch/tool/tgz"
 	"github.com/wangkuiyi/gotorch/vision/transforms"
 )
@@ -97,7 +95,7 @@ func TestImageTgzLoaderHeavy(t *testing.T) {
 		t.Skip("No GOTORCH_TEST_IMAGE_TGZ_PATH from env, skip test")
 	}
 	trainFn := os.Getenv("GOTORCH_TEST_IMAGE_TGZ_PATH")
-	mbSize := 32
+	mbSize := 2
 	vocab, e := BuildLabelVocabularyFromTgz(trainFn)
 	if e != nil {
 		log.Fatal(e)
@@ -108,22 +106,19 @@ func TestImageTgzLoaderHeavy(t *testing.T) {
 		transforms.ToTensor(),
 		transforms.Normalize([]float64{0.485, 0.456, 0.406}, []float64{0.229, 0.224, 0.225}))
 
-	loader, e := NewImageLoader(trainFn, vocab, trans, mbSize, false)
-	if e != nil {
-		log.Fatal(e)
-	}
-	startTime := time.Now()
-	idx := 0
-	for loader.Scan() {
-		idx++
-		loader.Minibatch()
-		if idx%10 == 0 {
-			throughput := float64(mbSize*10) / time.Since(startTime).Seconds()
-			log.Printf("throughput: %f samples/secs", throughput)
-			startTime = time.Now()
+	for {
+		loader, _ := NewImageLoader(trainFn, vocab, trans, mbSize, false)
+		for loader.Scan() {
+			data, label := loader.Minibatch()
+			data.Close()
+			label.Close()
+			// if idx%10 == 0 {
+			// throughput := float64(mbSize*10) / time.Since(startTime).Seconds()
+			// log.Printf("throughput: %f samples/secs", throughput)
+			// startTime = time.Now()
+			// }
 		}
 	}
-	torch.FinishGC()
 }
 
 func TestSplitComposeByToTensor(t *testing.T) {

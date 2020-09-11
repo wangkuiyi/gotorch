@@ -9,6 +9,7 @@ package gotorch
 import "C"
 
 import (
+	"fmt"
 	"log"
 	"unsafe"
 )
@@ -75,6 +76,7 @@ func (a *Tensor) Close() {
 	a.RefCount--
 	if a.RefCount <= 0 {
 		C.Tensor_Close(C.Tensor(*a.T))
+		fmt.Println("Call Tensor_Close")
 		a.T = nil
 	}
 	for _, p := range a.Parents {
