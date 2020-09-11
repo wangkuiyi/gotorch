@@ -110,6 +110,7 @@ const char *Tensor_Dtype(Tensor tensor, int8_t *dtype);
 const char *Tensor_SetData(Tensor self, Tensor new_data);
 const char *Tensor_FromBlob(void *data, int8_t dtype, int64_t *sizes_data,
                             int64_t sizes_data_len, Tensor *result);
+const char *Tensor_Clone(Tensor tensor, Tensor *result);
 
 ////////////////////////////////////////////////////////////////////////////////
 // Get elements

@@ -63,7 +63,7 @@ func NewTensor(data interface{}, options ...map[string]interface{}) Tensor {
 	}
 	f := flattenSlice(data, kind)
 	hdr := (*reflect.SliceHeader)(unsafe.Pointer(&f))
-	return FromBlob(unsafe.Pointer(hdr.Data), dtype, shape)
+	return FromBlob(unsafe.Pointer(hdr.Data), dtype, shape).Clone()
 }
 
 func sliceShapeAndElemKind(data interface{}) ([]int64, reflect.Kind) {
