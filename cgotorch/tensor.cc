@@ -87,6 +87,15 @@ const char *Tensor_Dim(Tensor tensor, int64_t *dim) {
   }
 }
 
+const char *Tensor_Numel(Tensor tensor, int64_t *numel) {
+  try {
+    *numel = tensor->numel();
+    return nullptr;
+  } catch (const std::exception &e) {
+    return exception_str(e.what());
+  }
+}
+
 const char *Tensor_Shape(Tensor tensor, int64_t *dims) {
   try {
     int i = 0;
@@ -101,6 +110,15 @@ const char *Tensor_Dtype(Tensor tensor, int8_t *dtype) {
   try {
     auto t = tensor->scalar_type();
     *dtype = static_cast<int8_t>(t);
+    return nullptr;
+  } catch (const std::exception &e) {
+    return exception_str(e.what());
+  }
+}
+
+const char *Tensor_Data(Tensor tensor, char **result) {
+  try {
+    *result = static_cast<char *>(tensor->data_ptr());
     return nullptr;
   } catch (const std::exception &e) {
     return exception_str(e.what());

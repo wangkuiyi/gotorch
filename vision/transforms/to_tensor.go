@@ -41,7 +41,8 @@ func imageToTensor(img image.Image) torch.Tensor {
 
 func colorImageToTensor(img image.Image) torch.Tensor {
 	maxX, maxY := img.Bounds().Max.X, img.Bounds().Max.Y
-	array := make([]float32, maxY*maxX*3) // 3 channels
+	hwc := torch.Empty([]int64{int64(maxY), int64(maxX), 3}, false)
+	array := hwc.Slice().([]float32) // 3 channels
 
 	// Convert pixels into the HWC format
 	const denom = float32(0xffff)
@@ -57,14 +58,13 @@ func colorImageToTensor(img image.Image) torch.Tensor {
 			i++
 		}
 	}
-	hwc := torch.FromBlob(unsafe.Pointer(&array[0]), torch.Float,
-		[]int64{int64(maxY), int64(maxX), 3}).Clone()
 	return hwc.Permute([]int64{2, 0, 1})
 }
 
 func grayImageToTensor(img image.Image) torch.Tensor {
 	maxX, maxY := img.Bounds().Max.X, img.Bounds().Max.Y
-	array := make([]float32, maxY*maxX) // 1 channel
+	tensor := torch.Empty([]int64{int64(maxY), int64(maxX)}, false)
+	array := tensor.Slice().([]float32) // 1 channel
 
 	// Convert pixels into the HWC format
 	const denom = float32(0xffff)
@@ -76,8 +76,7 @@ func grayImageToTensor(img image.Image) torch.Tensor {
 			i++
 		}
 	}
-	return torch.FromBlob(unsafe.Pointer(&array[0]), torch.Float,
-		[]int64{int64(maxY), int64(maxX)}).Clone()
+	return tensor
 }
 
 func intToTensor(x int) torch.Tensor {

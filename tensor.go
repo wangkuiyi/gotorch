@@ -10,6 +10,7 @@ import "C"
 
 import (
 	"log"
+	"reflect"
 	"unsafe"
 )
 
@@ -66,6 +67,13 @@ func (a Tensor) Dim() int64 {
 	var dim int64
 	MustNil(unsafe.Pointer(C.Tensor_Dim(C.Tensor(*a.T), (*C.int64_t)(&dim))))
 	return dim
+}
+
+// Numel tensor.numel
+func (a Tensor) Numel() int64 {
+	var numel int64
+	MustNil(unsafe.Pointer(C.Tensor_Numel(C.Tensor(*a.T), (*C.int64_t)(&numel))))
+	return numel
 }
 
 // Shape returns shape
@@ -144,6 +152,13 @@ func (a Tensor) SetData(b Tensor) {
 	MustNil(unsafe.Pointer(C.Tensor_SetData(C.Tensor(*a.T), C.Tensor(*b.T))))
 }
 
+// Data returns C++ data ptr of the tensor
+func (a Tensor) Data() *byte {
+	var t *byte
+	MustNil(unsafe.Pointer(C.Tensor_Data(C.Tensor(*a.T), (**C.char)(unsafe.Pointer(&t)))))
+	return t
+}
+
 // To returns a Tensor on the specified device with the same content as the a.
 // If the specified device doesn't exist, To panics.
 func To(a Tensor, device Device, dtype int8) Tensor {
@@ -171,6 +186,18 @@ func (a Tensor) Clone() Tensor {
 		&t)))
 	SetTensorFinalizer((*unsafe.Pointer)(&t))
 	return Tensor{(*unsafe.Pointer)(&t)}
+}
+
+// Slice gives a Slice interface to the Tensor data
+func (a Tensor) Slice() interface{} {
+	length := int(a.Numel())
+	sliceHeader := reflect.SliceHeader{
+		Data: uintptr(unsafe.Pointer(a.Data())),
+		Cap:  length,
+		Len:  length,
+	}
+	val := reflect.NewAt(torchToSliceType[a.Dtype()], unsafe.Pointer(&sliceHeader)).Elem()
+	return val.Interface()
 }
 
 // Index calls Tensor::index to return a single-element tensor of the element at

@@ -109,6 +109,17 @@ var (
 		reflect.Float32: Float,
 		reflect.Float64: Double,
 	}
+	torchToSliceType = map[int8]reflect.Type{
+		Bool:   reflect.TypeOf([]bool{true}),
+		Byte:   reflect.TypeOf([]uint8{0}),
+		Char:   reflect.TypeOf([]int8{0}),
+		Short:  reflect.TypeOf([]int16{0}),
+		Int:    reflect.TypeOf([]int32{0}),
+		Long:   reflect.TypeOf([]int64{0}),
+		Half:   reflect.TypeOf([]uint16{0}),
+		Float:  reflect.TypeOf([]float32{0}),
+		Double: reflect.TypeOf([]float64{0}),
+	}
 )
 
 // https://medium.com/@the1mills/flattening-arrays-slices-with-golang-c796905debbe
