@@ -16,12 +16,7 @@ import (
 	"github.com/wangkuiyi/gotorch/vision/transforms"
 )
 
-// the original Imagenet dataset contains 1281167 training images
-// c.f. https://patrykchrabaszcz.github.io/Imagenet32/
-const (
-	trainSamples = 1281167
-	logInterval  = 10 // in iterations
-)
+const logInterval = 10 // in iterations
 
 var device torch.Device
 
