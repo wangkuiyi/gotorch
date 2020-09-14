@@ -25,6 +25,17 @@ func TestFromBlob(t *testing.T) {
 	assert.Equal(t, []int64{2, 3}, out.Shape())
 }
 
+func TestClone(t *testing.T) {
+	a := torch.NewTensor([]int64{1, 2})
+	b := a.Clone()
+	assert.True(t, torch.Equal(a, b))
+}
+
+func TestNumel(t *testing.T) {
+	x := torch.RandN([]int64{3, 4}, true)
+	assert.Equal(t, int64(12), x.Numel())
+}
+
 func TestTensorString(t *testing.T) {
 	data := [2][3]float32{{1.0, 1.1, 1.2}, {2, 3, 4}}
 	out := torch.FromBlob(unsafe.Pointer(&data), torch.Float, []int64{2, 3})
