@@ -28,3 +28,5 @@ const char *Torch_Device(const char *device_type, Device *device) {
 bool IsCUDAAvailable() { return torch::cuda::is_available(); }
 
 bool IsCUDNNAvailable() { return torch::cuda::cudnn_is_available(); }
+
+void SetNumThreads(int32_t n) { torch::set_num_threads(n); }
