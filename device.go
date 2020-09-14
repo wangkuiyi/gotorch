@@ -39,7 +39,8 @@ func SetNumThreads(n int32) {
 }
 
 func init() {
-	// Avoid creating too much threads: the default threads number is the core number, which may degrade performance
+	// Avoid creating too many threads: the original default setting of OMP_NUM_THREADS
+	// (defaults to the core number) may degrade performance on GPUs.
 	if os.Getenv("OMP_NUM_THREADS") == "" && os.Getenv("MKL_NUM_THREADS") == "" {
 		SetNumThreads(int32(runtime.NumCPU()) / 2)
 	}
