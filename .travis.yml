@@ -7,6 +7,13 @@ go:
   - 1.14
 os: osx
 
+addons:
+  homebrew:
+    packages:
+    - opencv
+    - pkgconfig
+    update: true
+
 branches:
   only:
     - develop
