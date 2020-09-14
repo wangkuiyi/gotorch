@@ -11,7 +11,7 @@ import (
 	torch "github.com/wangkuiyi/gotorch"
 	F "github.com/wangkuiyi/gotorch/nn/functional"
 	"github.com/wangkuiyi/gotorch/nn/initializer"
-	"github.com/wangkuiyi/gotorch/vision/datasets"
+	"github.com/wangkuiyi/gotorch/vision/imageloader"
 	"github.com/wangkuiyi/gotorch/vision/models"
 	"github.com/wangkuiyi/gotorch/vision/transforms"
 )
@@ -73,14 +73,14 @@ func accuracy(output, target torch.Tensor, topk []int64) []float32 {
 	return res
 }
 
-func imageNetLoader(fn string, vocab map[string]int, mbSize int, pinMemory bool) *datasets.ImageLoader {
+func imageNetLoader(fn string, vocab map[string]int, mbSize int, pinMemory bool) *imageloader.ImageLoader {
 	trans := transforms.Compose(
 		transforms.RandomResizedCrop(224),
 		transforms.RandomHorizontalFlip(0.5),
 		transforms.ToTensor(),
 		transforms.Normalize([]float64{0.485, 0.456, 0.406}, []float64{0.229, 0.224, 0.225}))
 
-	loader, e := datasets.NewImageLoader(fn, vocab, trans, mbSize, pinMemory)
+	loader, e := imageloader.New(fn, vocab, trans, mbSize, pinMemory)
 	if e != nil {
 		log.Fatal(e)
 	}
@@ -98,7 +98,7 @@ func trainOneMinibatch(image, target torch.Tensor, model *models.ResnetModule, o
 	return loss.Item().(float32), acc1, acc5
 }
 
-func test(model *models.ResnetModule, loader *datasets.ImageLoader) {
+func test(model *models.ResnetModule, loader *imageloader.ImageLoader) {
 	testLoss := float32(0)
 	acc1 := float32(0)
 	acc5 := float32(0)
@@ -124,7 +124,7 @@ func test(model *models.ResnetModule, loader *datasets.ImageLoader) {
 
 func train(trainFn, testFn, save string, epochs int, pinMemory bool) {
 	// build label vocabulary
-	vocab, e := datasets.BuildLabelVocabularyFromTgz(trainFn)
+	vocab, e := imageloader.BuildLabelVocabularyFromTgz(trainFn)
 	if e != nil {
 		log.Fatal(e)
 	}
