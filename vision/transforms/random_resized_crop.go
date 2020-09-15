@@ -98,6 +98,7 @@ func (t *RandomResizedCropTransformer) Run(input gocv.Mat) gocv.Mat {
 		Min: image.Point{X: j, Y: i},
 		Max: image.Point{X: j + w, Y: i + h},
 	})
+	defer cropped.Close()
 	gocv.Resize(cropped, &input, image.Point{t.width, t.height}, 0, 0, t.interpolation)
 	return input
 }

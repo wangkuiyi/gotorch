@@ -37,6 +37,8 @@ func (t *RandomCropTransformer) Run(input gocv.Mat) gocv.Mat {
 		Min: image.Point{X: x, Y: y},
 		Max: image.Point{X: x + t.width, Y: y + t.height},
 	}
-	croped := input.Region(rect)
-	return croped.Clone()
+	cropped := input.Region(rect)
+	defer cropped.Close()
+	cropped.CopyTo(&input)
+	return input
 }

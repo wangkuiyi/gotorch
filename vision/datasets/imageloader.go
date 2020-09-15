@@ -1,17 +1,17 @@
 package datasets
 
 import (
-	"image"
 	"io"
 	"path/filepath"
 
 	torch "github.com/wangkuiyi/gotorch"
 	tgz "github.com/wangkuiyi/gotorch/tool/tgz"
 	"github.com/wangkuiyi/gotorch/vision/transforms"
+	"gocv.io/x/gocv"
 )
 
 type sample struct {
-	data  image.Image
+	data  gocv.Mat
 	label int
 }
 
@@ -75,6 +75,7 @@ func (p *ImageLoader) Scan() bool {
 func (p *ImageLoader) read() {
 	defer close(p.samples)
 	defer close(p.errChan)
+
 	for {
 		hdr, err := p.r.Next()
 		if err != nil {
@@ -86,12 +87,17 @@ func (p *ImageLoader) read() {
 		}
 		classStr := filepath.Base(filepath.Dir(hdr.Name))
 		label := p.vocab[classStr]
-		m, _, err := image.Decode(p.r)
+		buffer := make([]byte, hdr.Size)
+		p.r.Read(buffer)
+		m, err := gocv.IMDecode(buffer, gocv.IMReadColor)
 		if err != nil {
 			p.errChan <- err
 			break
 		}
-		p.samples <- sample{p.trans1.Run(m).(image.Image), label}
+		if m.Empty() {
+			continue
+		}
+		p.samples <- sample{p.trans1.Run(m).(gocv.Mat), label}
 	}
 }
 

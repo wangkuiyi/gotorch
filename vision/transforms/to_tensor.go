@@ -45,6 +45,7 @@ func (t ToTensorTransformer) Run(obj interface{}) torch.Tensor {
 		}
 		tensor := torch.FromBlob(unsafe.Pointer(&view[0]), torch.Float, []int64{int64(h),
 			int64(w)})
+		defer v.Close()
 		return tensor
 	case int:
 		return intToTensor(obj.(int))
