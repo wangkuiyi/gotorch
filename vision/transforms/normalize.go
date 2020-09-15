@@ -9,7 +9,6 @@ import (
 // NormalizeTransformer corresponds to torchvision.transforms.html#Normalize. It
 // implements Go interface gotorch/data.Transform.
 type NormalizeTransformer struct {
-	//Mean, Stddev []float64
 	mean, stddev torch.Tensor
 }
 
