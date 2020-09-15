@@ -27,9 +27,8 @@ func (t *CenterCropTransformer) Run(input gocv.Mat) gocv.Mat {
 		panic(fmt.Sprintf("crop size (%d, %d) should be within image size (%d, %d)",
 			t.width, t.height, input.Cols(), input.Rows()))
 	}
-	res := input.Region(image.Rect((input.Cols()-t.width)/2,
+	return input.Region(image.Rect((input.Cols()-t.width)/2,
 		(input.Rows()-t.height)/2,
 		(input.Cols()+t.width)/2,
 		(input.Rows()+t.height)/2))
-	return res.Clone()
 }
