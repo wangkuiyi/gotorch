@@ -10,12 +10,6 @@ import (
 	"gocv.io/x/gocv"
 )
 
-func colorEqual(x, y color.Color) bool {
-	r1, b1, g1, a1 := x.RGBA()
-	r2, b2, g2, a2 := y.RGBA()
-	return r1 == r2 && b1 == b2 && g1 == g2 && a1 == a2
-}
-
 func TestResize(t *testing.T) {
 	a := assert.New(t)
 	img := draw.Image(image.NewRGBA(image.Rect(0, 0, 2, 2)))

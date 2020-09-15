@@ -3,18 +3,11 @@ package opencv
 import (
 	"image"
 	"image/color"
-	"image/draw"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"gocv.io/x/gocv"
 )
-
-func drawImage(size image.Rectangle, c color.Color) image.Image {
-	m := image.NewRGBA(size)
-	draw.Draw(m, m.Bounds(), &image.Uniform{c}, image.ZP, draw.Src)
-	return m
-}
 
 func TestCenterCrop(t *testing.T) {
 	a := assert.New(t)
