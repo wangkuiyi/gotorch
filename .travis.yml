@@ -11,7 +11,7 @@ addons:
   homebrew:
     packages:
     - opencv
-    - pkgconfig
+      pkgconfig
     update: true
 
 branches:
