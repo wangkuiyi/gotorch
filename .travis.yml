@@ -10,8 +10,8 @@ os: osx
 addons:
   homebrew:
     packages:
-    - opencv
-      pkgconfig
+      - opencv
+      - pkgconfig
     update: true
 
 branches:
