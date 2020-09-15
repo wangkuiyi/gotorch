@@ -44,6 +44,7 @@ func TestImageTgzLoaderError(t *testing.T) {
 		transforms.Normalize([]float64{0.1307}, []float64{0.3081}),
 	)
 	loader, e := NewImageLoader(f.Name(), vocab, trans, 3, false)
+	defer torch.FinishGC()
 	a.NoError(e)
 	a.False(loader.Scan())
 	a.Error(loader.Err())
@@ -59,7 +60,6 @@ func TestImageTgzLoader(t *testing.T) {
 	vocab, e := BuildLabelVocabularyFromTgz(fn)
 	a.NoError(e)
 	a.Equal(expectedVocab, vocab)
-
 	trans := transforms.Compose(
 		transforms.ToTensor(),
 		transforms.Normalize([]float64{0.1307}, []float64{0.3081}),
