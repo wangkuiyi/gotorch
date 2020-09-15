@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"image"
 
-	"github.com/disintegration/imaging"
+	"gocv.io/x/gocv"
 )
 
 // CenterCropTransformer crops the center of the image into some size.
@@ -22,11 +22,13 @@ func CenterCrop(height int, width ...int) *CenterCropTransformer {
 }
 
 // Run execute the center crop function and returns the cropped image object.
-func (t *CenterCropTransformer) Run(input image.Image) image.Image {
-	if t.width > input.Bounds().Max.X || t.height > input.Bounds().Max.Y {
+func (t *CenterCropTransformer) Run(input gocv.Mat) gocv.Mat {
+	if t.width > input.Cols() || t.height > input.Rows() {
 		panic(fmt.Sprintf("crop size (%d, %d) should be within image size (%d, %d)",
-			t.width, t.height, input.Bounds().Max.X, input.Bounds().Max.Y))
+			t.width, t.height, input.Cols(), input.Rows()))
 	}
-
-	return imaging.CropCenter(input, t.width, t.height)
+	return input.Region(image.Rect((input.Cols()-t.width)/2,
+		(input.Rows()-t.height)/2,
+		(input.Cols()+t.width)/2,
+		(input.Rows()+t.height)/2))
 }
