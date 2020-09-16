@@ -40,11 +40,11 @@ func (t ToTensorTransformer) Run(obj interface{}) torch.Tensor {
 		}
 		if c == 3 {
 			tensor := torch.FromBlob(unsafe.Pointer(&view[0]), torch.Float, []int64{int64(h),
-				int64(w), int64(c)}).Clone()
+				int64(w), int64(c)})
 			return tensor.Permute([]int64{2, 0, 1})
 		}
 		tensor := torch.FromBlob(unsafe.Pointer(&view[0]), torch.Float, []int64{int64(h),
-			int64(w)}).Clone()
+			int64(w)})
 		return tensor
 	case int:
 		return intToTensor(obj.(int))
@@ -56,5 +56,5 @@ func (t ToTensorTransformer) Run(obj interface{}) torch.Tensor {
 func intToTensor(x int) torch.Tensor {
 	array := make([]int32, 1)
 	array[0] = int32(x)
-	return torch.FromBlob(unsafe.Pointer(&array[0]), torch.Int, []int64{1}).Clone()
+	return torch.FromBlob(unsafe.Pointer(&array[0]), torch.Int, []int64{1})
 }

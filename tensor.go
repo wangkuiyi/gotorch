@@ -68,13 +68,6 @@ func (a Tensor) Dim() int64 {
 	return dim
 }
 
-// Numel tensor.numel
-func (a Tensor) Numel() int64 {
-	var numel int64
-	MustNil(unsafe.Pointer(C.Tensor_Numel(C.Tensor(*a.T), (*C.int64_t)(&numel))))
-	return numel
-}
-
 // Shape returns shape
 func (a Tensor) Shape() []int64 {
 	shape := make([]int64, a.Dim())
@@ -157,7 +150,7 @@ func To(a Tensor, device Device, dtype int8) Tensor {
 	return a.To(device, dtype)
 }
 
-// FromBlob returns a Tensor view of the given data memory
+// FromBlob returns a deep copy Tensor with the given data memory
 func FromBlob(data unsafe.Pointer, dtype int8, sizes []int64) Tensor {
 	var t C.Tensor
 	MustNil(unsafe.Pointer(C.Tensor_FromBlob(
@@ -165,16 +158,6 @@ func FromBlob(data unsafe.Pointer, dtype int8, sizes []int64) Tensor {
 		C.int8_t(dtype),
 		(*C.int64_t)(unsafe.Pointer(&sizes[0])),
 		C.int64_t(len(sizes)),
-		&t)))
-	SetTensorFinalizer((*unsafe.Pointer)(&t))
-	return Tensor{(*unsafe.Pointer)(&t)}
-}
-
-// Clone returns a new Tensor
-func (a Tensor) Clone() Tensor {
-	var t C.Tensor
-	MustNil(unsafe.Pointer(C.Tensor_Clone(
-		C.Tensor(*a.T),
 		&t)))
 	SetTensorFinalizer((*unsafe.Pointer)(&t))
 	return Tensor{(*unsafe.Pointer)(&t)}

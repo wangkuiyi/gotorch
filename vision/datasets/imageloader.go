@@ -3,7 +3,6 @@ package datasets
 import (
 	"io"
 	"path/filepath"
-	"unsafe"
 
 	torch "github.com/wangkuiyi/gotorch"
 	tgz "github.com/wangkuiyi/gotorch/tool/tgz"
@@ -121,7 +120,7 @@ func (p *ImageLoader) retreiveMinibatch() bool {
 // Minibatch returns a minibash with data and label Tensor
 func (p *ImageLoader) Minibatch() (torch.Tensor, torch.Tensor) {
 	i := torch.Stack(p.inputs, 0)
-	l := torch.FromBlob(unsafe.Pointer(&p.labels[0]), torch.Long, []int64{int64(len(p.labels))})
+	l := torch.NewTensor(p.labels)
 	if p.pinMemory {
 		return i.PinMemory(), l.PinMemory()
 	}
