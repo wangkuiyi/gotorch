@@ -24,7 +24,3 @@ const char *Torch_Device(const char *device_type, Device *device) {
   }
   return nullptr;
 }
-
-bool IsCUDAAvailable() { return torch::cuda::is_available(); }
-
-bool IsCUDNNAvailable() { return torch::cuda::cudnn_is_available(); }

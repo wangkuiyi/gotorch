@@ -12,6 +12,7 @@ GLIBCXX_USE_CXX11_ABI="1"
 LOAD="force_load"
 LIB_SUFFIX="so"
 INSTALL_NAME=""
+CGTORCH_BUILD_ARGS=""
 
 if [[ "$OS" == "linux" ]]; then
     if [[ "$ARCH" =~ arm* ]]; then
@@ -24,6 +25,7 @@ if [[ "$OS" == "linux" ]]; then
     elif $(whereis cuda | cut -f 2 -d ' ')/bin/nvcc --version > /dev/null; then
         CXX="clang++"
         CUDA_VERSION=`nvcc --version | grep release | grep -Eo "[0-9]+.[0-9]+" | head -1`
+        CGTORCH_BUILD_ARGS="$CGTORCH_BUILD_ARGS -DWITH_CUDA -I /usr/local/cuda/include"
         if [[ "$CUDA_VERSION" == "10.1" ]]; then
             echo "Building for Linux with CUDA 10.1";
             LIBTORCH_DIR="linux-cuda101/libtorch"
@@ -66,6 +68,7 @@ make CXX="$CXX" \
      LIBTORCH_DIR="$LIBTORCH_DIR" \
      GLIBCXX_USE_CXX11_ABI="$GLIBCXX_USE_CXX11_ABI" \
      LOAD="$LOAD" \
+     CGTORCH_BUILD_ARGS="$CGTORCH_BUILD_ARGS" \
      -f Makefile;
 
 popd
