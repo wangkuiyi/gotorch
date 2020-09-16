@@ -44,6 +44,7 @@ func TestImageTgzLoaderError(t *testing.T) {
 		transforms.Normalize([]float64{0.1307}, []float64{0.3081}),
 	)
 	loader, e := NewImageLoader(f.Name(), vocab, trans, 3, false)
+	defer torch.FinishGC()
 	a.NoError(e)
 	a.False(loader.Scan())
 	a.Error(loader.Err())
@@ -59,12 +60,12 @@ func TestImageTgzLoader(t *testing.T) {
 	vocab, e := BuildLabelVocabularyFromTgz(fn)
 	a.NoError(e)
 	a.Equal(expectedVocab, vocab)
-
 	trans := transforms.Compose(
 		transforms.ToTensor(),
 		transforms.Normalize([]float64{0.1307}, []float64{0.3081}),
 	)
 	loader, e := NewImageLoader(fn, vocab, trans, 3, false)
+	defer torch.FinishGC()
 	a.NoError(e)
 	{
 		// first iteration
@@ -109,6 +110,7 @@ func TestImageTgzLoaderHeavy(t *testing.T) {
 		transforms.Normalize([]float64{0.485, 0.456, 0.406}, []float64{0.229, 0.224, 0.225}))
 
 	loader, e := NewImageLoader(trainFn, vocab, trans, mbSize, false)
+	defer torch.FinishGC()
 	if e != nil {
 		log.Fatal(e)
 	}
@@ -123,7 +125,6 @@ func TestImageTgzLoaderHeavy(t *testing.T) {
 			startTime = time.Now()
 		}
 	}
-	torch.FinishGC()
 }
 
 func TestSplitComposeByToTensor(t *testing.T) {
