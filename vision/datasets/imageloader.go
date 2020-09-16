@@ -97,6 +97,7 @@ func (p *ImageLoader) read() {
 		if m.Empty() {
 			continue
 		}
+		gocv.CvtColor(m, &m, gocv.ColorBGRToRGB)
 		p.samples <- sample{p.trans1.Run(m).(gocv.Mat), label}
 	}
 }
