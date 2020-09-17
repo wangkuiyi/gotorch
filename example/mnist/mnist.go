@@ -14,7 +14,7 @@ import (
 	torch "github.com/wangkuiyi/gotorch"
 	F "github.com/wangkuiyi/gotorch/nn/functional"
 	"github.com/wangkuiyi/gotorch/nn/initializer"
-	"github.com/wangkuiyi/gotorch/vision/datasets"
+	"github.com/wangkuiyi/gotorch/vision/imageloader"
 	"github.com/wangkuiyi/gotorch/vision/models"
 	"github.com/wangkuiyi/gotorch/vision/transforms"
 )
@@ -57,7 +57,7 @@ func main() {
 }
 
 func train(trainFn, testFn string, epochs int, save string) {
-	vocab, e := datasets.BuildLabelVocabularyFromTgz(trainFn)
+	vocab, e := imageloader.BuildLabelVocabularyFromTgz(trainFn)
 	if e != nil {
 		panic(e)
 	}
@@ -91,16 +91,16 @@ func train(trainFn, testFn string, epochs int, save string) {
 }
 
 // MNISTLoader returns a ImageLoader with MNIST training or testing tgz file
-func MNISTLoader(fn string, vocab map[string]int) *datasets.ImageLoader {
+func MNISTLoader(fn string, vocab map[string]int) *imageloader.ImageLoader {
 	trans := transforms.Compose(transforms.ToTensor(), transforms.Normalize([]float64{0.1307}, []float64{0.3081}))
-	loader, e := datasets.NewImageLoader(fn, vocab, trans, 64, torch.IsCUDAAvailable())
+	loader, e := imageloader.New(fn, vocab, trans, 64, torch.IsCUDAAvailable())
 	if e != nil {
 		panic(e)
 	}
 	return loader
 }
 
-func test(model *models.MLPModule, loader *datasets.ImageLoader) {
+func test(model *models.MLPModule, loader *imageloader.ImageLoader) {
 	testLoss := float32(0)
 	correct := int64(0)
 	samples := 0

@@ -1,4 +1,4 @@
-package datasets
+package imageloader
 
 import (
 	"archive/tar"
@@ -43,7 +43,7 @@ func TestImageTgzLoaderError(t *testing.T) {
 		transforms.ToTensor(),
 		transforms.Normalize([]float64{0.1307}, []float64{0.3081}),
 	)
-	loader, e := NewImageLoader(f.Name(), vocab, trans, 3, false)
+	loader, e := New(f.Name(), vocab, trans, 3, false)
 	defer torch.FinishGC()
 	a.NoError(e)
 	a.False(loader.Scan())
@@ -64,7 +64,7 @@ func TestImageTgzLoader(t *testing.T) {
 		transforms.ToTensor(),
 		transforms.Normalize([]float64{0.1307}, []float64{0.3081}),
 	)
-	loader, e := NewImageLoader(fn, vocab, trans, 3, false)
+	loader, e := New(fn, vocab, trans, 3, false)
 	defer torch.FinishGC()
 	a.NoError(e)
 	{
@@ -109,7 +109,7 @@ func TestImageTgzLoaderHeavy(t *testing.T) {
 		transforms.ToTensor(),
 		transforms.Normalize([]float64{0.485, 0.456, 0.406}, []float64{0.229, 0.224, 0.225}))
 
-	loader, e := NewImageLoader(trainFn, vocab, trans, mbSize, false)
+	loader, e := New(trainFn, vocab, trans, mbSize, false)
 	defer torch.FinishGC()
 	if e != nil {
 		log.Fatal(e)
