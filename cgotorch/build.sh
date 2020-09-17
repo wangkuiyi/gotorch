@@ -27,7 +27,7 @@ function build_linux_no_cuda() {
 if [[ "$OS" == "linux" ]]; then
     if [[ "$ARCH" =~ arm* ]]; then
         echo "Building for Raspbian ...";
-	    CXX="g++"
+        CXX="g++"
         LIBTORCH_DIR="rpi/libtorch"
         if [[ ! -d "$DIR/$LIBTORCH_DIR" ]]; then
             curl -LsO 'https://github.com/ljk53/pytorch-rpi/raw/master/libtorch-rpi-cxx11-abi-shared-1.6.0.zip';
@@ -35,7 +35,7 @@ if [[ "$OS" == "linux" ]]; then
         fi
     elif $(whereis cuda | cut -f 2 -d ' ')/bin/nvcc --version > /dev/null; then
         CXX="clang++"
-	    NVCC=$(whereis cuda | cut -f 2 -d ' ')/bin/nvcc
+        NVCC=$(whereis cuda | cut -f 2 -d ' ')/bin/nvcc
         CUDA_VERSION=$("$NVCC" --version | grep release | grep -Eo "[0-9]+.[0-9]+" | head -1)
         CGTORCH_BUILD_ARGS="$CGTORCH_BUILD_ARGS -DWITH_CUDA -I /usr/local/cuda/include"
         if [[ "$CUDA_VERSION" == "10.1" ]]; then
