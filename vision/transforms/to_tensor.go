@@ -22,7 +22,7 @@ func ToTensor() *ToTensorTransformer {
 func (t ToTensorTransformer) Run(obj interface{}) torch.Tensor {
 	switch v := obj.(type) {
 	case gocv.Mat:
-		// Batch Tensor in NCHW format
+		// Batched Mat in NCHW format
 		if len(v.Size()) == 4 {
 			size := gocv.GetBlobSize(v)
 			n := int64(size.Val1)
@@ -37,7 +37,7 @@ func (t ToTensorTransformer) Run(obj interface{}) torch.Tensor {
 				[]int64{n, c, h, w})
 		}
 
-		// Single Tensor
+		// Single Mat
 		c := v.Channels()
 		w := v.Cols()
 		h := v.Rows()
