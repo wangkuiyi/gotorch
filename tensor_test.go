@@ -59,7 +59,15 @@ func TestCastTo(t *testing.T) {
 	b = a.To(torch.NewDevice("cpu"), torch.Float)
 	assert.Equal(t, torch.Float, b.Dtype())
 }
-
+func TestCUDA(t *testing.T) {
+	if !torch.IsCUDAAvailable() {
+		t.Skip("skip TestCUDA which required CUDA device")
+	}
+	device := getDefaultDevice()
+	a := torch.NewTensor([]int64{1, 2})
+	b := a.CUDA(device, false)
+	assert.Equal(t, torch.Long, b.Dtype())
+}
 func TestCopyTo(t *testing.T) {
 	device := torch.NewDevice("cpu")
 	a := torch.NewTensor([]int64{1, 2})
