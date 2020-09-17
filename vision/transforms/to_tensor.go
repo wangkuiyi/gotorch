@@ -31,9 +31,8 @@ func (t ToTensorTransformer) Run(obj interface{}) torch.Tensor {
 		if err != nil {
 			panic(err)
 		}
-		tensor := torch.FromBlob(unsafe.Pointer(&view[0]), torch.Float,
+		return torch.FromBlob(unsafe.Pointer(&view[0]), torch.Float,
 			[]int64{n, c, h, w})
-		return tensor.Permute([]int64{0, 2, 3, 1})
 	case int:
 		return intToTensor(obj.(int))
 	default:

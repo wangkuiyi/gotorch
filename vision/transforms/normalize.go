@@ -16,18 +16,17 @@ type NormalizeTransformer struct {
 func Normalize(mean []float32, stddev []float32) *NormalizeTransformer {
 	var meanT torch.Tensor
 	var stddevT torch.Tensor
-
 	if len(mean) == 1 {
-		meanT = torch.NewTensor([]float32{mean[0]})
+		meanT = torch.NewTensor([][][]float32{{{mean[0]}}})
 	} else if len(mean) == 3 {
-		meanT = torch.NewTensor([]float32{mean[0], mean[1], mean[2]})
+		meanT = torch.NewTensor([][][]float32{{{mean[0]}}, {{mean[1]}}, {{mean[2]}}})
 	} else {
 		panic(fmt.Sprintf("len(Mean) should be 1 or 3."))
 	}
 	if len(stddev) == 1 {
-		stddevT = torch.NewTensor([]float32{stddev[0]})
+		stddevT = torch.NewTensor([][][]float32{{{stddev[0]}}})
 	} else if len(stddev) == 3 {
-		stddevT = torch.NewTensor([]float32{stddev[0], stddev[1], stddev[2]})
+		stddevT = torch.NewTensor([][][]float32{{{stddev[0]}}, {{stddev[1]}}, {{stddev[2]}}})
 	} else {
 		panic(fmt.Sprintf("len(Stddev) should be 1 or 3."))
 	}
