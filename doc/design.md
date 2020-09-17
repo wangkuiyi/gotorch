@@ -29,7 +29,7 @@ libtorch.
 1. The finest-grained layer is in libtorch -- about 1600 native functions, each
    is a fundamental operation in mathematics or its corresponding gradient
    operation.  Each native function has CPU and GPU implementations. By linking
-   libtorch with [XLA](github.com/pytorch/xla), we get an additional
+   libtorch with [XLA](https://github.com/pytorch/xla), we get an additional
    implementation for Google TPU.
 
 1. A higher-level abstraction is in the Python package `torch.nn.functional`,
