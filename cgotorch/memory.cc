@@ -1,6 +1,6 @@
-#include "torch/torch.h"
+// Copyright 2020, GoTorch Authors
 #include "cgotorch/cgotorch.h"
-
+#include "torch/torch.h"
 
 thread_local bool gcPrepared;
 
