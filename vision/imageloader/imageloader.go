@@ -1,4 +1,4 @@
-package datasets
+package imageloader
 
 import (
 	"io"
@@ -30,8 +30,8 @@ type ImageLoader struct {
 	pinMemory bool
 }
 
-// NewImageLoader returns an ImageLoader
-func NewImageLoader(fn string, vocab map[string]int, trans *transforms.ComposeTransformer,
+// New returns an ImageLoader
+func New(fn string, vocab map[string]int, trans *transforms.ComposeTransformer,
 	mbSize int, pinMemory bool) (*ImageLoader, error) {
 	r, e := tgz.OpenFile(fn)
 	if e != nil {

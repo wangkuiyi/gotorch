@@ -235,36 +235,6 @@ const char *Tensor_CastTo(Tensor input, int8_t dtype, Tensor *output);
 const char *Tensor_CopyTo(Tensor input, Device device, Tensor *output);
 const char *Tensor_PinMemory(Tensor input, Tensor *output);
 
-////////////////////////////////////////////////////////////////////////////////
-//  Dataset, DataLoader, and Iterator torch.utils.data
-////////////////////////////////////////////////////////////////////////////////
-
-typedef struct {
-  MNIST p;
-  Normalize normalize;
-  double mean, stddev;
-} MNISTDataset;
-
-const char *CreateMNISTDataset(const char *data_root, MNISTDataset *dataset);
-void MNISTDataset_Close(MNISTDataset d);
-
-// Set parameters of the normalize transform in dataset
-void MNISTDataset_Normalize(MNISTDataset *dataset, double *mean,
-                            int64_t mean_len, double *stddev,
-                            int64_t stddev_len);
-
-typedef void *MNISTLoader;
-typedef void *MNISTIterator;
-
-MNISTLoader CreateMNISTLoader(MNISTDataset dataset, int64_t batchsize);
-void MNISTLoader_Close(MNISTLoader loader);
-
-MNISTIterator MNISTLoader_Begin(MNISTLoader loader);
-void MNISTIterator_Batch(MNISTIterator iter, Tensor *data, Tensor *target);
-bool MNISTIterator_Next(MNISTIterator iter, MNISTLoader loader);
-bool MNISTIterator_IsEnd(MNISTIterator iter, MNISTLoader loader);
-void MNISTIterator_Close(MNISTIterator iter);
-
 #ifdef __cplusplus
 }
 #endif
