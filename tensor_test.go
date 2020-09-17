@@ -3,7 +3,9 @@ package gotorch_test
 import (
 	"io/ioutil"
 	"os"
+	"runtime"
 	"testing"
+	"time"
 	"unsafe"
 
 	"github.com/stretchr/testify/assert"
@@ -143,4 +145,22 @@ func TestTensorPinMemory(t *testing.T) {
 	} else {
 		assert.Equal(t, " 1  2\n 3  4\n[ CPUFloatType{2,2} ]", b.String())
 	}
+}
+
+func TestTensorGC(t *testing.T) {
+	torch.GC()
+	runtime.LockOSThread()
+	c := make(chan bool, 0)
+	{
+		torch.NewTensor([][]float32{{1, 2}, {3, 4}})
+		go func() {
+			a := torch.NewTensor([][]float32{{1, 2}, {3, 4}})
+			c <- true
+			time.Sleep(time.Second)
+			runtime.KeepAlive(&a)
+		}()
+	}
+	<-c
+	assert.Eventually(t, func() bool { torch.GC(); return true }, time.Millisecond, time.Microsecond)
+
 }

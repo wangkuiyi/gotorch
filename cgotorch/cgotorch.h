@@ -245,6 +245,14 @@ const char *CUDA_GetCUDAStreamFromPool(CUDAStream *stream, Device *device);
 const char *CUDA_Synchronize(CUDAStream stream);
 const char *CUDA_Query(CUDAStream stream, int8_t *result);
 
+////////////////////////////////////////////////////////////////////////////////
+//  Memory management for Go garbage collector
+////////////////////////////////////////////////////////////////////////////////
+
+uint8_t GCPrepared();
+void PrepareGC();
+void FinishGC();
+
 #ifdef __cplusplus
 }
 #endif
