@@ -7,17 +7,46 @@ import (
 	torch "github.com/wangkuiyi/gotorch"
 )
 
-func TestCUDAStreamPanics(t *testing.T) {
-	a := assert.New(t)
+func getDefaultDevice() torch.Device {
 	var device torch.Device
 	if torch.IsCUDAAvailable() {
+		device = torch.NewDevice("cuda")
+	} else {
 		device = torch.NewDevice("cpu")
+	}
+	return device
+}
+func TestCUDAStreamPanics(t *testing.T) {
+	a := assert.New(t)
+	device := getDefaultDevice()
+	if torch.IsCUDAAvailable() {
 		a.Panics(func() {
-			torch.GetCurrentStream(device)
+			torch.GetCurrentCUDAStream(device)
 		})
 	} else {
 		a.NotPanics(func() {
-			device = torch.NewDevice("cuda")
+			torch.GetCurrentCUDAStream(device)
 		})
 	}
+}
+
+func TestMultiCUDAStream(t *testing.T) {
+	if !torch.IsCUDAAvailable() {
+		t.Skip("skip TestMultiCUDAStream which only run on CUDA device")
+	}
+	a := assert.New(t)
+	device := getDefaultDevice()
+	currStream := torch.GetCurrentCUDAStream(device)
+	defer torch.SetCurrentCUDAStream(currStream)
+	// create a new CUDA stream
+	stream := torch.NewCUDAStream(device)
+	// switch to the new CUDA stream
+	torch.SetCurrentCUDAStream(stream)
+	// copy Tensor from host to device async
+	input := torch.RandN([]int64{100, 200}, false).PinMemory()
+	input.CUDA(device, true /**nonBlocking=true**/)
+	// wait until all tasks completed
+	stream.Synchronize()
+	// make sure all tasks completed
+	a.True(stream.Query())
 }

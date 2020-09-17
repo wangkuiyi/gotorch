@@ -137,6 +137,20 @@ const char *Tensor_To(Tensor input, Device device, int8_t dtype,
   }
 }
 
+const char *Tensor_CUDA(Tensor input, Device device, int8_t non_blocking,
+                        Tensor *output) {
+  try {
+    if (!device->is_cuda()) {
+      return exception_str("the device should be CUDA device");
+    }
+    auto result = input->to(*device, static_cast<bool>(non_blocking));
+    *output = new at::Tensor(result);
+    return nullptr;
+  } catch (const std::exception &e) {
+    return exception_str(e.what());
+  }
+}
+
 const char *Tensor_CastTo(Tensor input, int8_t dtype, Tensor *output) {
   try {
     auto result = input->to(static_cast<at::ScalarType>(dtype));

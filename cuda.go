@@ -7,14 +7,38 @@ package gotorch
 import "C"
 import "unsafe"
 
-// Stream struct wrapped CUDAStream
-type Stream struct {
+// CUDAStream struct wrapped Nvidia CUDA Stream
+type CUDAStream struct {
 	P C.CUDAStream
 }
 
-// GetCurrentStream returns the current stream on device
-func GetCurrentStream(device Device) Stream {
+// Query returns true if all tasks completed on this CUDA stream
+func (s CUDAStream) Query() bool {
+	var b int8
+	MustNil(unsafe.Pointer(C.CUDA_Query(s.P, (*C.int8_t)(&b))))
+	return b != 0
+}
+
+// Synchronize wait until all tasks completed on this CUDA stream
+func (s CUDAStream) Synchronize() {
+	MustNil(unsafe.Pointer(C.CUDA_Synchronize(s.P)))
+}
+
+// GetCurrentCUDAStream returns the current stream on device
+func GetCurrentCUDAStream(device Device) CUDAStream {
 	var stream C.CUDAStream
-	MustNil(unsafe.Pointer(C.CUDA_GetCurrentStream(&stream, &device.T)))
-	return Stream{stream}
+	MustNil(unsafe.Pointer(C.CUDA_GetCurrentCUDAStream(&stream, &device.T)))
+	return CUDAStream{stream}
+}
+
+// SetCurrentCUDAStream set stream as the current CUDA stream
+func SetCurrentCUDAStream(stream CUDAStream) {
+	MustNil(unsafe.Pointer(C.CUDA_SetCurrentCUDAStream(stream.P)))
+}
+
+// NewCUDAStream returns a new CUDA stream from the pool
+func NewCUDAStream(device Device) CUDAStream {
+	var stream C.CUDAStream
+	MustNil(unsafe.Pointer(C.CUDA_GetCUDAStreamFromPool(&stream, &device.T)))
+	return CUDAStream{stream}
 }
