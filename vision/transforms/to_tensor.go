@@ -22,30 +22,18 @@ func ToTensor() *ToTensorTransformer {
 func (t ToTensorTransformer) Run(obj interface{}) torch.Tensor {
 	switch v := obj.(type) {
 	case gocv.Mat:
-		c := v.Channels()
-		if c == 3 {
-			v.ConvertTo(&v, gocv.MatTypeCV32FC3)
-		} else {
-			v.ConvertTo(&v, gocv.MatTypeCV32FC1)
-		}
-		v.MultiplyFloat(1.0 / 255.0)
-		defer v.Close()
-
-		w := v.Cols()
-		h := v.Rows()
-
+		size := gocv.GetBlobSize(v)
+		n := int64(size.Val1)
+		c := int64(size.Val2)
+		h := int64(size.Val3)
+		w := int64(size.Val4)
 		view, err := v.DataPtrFloat32()
 		if err != nil {
 			panic(err)
 		}
-		if c == 3 {
-			tensor := torch.FromBlob(unsafe.Pointer(&view[0]), torch.Float, []int64{int64(h),
-				int64(w), int64(c)})
-			return tensor.Permute([]int64{2, 0, 1})
-		}
-		tensor := torch.FromBlob(unsafe.Pointer(&view[0]), torch.Float, []int64{int64(h),
-			int64(w)})
-		return tensor
+		tensor := torch.FromBlob(unsafe.Pointer(&view[0]), torch.Float,
+			[]int64{n, c, h, w})
+		return tensor.Permute([]int64{0, 2, 3, 1})
 	case int:
 		return intToTensor(obj.(int))
 	default:

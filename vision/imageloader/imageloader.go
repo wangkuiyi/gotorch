@@ -1,6 +1,7 @@
 package imageloader
 
 import (
+	"image"
 	"io"
 	"path/filepath"
 
@@ -25,7 +26,7 @@ type ImageLoader struct {
 	trans1    *transforms.ComposeTransformer // transforms before `ToTensor`
 	trans2    *transforms.ComposeTransformer // transforms after and include `ToTensor`
 	mbSize    int
-	inputs    []torch.Tensor
+	inputs    []gocv.Mat
 	labels    []int64
 	pinMemory bool
 }
@@ -52,7 +53,10 @@ func New(fn string, vocab map[string]int, trans *transforms.ComposeTransformer,
 	return m, nil
 }
 func (p *ImageLoader) tensorGC() {
-	p.inputs = []torch.Tensor{}
+	for _, input := range p.inputs {
+		input.Close()
+	}
+	p.inputs = []gocv.Mat{}
 	p.labels = []int64{}
 	torch.GC()
 }
@@ -106,7 +110,7 @@ func (p *ImageLoader) retreiveMinibatch() bool {
 	for i := 0; i < p.mbSize; i++ {
 		sample, ok := <-p.samples
 		if ok {
-			p.inputs = append(p.inputs, p.trans2.Run(sample.data).(torch.Tensor))
+			p.inputs = append(p.inputs, sample.data)
 			p.labels = append(p.labels, int64(sample.label))
 		} else {
 			if i == 0 {
@@ -120,7 +124,12 @@ func (p *ImageLoader) retreiveMinibatch() bool {
 
 // Minibatch returns a minibash with data and label Tensor
 func (p *ImageLoader) Minibatch() (torch.Tensor, torch.Tensor) {
-	i := torch.Stack(p.inputs, 0)
+	w := p.inputs[0].Cols()
+	h := p.inputs[0].Rows()
+	blob := gocv.NewMat()
+	defer blob.Close()
+	gocv.BlobFromImages(p.inputs, &blob, 1.0/255.0, image.Pt(w, h), gocv.NewScalar(0, 0, 0, 0), false, false, gocv.MatTypeCV32F)
+	i := p.trans2.Run(blob).(torch.Tensor)
 	l := torch.NewTensor(p.labels)
 	if p.pinMemory {
 		return i.PinMemory(), l.PinMemory()
