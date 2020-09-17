@@ -181,6 +181,6 @@ func predictFile(fn string, m *models.MLPModule) {
 	}
 
 	t := transforms.ToTensor().Run(img)
-	n := transforms.Normalize([]float64{0.1307}, []float64{0.3081}).Run(t)
+	n := transforms.Normalize([]float32{0.1307}, []float32{0.3081}).Run(t)
 	fmt.Println(m.Forward(n).Argmax().Item())
 }
