@@ -41,7 +41,7 @@ func TestImageTgzLoaderError(t *testing.T) {
 	vocab := map[string]int{"0": 0, "1": 1}
 	trans := transforms.Compose(
 		transforms.ToTensor(),
-		transforms.Normalize([]float64{0.1307}, []float64{0.3081}),
+		transforms.Normalize([]float32{0.1307}, []float32{0.3081}),
 	)
 	loader, e := New(f.Name(), vocab, trans, 3, false)
 	defer torch.FinishGC()
@@ -62,7 +62,7 @@ func TestImageTgzLoader(t *testing.T) {
 	a.Equal(expectedVocab, vocab)
 	trans := transforms.Compose(
 		transforms.ToTensor(),
-		transforms.Normalize([]float64{0.1307}, []float64{0.3081}),
+		transforms.Normalize([]float32{0.1307}, []float32{0.3081}),
 	)
 	loader, e := New(fn, vocab, trans, 3, false)
 	defer torch.FinishGC()
@@ -107,7 +107,7 @@ func TestImageTgzLoaderHeavy(t *testing.T) {
 		transforms.RandomResizedCrop(224),
 		transforms.RandomHorizontalFlip(0.5),
 		transforms.ToTensor(),
-		transforms.Normalize([]float64{0.485, 0.456, 0.406}, []float64{0.229, 0.224, 0.225}))
+		transforms.Normalize([]float32{0.485, 0.456, 0.406}, []float32{0.229, 0.224, 0.225}))
 
 	loader, e := New(trainFn, vocab, trans, mbSize, false)
 	defer torch.FinishGC()
@@ -134,7 +134,7 @@ func TestSplitComposeByToTensor(t *testing.T) {
 			transforms.RandomResizedCrop(224),
 			transforms.RandomHorizontalFlip(0.5),
 			transforms.ToTensor(),
-			transforms.Normalize([]float64{0.485, 0.456, 0.406}, []float64{0.229, 0.224, 0.225}))
+			transforms.Normalize([]float32{0.485, 0.456, 0.406}, []float32{0.229, 0.224, 0.225}))
 		trans1, trans2 := splitComposeByToTensor(trans)
 		a.Equal(len(trans1.Transforms), 2)
 		_, ok := trans1.Transforms[0].(*transforms.RandomResizedCropTransformer)
