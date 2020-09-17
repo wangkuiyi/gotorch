@@ -14,7 +14,7 @@ import (
 	nn "github.com/wangkuiyi/gotorch/nn"
 	F "github.com/wangkuiyi/gotorch/nn/functional"
 	"github.com/wangkuiyi/gotorch/nn/initializer"
-	"github.com/wangkuiyi/gotorch/vision/datasets"
+	"github.com/wangkuiyi/gotorch/vision/imageloader"
 	"github.com/wangkuiyi/gotorch/vision/transforms"
 )
 
@@ -93,13 +93,13 @@ func discriminator(nc int64, ndf int64) *nn.SequentialModule {
 	)
 }
 
-func celebaLoader(data string, vocab map[string]int, mbSize int) *datasets.ImageLoader {
+func celebaLoader(data string, vocab map[string]int, mbSize int) *imageloader.ImageLoader {
 	imageSize := 64
 	trans := transforms.Compose(transforms.Resize(imageSize),
 		transforms.CenterCrop(imageSize),
 		transforms.ToTensor(),
 		transforms.Normalize([]float64{0.5, 0.5, 0.5}, []float64{0.5, 0.5, 0.5}))
-	loader, e := datasets.NewImageLoader(data, vocab, trans, mbSize, torch.IsCUDAAvailable())
+	loader, e := imageloader.New(data, vocab, trans, mbSize, torch.IsCUDAAvailable())
 	if e != nil {
 		panic(e)
 	}
@@ -142,7 +142,7 @@ func main() {
 	optimizerG := torch.Adam(lr, 0.5, 0.999, 0.0)
 	optimizerG.AddParameters(netG.Parameters())
 
-	vocab, e := datasets.BuildLabelVocabularyFromTgz(*data)
+	vocab, e := imageloader.BuildLabelVocabularyFromTgz(*data)
 	if e != nil {
 		log.Fatal(e)
 	}

@@ -15,7 +15,7 @@ GoTorch使用Go语言封装了libtorch。libtorch是PyTorch的C++核心，它有
 总的来说，PyTorch提供了三层API：
 
 1. 最细粒度的一层是libtorch中的原生函数(native functions)，约有1600个。原生函数或者是一个数学上的基本运算，或者是相应的梯度计算。
-   每个原生函数都有GPU和CPU两种实现，libtorch可以和[XLA](github.com/pytorch/xla)链接到一起，从而获得Google TPU上的原生函数实现。
+   每个原生函数都有GPU和CPU两种实现，libtorch可以和[XLA](https://github.com/pytorch/xla)链接到一起，从而获得Google TPU上的原生函数实现。
 
 1. `torch.nn.functional`这个Python包提供了更高一级的抽象，这个包用纯Python封装了C++原生函数，更符合Python用户的使用习惯。
 
