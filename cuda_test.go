@@ -20,11 +20,11 @@ func TestCUDAStreamPanics(t *testing.T) {
 	a := assert.New(t)
 	device := getDefaultDevice()
 	if torch.IsCUDAAvailable() {
-		a.Panics(func() {
+		a.NotPanics(func() {
 			torch.GetCurrentCUDAStream(device)
 		})
 	} else {
-		a.NotPanics(func() {
+		a.Panics(func() {
 			torch.GetCurrentCUDAStream(device)
 		})
 	}
