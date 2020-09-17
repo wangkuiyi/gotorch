@@ -92,7 +92,7 @@ func train(trainFn, testFn string, epochs int, save string) {
 
 // MNISTLoader returns a ImageLoader with MNIST training or testing tgz file
 func MNISTLoader(fn string, vocab map[string]int) *imageloader.ImageLoader {
-	trans := transforms.Compose(transforms.ToTensor(), transforms.Normalize([]float64{0.1307}, []float64{0.3081}))
+	trans := transforms.Compose(transforms.ToTensor(), transforms.Normalize([]float32{0.1307}, []float32{0.3081}))
 	loader, e := imageloader.New(fn, vocab, trans, 64, torch.IsCUDAAvailable())
 	if e != nil {
 		panic(e)
