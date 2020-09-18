@@ -7,6 +7,16 @@ go:
   - 1.14
 os: osx
 
+cache:
+  directories:
+    - /usr/local
+
+addons:
+  homebrew:
+    packages:
+      - opencv
+      - pkgconfig
+
 branches:
   only:
     - develop
