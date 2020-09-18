@@ -27,6 +27,9 @@ func TestCUDAStreamPanics(t *testing.T) {
 		a.Panics(func() {
 			torch.GetCurrentCUDAStream(device)
 		})
+		a.Panics(func() {
+			torch.NewCUDAStream(device)
+		})
 	}
 }
 
