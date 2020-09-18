@@ -64,10 +64,15 @@ func TestCUDA(t *testing.T) {
 		t.Skip("skip TestCUDA which required CUDA device")
 	}
 	device := getDefaultDevice()
-	a := torch.NewTensor([]int64{1, 2})
+	a := torch.NewTensor([][]float32{{1, 2}, {3, 4}})
 	b := a.CUDA(device, false)
-	assert.Equal(t, torch.Long, b.Dtype())
+	assert.Equal(t, " 1  2\n 3  4\n[ CUDAFloatType{2,2} ]", b.String())
+
+	c := a.CUDA(device, true)
+	torch.GetCurrentCUDAStream(device).Synchronize()
+	assert.Equal(t, " 1  2\n 3  4\n[ CUDAFloatType{2,2} ]", c.String())
 }
+
 func TestCopyTo(t *testing.T) {
 	device := torch.NewDevice("cpu")
 	a := torch.NewTensor([]int64{1, 2})

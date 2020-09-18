@@ -43,7 +43,7 @@ func TestMultiCUDAStream(t *testing.T) {
 	// switch to the new CUDA stream
 	torch.SetCurrentCUDAStream(stream)
 	// copy Tensor from host to device async
-	input := torch.RandN([]int64{100, 200}, false).PinMemory()
+	input := torch.RandN([]int64{100, 200}, true).PinMemory()
 	input.CUDA(device, true /**nonBlocking=true**/)
 	// wait until all tasks completed
 	stream.Synchronize()

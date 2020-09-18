@@ -115,8 +115,7 @@ func (a Tensor) To(device Device, dtype ...int8) Tensor {
 // CUDA returns a Tensor on CUDA device
 func (a Tensor) CUDA(device Device, nonBlocking bool) Tensor {
 	var t C.Tensor
-	var n int8
-	n = 0
+	n := int8(0)
 	if nonBlocking {
 		n = 1
 	}

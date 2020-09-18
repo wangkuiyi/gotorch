@@ -12,7 +12,7 @@ GLIBCXX_USE_CXX11_ABI="1"
 LOAD="force_load"
 LIB_SUFFIX="so"
 INSTALL_NAME=""
-CGTORCH_BUILD_ARGS=""
+CUDA_FLAGS=""
 
 function build_linux_no_cuda() {
 	CXX="clang++"
@@ -37,7 +37,7 @@ if [[ "$OS" == "linux" ]]; then
         CXX="clang++"
         NVCC=$(whereis cuda | cut -f 2 -d ' ')/bin/nvcc
         CUDA_VERSION=$("$NVCC" --version | grep release | grep -Eo "[0-9]+.[0-9]+" | head -1)
-        CGTORCH_BUILD_ARGS="$CGTORCH_BUILD_ARGS -DWITH_CUDA -I /usr/local/cuda/include"
+        CUDA_FLAGS="$CUDA_FLAGS -DWITH_CUDA -I /usr/local/cuda/include"
         if [[ "$CUDA_VERSION" == "10.1" ]]; then
             echo "Building for Linux with CUDA 10.1";
             LIBTORCH_DIR="linux-cuda101/libtorch"
@@ -80,7 +80,7 @@ make CXX="$CXX" \
      LIBTORCH_DIR="$LIBTORCH_DIR" \
      GLIBCXX_USE_CXX11_ABI="$GLIBCXX_USE_CXX11_ABI" \
      LOAD="$LOAD" \
-     CGTORCH_BUILD_ARGS="$CGTORCH_BUILD_ARGS" \
+     CUDA_FLAGS="$CUDA_FLAGS" \
      -f Makefile;
 
 popd
