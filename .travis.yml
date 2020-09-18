@@ -7,6 +7,22 @@ go:
   - 1.14
 os: osx
 
+# GoTorch, in particular, gotorch/vision/transforms, uses OpenCV for
+# image data augmentation. In Travis CI macOS VMs, we need to install
+# OpenCV and its many dependencies. The updating of Homebrew and
+# installation of OpenCV would take about 20 minutes. To shrink the
+# time cost, we make Travis CI to cache the /usr/local directory,
+# where Homebrew installs software packages.
+cache:
+  directories:
+    - /usr/local
+
+addons:
+  homebrew:
+    packages:
+      - opencv
+      - pkgconfig
+
 branches:
   only:
     - develop
