@@ -161,5 +161,5 @@ func TestTensorGC(t *testing.T) {
 		}()
 	}
 	<-c
-	assert.Eventually(t, func() bool { torch.GC(); return true }, 2*time.Millisecond, 10*time.Microsecond)
+	assert.Eventually(t, func() bool { torch.GC(); return true }, 10*time.Millisecond, 10*time.Microsecond)
 }
