@@ -22,7 +22,7 @@ addons:
     packages:
       - opencv
       - pkgconfig
-  update: true
+    update: true
 
 branches:
   only:
