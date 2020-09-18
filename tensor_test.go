@@ -64,10 +64,13 @@ func TestCUDA(t *testing.T) {
 	device := getDefaultDevice()
 	input := torch.NewTensor([][]float32{{1, 2}, {3, 4}})
 	if !torch.IsCUDAAvailable() {
-		// panics on CPU device
+		// CUDA should panics on CPU device
 		a.Panics(func() {
 			input.CUDA(device, false)
 		})
+		a.Panics(func() {
+			input.CUDA(device, true)
+		}
 		return
 	}
 
