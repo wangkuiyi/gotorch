@@ -150,17 +150,16 @@ func TestTensorPinMemory(t *testing.T) {
 func TestTensorGC(t *testing.T) {
 	torch.GC()
 	runtime.LockOSThread()
-	c := make(chan bool, 0)
+	c := make(chan torch.Tensor, 0)
 	{
 		torch.NewTensor([][]float32{{1, 2}, {3, 4}})
 		go func() {
 			a := torch.NewTensor([][]float32{{1, 2}, {3, 4}})
-			c <- true
+			c <- a
 			time.Sleep(time.Second)
 			runtime.KeepAlive(&a)
 		}()
 	}
 	<-c
 	assert.Eventually(t, func() bool { torch.GC(); return true }, 2*time.Millisecond, 10*time.Microsecond)
-
 }
