@@ -70,7 +70,7 @@ func TestCUDA(t *testing.T) {
 		})
 		a.Panics(func() {
 			input.CUDA(device, true)
-		}
+		})
 		return
 	}
 
