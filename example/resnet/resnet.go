@@ -75,7 +75,7 @@ func imageNetLoader(fn string, vocab map[string]int, mbSize int, pinMemory bool)
 		transforms.ToTensor(),
 		transforms.Normalize([]float32{0.485, 0.456, 0.406}, []float32{0.229, 0.224, 0.225}))
 
-	loader, e := imageloader.New(fn, vocab, trans, mbSize, pinMemory)
+	loader, e := imageloader.New(fn, vocab, trans, mbSize, pinMemory, "rgb")
 	if e != nil {
 		log.Fatal(e)
 	}

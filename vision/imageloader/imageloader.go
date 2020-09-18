@@ -3,6 +3,7 @@ package imageloader
 import (
 	"image"
 	"io"
+	"log"
 	"path/filepath"
 
 	torch "github.com/wangkuiyi/gotorch"
@@ -11,6 +12,12 @@ import (
 	"gocv.io/x/gocv"
 )
 
+// RGB color
+const RGB string = "rgb"
+
+// GRAY color
+const GRAY string = "gray"
+
 type sample struct {
 	data  gocv.Mat
 	label int
@@ -18,36 +25,38 @@ type sample struct {
 
 // ImageLoader struct
 type ImageLoader struct {
-	r         *tgz.Reader
-	vocab     map[string]int
-	samples   chan sample
-	errChan   chan error
-	err       error
-	trans1    *transforms.ComposeTransformer // transforms before `ToTensor`
-	trans2    *transforms.ComposeTransformer // transforms after and include `ToTensor`
-	mbSize    int
-	inputs    []gocv.Mat
-	labels    []int64
-	pinMemory bool
+	r          *tgz.Reader
+	vocab      map[string]int
+	samples    chan sample
+	errChan    chan error
+	err        error
+	trans1     *transforms.ComposeTransformer // transforms before `ToTensor`
+	trans2     *transforms.ComposeTransformer // transforms after and include `ToTensor`
+	mbSize     int
+	inputs     []gocv.Mat
+	labels     []int64
+	pinMemory  bool
+	colorSpace string
 }
 
 // New returns an ImageLoader
 func New(fn string, vocab map[string]int, trans *transforms.ComposeTransformer,
-	mbSize int, pinMemory bool) (*ImageLoader, error) {
+	mbSize int, pinMemory bool, colorSpace string) (*ImageLoader, error) {
 	r, e := tgz.OpenFile(fn)
 	if e != nil {
 		return nil, e
 	}
 	trans1, trans2 := splitComposeByToTensor(trans)
 	m := &ImageLoader{
-		r:         r,
-		vocab:     vocab,
-		samples:   make(chan sample, mbSize*4),
-		errChan:   make(chan error, 1),
-		trans1:    trans1,
-		trans2:    trans2,
-		mbSize:    mbSize,
-		pinMemory: pinMemory,
+		r:          r,
+		vocab:      vocab,
+		samples:    make(chan sample, mbSize*4),
+		errChan:    make(chan error, 1),
+		trans1:     trans1,
+		trans2:     trans2,
+		mbSize:     mbSize,
+		pinMemory:  pinMemory,
+		colorSpace: colorSpace,
 	}
 	go m.read()
 	return m, nil
@@ -93,7 +102,14 @@ func (p *ImageLoader) read() {
 		label := p.vocab[classStr]
 		buffer := make([]byte, hdr.Size)
 		p.r.Read(buffer)
-		m, err := gocv.IMDecode(buffer, gocv.IMReadColor)
+		var m gocv.Mat
+		if p.colorSpace == RGB {
+			m, err = gocv.IMDecode(buffer, gocv.IMReadColor)
+		} else if p.colorSpace == GRAY {
+			m, err = gocv.IMDecode(buffer, gocv.IMReadGrayScale)
+		} else {
+			log.Fatalf("Cannot read image with color space %v", p.colorSpace)
+		}
 		if err != nil {
 			p.errChan <- err
 			break
@@ -101,7 +117,9 @@ func (p *ImageLoader) read() {
 		if m.Empty() {
 			continue
 		}
-		gocv.CvtColor(m, &m, gocv.ColorBGRToRGB)
+		if p.colorSpace == RGB {
+			gocv.CvtColor(m, &m, gocv.ColorBGRToRGB)
+		}
 		p.samples <- sample{p.trans1.Run(m).(gocv.Mat), label}
 	}
 }
