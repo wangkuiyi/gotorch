@@ -12,6 +12,7 @@ GLIBCXX_USE_CXX11_ABI="1"
 LOAD="force_load"
 LIB_SUFFIX="so"
 INSTALL_NAME=""
+CUDA_FLAGS=""
 
 function build_linux_no_cuda() {
 	CXX="clang++"
@@ -26,7 +27,7 @@ function build_linux_no_cuda() {
 if [[ "$OS" == "linux" ]]; then
     if [[ "$ARCH" =~ arm* ]]; then
         echo "Building for Raspbian ...";
-	CXX="g++"
+        CXX="g++"
         LIBTORCH_DIR="rpi/libtorch"
         if [[ ! -d "$DIR/$LIBTORCH_DIR" ]]; then
             curl -LsO 'https://github.com/ljk53/pytorch-rpi/raw/master/libtorch-rpi-cxx11-abi-shared-1.6.0.zip';
@@ -34,8 +35,9 @@ if [[ "$OS" == "linux" ]]; then
         fi
     elif $(whereis cuda | cut -f 2 -d ' ')/bin/nvcc --version > /dev/null; then
         CXX="clang++"
-	NVCC=$(whereis cuda | cut -f 2 -d ' ')/bin/nvcc
+        NVCC=$(whereis cuda | cut -f 2 -d ' ')/bin/nvcc
         CUDA_VERSION=$("$NVCC" --version | grep release | grep -Eo "[0-9]+.[0-9]+" | head -1)
+        CUDA_FLAGS="$CUDA_FLAGS -DWITH_CUDA -I /usr/local/cuda/include"
         if [[ "$CUDA_VERSION" == "10.1" ]]; then
             echo "Building for Linux with CUDA 10.1";
             LIBTORCH_DIR="linux-cuda101/libtorch"
@@ -77,6 +79,8 @@ make CXX="$CXX" \
      INSTALL_NAME="$INSTALL_NAME" \
      LIBTORCH_DIR="$LIBTORCH_DIR" \
      GLIBCXX_USE_CXX11_ABI="$GLIBCXX_USE_CXX11_ABI" \
-     LOAD="$LOAD"
+     LOAD="$LOAD" \
+     CUDA_FLAGS="$CUDA_FLAGS" \
+     -f Makefile;
 
 popd

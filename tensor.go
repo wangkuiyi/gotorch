@@ -112,6 +112,18 @@ func (a Tensor) To(device Device, dtype ...int8) Tensor {
 	return Tensor{(*unsafe.Pointer)(&t)}
 }
 
+// CUDA returns a Tensor on CUDA device
+func (a Tensor) CUDA(device Device, nonBlocking bool) Tensor {
+	var t C.Tensor
+	n := int8(0)
+	if nonBlocking {
+		n = 1
+	}
+	MustNil(unsafe.Pointer(C.Tensor_CUDA(C.Tensor(*a.T), device.T, C.int8_t(n), &t)))
+	SetTensorFinalizer((*unsafe.Pointer)(&t))
+	return Tensor{(*unsafe.Pointer)(&t)}
+}
+
 // CastTo cast tensor dtype
 func (a Tensor) CastTo(dtype int8) Tensor {
 	var t C.Tensor

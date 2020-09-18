@@ -18,7 +18,8 @@ libcgotorch.so : $(srcs) $(hdrs) ${LIBTORCH_DIR}
 	-Wl,-rpath,libtorch/lib \
 	-Wl,-${LOAD} libtorch/lib/libc10.${LIB_SUFFIX} \
 	-lc10 -ltorch -ltorch_cpu \
-	-D_GLIBCXX_USE_CXX11_ABI=${GLIBCXX_USE_CXX11_ABI}
+	-D_GLIBCXX_USE_CXX11_ABI=${GLIBCXX_USE_CXX11_ABI} \
+	${CUDA_FLAGS}
 
 clean:
 	rm -rf *.so

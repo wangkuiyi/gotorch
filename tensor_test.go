@@ -59,7 +59,28 @@ func TestCastTo(t *testing.T) {
 	b = a.To(torch.NewDevice("cpu"), torch.Float)
 	assert.Equal(t, torch.Float, b.Dtype())
 }
+func TestCUDA(t *testing.T) {
+	a := assert.New(t)
+	device := getDefaultDevice()
+	input := torch.NewTensor([][]float32{{1, 2}, {3, 4}})
+	if !torch.IsCUDAAvailable() {
+		// CUDA should panics on CPU device
+		a.Panics(func() {
+			input.CUDA(device, false)
+		})
+		a.Panics(func() {
+			input.CUDA(device, true)
+		})
+		return
+	}
 
+	b := input.CUDA(device, false)
+	a.Equal(" 1  2\n 3  4\n[ CUDAFloatType{2,2} ]", b.String())
+
+	c := input.CUDA(device, true)
+	torch.GetCurrentCUDAStream(device).Synchronize()
+	a.Equal(" 1  2\n 3  4\n[ CUDAFloatType{2,2} ]", c.String())
+}
 func TestCopyTo(t *testing.T) {
 	device := torch.NewDevice("cpu")
 	a := torch.NewTensor([]int64{1, 2})

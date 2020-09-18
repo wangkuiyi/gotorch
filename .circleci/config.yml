@@ -3,7 +3,7 @@ version: 2
 jobs:
   build:
     docker:
-      - image: o0o0o/gotorch
+      - image: gotorch/gotorch
 
     working_directory: /go/src/github.com/wangkuiyi/gotorch
     steps:
