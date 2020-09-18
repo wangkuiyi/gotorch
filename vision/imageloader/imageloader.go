@@ -39,7 +39,7 @@ func New(fn string, vocab map[string]int, trans *transforms.ComposeTransformer,
 	m := &ImageLoader{
 		r:         r,
 		vocab:     vocab,
-		mbChan:    make(chan miniBatch, 2),
+		mbChan:    make(chan miniBatch, 4),
 		errChan:   make(chan error, 1),
 		trans:     trans,
 		mbSize:    mbSize,
