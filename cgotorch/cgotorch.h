@@ -22,6 +22,7 @@ typedef void *Normalize;
 typedef void *Device;
 typedef void *ByteBuffer;
 #endif
+typedef void *CUDAStream;
 
 ////////////////////////////////////////////////////////////////////////////////
 // Helper functions
@@ -226,14 +227,23 @@ void Optimizer_Close(Optimizer opt);
 ////////////////////////////////////////////////////////////////////////////////
 
 const char *Torch_Device(const char *device_type, Device *device);
-bool IsCUDAAvailable();
-bool IsCUDNNAvailable();
-
 const char *Tensor_To(Tensor input, Device device, int8_t dtype,
                       Tensor *output);
 const char *Tensor_CastTo(Tensor input, int8_t dtype, Tensor *output);
 const char *Tensor_CopyTo(Tensor input, Device device, Tensor *output);
 const char *Tensor_PinMemory(Tensor input, Tensor *output);
+const char *Tensor_CUDA(Tensor input, Device device, int8_t non_blocking,
+                        Tensor *output);
+////////////////////////////////////////////////////////////////////////////////
+// Nvidia CUDA
+////////////////////////////////////////////////////////////////////////////////
+bool IsCUDAAvailable();
+bool IsCUDNNAvailable();
+const char *CUDA_GetCurrentCUDAStream(CUDAStream *stream, Device *device);
+const char *CUDA_SetCurrentCUDAStream(CUDAStream stream);
+const char *CUDA_GetCUDAStreamFromPool(CUDAStream *stream, Device *device);
+const char *CUDA_Synchronize(CUDAStream stream);
+const char *CUDA_Query(CUDAStream stream, int8_t *result);
 
 #ifdef __cplusplus
 }
