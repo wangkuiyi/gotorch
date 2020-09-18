@@ -4,29 +4,29 @@ import (
 	"image"
 	"io"
 	"path/filepath"
+	"runtime"
 
 	torch "github.com/wangkuiyi/gotorch"
 	tgz "github.com/wangkuiyi/gotorch/tool/tgz"
 	"github.com/wangkuiyi/gotorch/vision/transforms"
 )
 
-type sample struct {
-	data  image.Image
-	label int
+type miniBatch struct {
+	data  torch.Tensor
+	label torch.Tensor
 }
 
 // ImageLoader struct
 type ImageLoader struct {
 	r         *tgz.Reader
 	vocab     map[string]int
-	samples   chan sample
+	mbChan    chan miniBatch
 	errChan   chan error
 	err       error
-	trans1    *transforms.ComposeTransformer // transforms before `ToTensor`
-	trans2    *transforms.ComposeTransformer // transforms after and include `ToTensor`
+	trans     *transforms.ComposeTransformer // transforms before `ToTensor`
 	mbSize    int
-	inputs    []torch.Tensor
-	labels    []int64
+	input     torch.Tensor
+	label     torch.Tensor
 	pinMemory bool
 }
 
@@ -37,29 +37,22 @@ func New(fn string, vocab map[string]int, trans *transforms.ComposeTransformer,
 	if e != nil {
 		return nil, e
 	}
-	trans1, trans2 := splitComposeByToTensor(trans)
 	m := &ImageLoader{
 		r:         r,
 		vocab:     vocab,
-		samples:   make(chan sample, mbSize*4),
+		mbChan:    make(chan miniBatch, 2),
 		errChan:   make(chan error, 1),
-		trans1:    trans1,
-		trans2:    trans2,
+		trans:     trans,
 		mbSize:    mbSize,
 		pinMemory: pinMemory,
 	}
 	go m.read()
 	return m, nil
 }
-func (p *ImageLoader) tensorGC() {
-	p.inputs = []torch.Tensor{}
-	p.labels = []int64{}
-	torch.GC()
-}
 
 // Scan return false if no more data
 func (p *ImageLoader) Scan() bool {
-	p.tensorGC()
+	torch.GC()
 	select {
 	case e := <-p.errChan:
 		if e != nil && e != io.EOF {
@@ -73,8 +66,15 @@ func (p *ImageLoader) Scan() bool {
 }
 
 func (p *ImageLoader) read() {
-	defer close(p.samples)
-	defer close(p.errChan)
+	inputs := []torch.Tensor{}
+	labels := []int64{}
+
+	defer func() {
+		close(p.mbChan)
+		close(p.errChan)
+		inputs = []torch.Tensor{}
+		labels = []int64{}
+	}()
 	for {
 		hdr, err := p.r.Next()
 		if err != nil {
@@ -91,34 +91,36 @@ func (p *ImageLoader) read() {
 			p.errChan <- err
 			break
 		}
-		p.samples <- sample{p.trans1.Run(m).(image.Image), label}
+		inputs = append(inputs, p.trans.Run(m).(torch.Tensor))
+		labels = append(labels, int64(label))
+		if len(inputs) == p.mbSize {
+			d := torch.Stack(inputs, 0)
+			l := torch.NewTensor(labels)
+			runtime.KeepAlive(&d)
+			runtime.KeepAlive(&l)
+			p.mbChan <- miniBatch{d, l}
+			inputs = []torch.Tensor{}
+			labels = []int64{}
+		}
+	}
+	if len(inputs) != 0 {
+		p.mbChan <- miniBatch{torch.Stack(inputs, 0), torch.NewTensor(labels)}
 	}
 }
 
 func (p *ImageLoader) retreiveMinibatch() bool {
-	for i := 0; i < p.mbSize; i++ {
-		sample, ok := <-p.samples
-		if ok {
-			p.inputs = append(p.inputs, p.trans2.Run(sample.data).(torch.Tensor))
-			p.labels = append(p.labels, int64(sample.label))
-		} else {
-			if i == 0 {
-				return false
-			}
-			return true
-		}
+	miniBatch, ok := <-p.mbChan
+	if ok {
+		p.input = miniBatch.data
+		p.label = miniBatch.label
+		return true
 	}
-	return true
+	return false
 }
 
 // Minibatch returns a minibash with data and label Tensor
 func (p *ImageLoader) Minibatch() (torch.Tensor, torch.Tensor) {
-	i := torch.Stack(p.inputs, 0)
-	l := torch.NewTensor(p.labels)
-	if p.pinMemory {
-		return i.PinMemory(), l.PinMemory()
-	}
-	return i, l
+	return p.input, p.label
 }
 
 // Err returns the error during the scan process, if there is any. io.EOF is not
