@@ -4,7 +4,6 @@ import (
 	"image"
 	"io"
 	"path/filepath"
-	"runtime"
 
 	torch "github.com/wangkuiyi/gotorch"
 	tgz "github.com/wangkuiyi/gotorch/tool/tgz"
@@ -62,7 +61,13 @@ func (p *ImageLoader) Scan() bool {
 	default:
 		// no error received
 	}
-	return p.retreiveMinibatch()
+	if miniBatch, ok := <-p.mbChan; ok {
+		p.input = miniBatch.data
+		p.label = miniBatch.label
+		return true
+	}
+	torch.FinishGC()
+	return false
 }
 
 func (p *ImageLoader) read() {
@@ -72,8 +77,6 @@ func (p *ImageLoader) read() {
 	defer func() {
 		close(p.mbChan)
 		close(p.errChan)
-		inputs = []torch.Tensor{}
-		labels = []int64{}
 	}()
 	for {
 		hdr, err := p.r.Next()
@@ -96,8 +99,6 @@ func (p *ImageLoader) read() {
 		if len(inputs) == p.mbSize {
 			d := torch.Stack(inputs, 0)
 			l := torch.NewTensor(labels)
-			runtime.KeepAlive(&d)
-			runtime.KeepAlive(&l)
 			p.mbChan <- miniBatch{d, l}
 			inputs = []torch.Tensor{}
 			labels = []int64{}
@@ -106,16 +107,6 @@ func (p *ImageLoader) read() {
 	if len(inputs) != 0 {
 		p.mbChan <- miniBatch{torch.Stack(inputs, 0), torch.NewTensor(labels)}
 	}
-}
-
-func (p *ImageLoader) retreiveMinibatch() bool {
-	miniBatch, ok := <-p.mbChan
-	if ok {
-		p.input = miniBatch.data
-		p.label = miniBatch.label
-		return true
-	}
-	return false
 }
 
 // Minibatch returns a minibash with data and label Tensor

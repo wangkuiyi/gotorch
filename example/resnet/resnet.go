@@ -152,7 +152,6 @@ func train(trainFn, testFn, save string, epochs int, pinMemory bool) {
 				startTime = time.Now()
 			}
 		}
-		torch.FinishGC()
 		test(model, testLoader)
 	}
 	saveModel(model, save)
