@@ -119,16 +119,14 @@ func test(model *models.ResnetModule, loader *imageloader.ImageLoader) {
 
 func train(trainFn, testFn, trainL, testL, save string, epochs int, pinMemory bool) {
 	buildLabel := func(Fn, L string) map[string]int {
-		var vocab map[string]int
 		if Fn == "" {
-			vocab, e = imageloader.BuildLabelVocabularyFromTgz(trainFn)
+			vocab, e := imageloader.BuildLabelVocabularyFromTgz(trainFn)
 			if e != nil {
 				log.Fatal(e)
 			}
-		} else {
-			vocab = loadLabel(L)
+			return vocab
 		}
-		return vocab
+		return loadLabel(L)
 	}
 
 	// build label vocabulary
