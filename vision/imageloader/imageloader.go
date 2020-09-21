@@ -94,6 +94,7 @@ func (p *ImageLoader) read() {
 		close(p.mbChan)
 		close(p.errChan)
 	}()
+
 	for {
 		hdr, err := p.r.Next()
 		if err != nil {
@@ -119,7 +120,6 @@ func (p *ImageLoader) read() {
 			p.errChan <- err
 			break
 		}
-		// NOTE(yancey1989): why m could be empty?
 		if m.Empty() {
 			continue
 		}
@@ -137,6 +137,13 @@ func (p *ImageLoader) read() {
 			inputs = []gocv.Mat{}
 			labels = []int64{}
 		}
+	}
+	if len(inputs) > 0 {
+		miniBatch, err := p.collectMiniBatch(inputs, labels)
+		if err != nil {
+			panic(err)
+		}
+		p.mbChan <- *miniBatch
 	}
 }
 
