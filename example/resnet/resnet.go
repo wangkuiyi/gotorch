@@ -121,7 +121,7 @@ func train(trainFn, testFn, trainL, testL, save string, epochs int, pinMemory bo
 	buildLabel := func(Fn, L string) map[string]int {
 		var vocab map[string]int
 		if Fn == "" {
-			vocab, e := imageloader.BuildLabelVocabularyFromTgz(trainFn)
+			vocab, e = imageloader.BuildLabelVocabularyFromTgz(trainFn)
 			if e != nil {
 				log.Fatal(e)
 			}
