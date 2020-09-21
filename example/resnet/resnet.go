@@ -117,7 +117,7 @@ func test(model *models.ResnetModule, loader *imageloader.ImageLoader) {
 		testLoss/float32(samples), acc1/float32(samples), acc5/float32(samples))
 }
 
-func train(trainFn, testFn, trainL, testL, ave string, epochs int, pinMemory bool) {
+func train(trainFn, testFn, trainL, testL, save string, epochs int, pinMemory bool) {
 	buildLabel := func(Fn, L string) map[string]int {
 		var vocab map[string]int
 		if Fn == "" {
