@@ -24,3 +24,5 @@ const char *Torch_Device(const char *device_type, Device *device) {
   }
   return nullptr;
 }
+
+void SetNumThreads(int32_t n) { torch::set_num_threads(n); }
