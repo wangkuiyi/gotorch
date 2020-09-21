@@ -98,7 +98,7 @@ func (p *ImageLoader) read() {
 		hdr, err := p.r.Next()
 		if err != nil {
 			p.errChan <- err
-			break
+			return
 		}
 		if !hdr.FileInfo().Mode().IsRegular() {
 			continue
@@ -110,7 +110,7 @@ func (p *ImageLoader) read() {
 		m, err := readImage(buffer, p.colorSpace)
 		if err != nil {
 			p.errChan <- err
-			return
+			break
 		}
 		if m.Empty() {
 			continue
@@ -118,30 +118,17 @@ func (p *ImageLoader) read() {
 		inputs = append(inputs, p.trans1.Run(m).(gocv.Mat))
 		labels = append(labels, int64(label))
 		if len(inputs) == p.mbSize {
-			miniBatch, err := p.collateMiniBatch(inputs, labels)
-			if err != nil {
-				p.errChan <- err
-				return
-			}
-			p.mbChan <- *miniBatch
+			p.mbChan <- p.collateMiniBatch(inputs, labels)
 			inputs = []gocv.Mat{}
 			labels = []int64{}
 		}
 	}
 	if len(inputs) > 0 {
-		miniBatch, err := p.collateMiniBatch(inputs, labels)
-		if err != nil {
-			p.errChan <- err
-			return
-		}
-		p.mbChan <- *miniBatch
+		p.mbChan <- p.collateMiniBatch(inputs, labels)
 	}
 }
 
-func (p *ImageLoader) collateMiniBatch(inputs []gocv.Mat, labels []int64) (*miniBatch, error) {
-	if len(inputs) == 0 {
-		return nil, fmt.Errorf("inputs size should greater then 0")
-	}
+func (p *ImageLoader) collateMiniBatch(inputs []gocv.Mat, labels []int64) miniBatch {
 	w := inputs[0].Cols()
 	h := inputs[0].Rows()
 	blob := gocv.NewMat()
@@ -150,9 +137,9 @@ func (p *ImageLoader) collateMiniBatch(inputs []gocv.Mat, labels []int64) (*mini
 	i := p.trans2.Run(blob).(torch.Tensor)
 	l := torch.NewTensor(labels)
 	if p.pinMemory {
-		return &miniBatch{i.PinMemory(), l.PinMemory()}, nil
+		return miniBatch{i.PinMemory(), l.PinMemory()}
 	}
-	return &miniBatch{i, l}, nil
+	return miniBatch{i, l}
 }
 
 // Minibatch returns a minibash with data and label Tensor
