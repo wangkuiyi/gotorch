@@ -108,9 +108,7 @@ func TestImageTgzLoaderHeavy(t *testing.T) {
 		transforms.RandomHorizontalFlip(0.5),
 		transforms.ToTensor(),
 		transforms.Normalize([]float32{0.485, 0.456, 0.406}, []float32{0.229, 0.224, 0.225}))
-
 	loader, e := New(trainFn, vocab, trans, mbSize, false)
-	defer torch.FinishGC()
 	if e != nil {
 		log.Fatal(e)
 	}

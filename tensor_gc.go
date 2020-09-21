@@ -6,6 +6,7 @@ package gotorch
 // #include "cgotorch.h"
 import "C"
 import (
+	"log"
 	"runtime"
 	"sync"
 	"unsafe"
@@ -33,6 +34,7 @@ func SetTensorFinalizer(t *unsafe.Pointer) {
 
 // FinishGC should be called right after a train/predict loop
 func FinishGC() {
+	log.Print("FinishGC")
 	GC()
 	C.FinishGC()
 }

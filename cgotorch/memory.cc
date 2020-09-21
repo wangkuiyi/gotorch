@@ -4,7 +4,7 @@
 // FIXME(shendiaomo): including cgotorch.h before torch/torch.h will fail
 #include "cgotorch/cgotorch.h"
 
-thread_local bool gcPrepared;
+thread_local bool gcPrepared = false;
 
 uint8_t GCPrepared() { return gcPrepared; }
 

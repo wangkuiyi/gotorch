@@ -4,6 +4,7 @@ import (
 	"image"
 	"io"
 	"path/filepath"
+	"runtime"
 
 	torch "github.com/wangkuiyi/gotorch"
 	tgz "github.com/wangkuiyi/gotorch/tool/tgz"
@@ -45,6 +46,7 @@ func New(fn string, vocab map[string]int, trans *transforms.ComposeTransformer,
 		mbSize:    mbSize,
 		pinMemory: pinMemory,
 	}
+	runtime.LockOSThread()
 	go m.read()
 	return m, nil
 }
