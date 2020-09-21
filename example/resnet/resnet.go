@@ -117,21 +117,18 @@ func test(model *models.ResnetModule, loader *imageloader.ImageLoader) {
 		testLoss/float32(samples), acc1/float32(samples), acc5/float32(samples))
 }
 
-func train(trainFn, testFn, trainL, testL, save string, epochs int, pinMemory bool) {
-	buildLabel := func(Fn, L string) map[string]int {
-		if Fn == "" {
-			vocab, e := imageloader.BuildLabelVocabularyFromTgz(trainFn)
-			if e != nil {
-				log.Fatal(e)
-			}
-			return vocab
-		}
-		return loadLabel(L)
-	}
-
+func train(trainFn, testFn, label, save string, epochs int, pinMemory bool) {
 	// build label vocabulary
-	trainVocab := buildLabel(trainFn, trainL)
-	testVocab := buildLabel(testFn, testL)
+	var vocab map[string]int
+	if label == "" {
+		v, e := imageloader.BuildLabelVocabularyFromTgz(trainFn)
+		if e != nil {
+			log.Fatal(e)
+		}
+		vocab = v
+	} else {
+		vocab = loadLabel(label)
+	}
 
 	log.Print("building label vocabulary done.")
 	model := models.Resnet50()
@@ -148,8 +145,8 @@ func train(trainFn, testFn, trainL, testL, save string, epochs int, pinMemory bo
 	for epoch := 0; epoch < epochs; epoch++ {
 		adjustLearningRate(optimizer, epoch, lr)
 		startTime := time.Now()
-		trainLoader := imageNetLoader(trainFn, trainVocab, mbSize, pinMemory)
-		testLoader := imageNetLoader(testFn, testVocab, mbSize, pinMemory)
+		trainLoader := imageNetLoader(trainFn, vocab, mbSize, pinMemory)
+		testLoader := imageNetLoader(testFn, vocab, mbSize, pinMemory)
 		iter := 0
 		for trainLoader.Scan() {
 			iter++
@@ -207,15 +204,14 @@ func main() {
 	}
 
 	initializer.ManualSeed(1)
-	trainTar := flag.String("trainData", "/tmp/imagenet_training_shuffled.tar.gz", "train data tarball")
-	testTar := flag.String("testData", "/tmp/imagenet_testing_shuffled.tar.gz", "test data tarball")
-	trainLabel := flag.String("trainLabel", "", "train label")
-	testLabel := flag.String("testLabel", "", "test label")
+	trainTar := flag.String("data", "/tmp/imagenet_training_shuffled.tar.gz", "data tarball")
+	testTar := flag.String("test", "/tmp/imagenet_testing_shuffled.tar.gz", "data tarball")
+	label := flag.String("label", "", "label vocabulary")
 	save := flag.String("save", "/tmp/imagenet_model.gob", "the model file")
 	epochs := flag.Int("epochs", 5, "the number of epochs")
 	pinMemory := flag.Bool("pin_memory", false, "use pinned memory")
 
 	flag.Parse()
 
-	train(*trainTar, *testTar, *trainLabel, *testLabel, *save, *epochs, *pinMemory && torch.IsCUDAAvailable())
+	train(*trainTar, *testTar, *label, *save, *epochs, *pinMemory && torch.IsCUDAAvailable())
 }
