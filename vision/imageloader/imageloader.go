@@ -98,7 +98,7 @@ func (p *ImageLoader) read() {
 		hdr, err := p.r.Next()
 		if err != nil {
 			p.errChan <- err
-			return
+			break
 		}
 		if !hdr.FileInfo().Mode().IsRegular() {
 			continue
