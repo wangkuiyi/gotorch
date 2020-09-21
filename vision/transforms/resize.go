@@ -3,7 +3,7 @@ package transforms
 import (
 	"image"
 
-	"github.com/disintegration/imaging"
+	"gocv.io/x/gocv"
 )
 
 // ResizeTransformer resizes the given image.
@@ -21,8 +21,8 @@ func Resize(height int, width ...int) *ResizeTransformer {
 }
 
 // Run execute the center crop function and returns the cropped image object.
-func (t *ResizeTransformer) Run(input image.Image) image.Image {
-	// TODO(typhoonzero): configure resize resampling function other than
-	// Linear.
-	return imaging.Resize(input, t.width, t.height, imaging.Linear)
+func (t *ResizeTransformer) Run(input gocv.Mat) gocv.Mat {
+	// linear resize
+	gocv.Resize(input, &input, image.Point{t.width, t.height}, 0, 0, 1)
+	return input
 }

@@ -1,14 +1,17 @@
 package imageloader
 
 import (
+	"fmt"
 	"image"
 	"io"
+	"log"
 	"path/filepath"
 	"runtime"
 
 	torch "github.com/wangkuiyi/gotorch"
 	tgz "github.com/wangkuiyi/gotorch/tool/tgz"
 	"github.com/wangkuiyi/gotorch/vision/transforms"
+	"gocv.io/x/gocv"
 )
 
 type miniBatch struct {
@@ -16,35 +19,46 @@ type miniBatch struct {
 	label torch.Tensor
 }
 
+// RGB color
+const RGB string = "rgb"
+
+// GRAY color
+const GRAY string = "gray"
+
 // ImageLoader struct
 type ImageLoader struct {
-	r         *tgz.Reader
-	vocab     map[string]int
-	mbChan    chan miniBatch
-	errChan   chan error
-	err       error
-	trans     *transforms.ComposeTransformer // transforms before `ToTensor`
-	mbSize    int
-	input     torch.Tensor
-	label     torch.Tensor
-	pinMemory bool
+	r          *tgz.Reader
+	vocab      map[string]int
+	mbChan     chan miniBatch
+	errChan    chan error
+	err        error
+	trans1     *transforms.ComposeTransformer // transforms before `ToTensor`
+	trans2     *transforms.ComposeTransformer // transforms after and include `ToTensor`
+	mbSize     int
+	input      torch.Tensor
+	label      torch.Tensor
+	pinMemory  bool
+	colorSpace string
 }
 
 // New returns an ImageLoader
 func New(fn string, vocab map[string]int, trans *transforms.ComposeTransformer,
-	mbSize int, pinMemory bool) (*ImageLoader, error) {
+	mbSize int, pinMemory bool, colorSpace string) (*ImageLoader, error) {
 	r, e := tgz.OpenFile(fn)
 	if e != nil {
 		return nil, e
 	}
+	trans1, trans2 := splitComposeByToTensor(trans)
 	m := &ImageLoader{
-		r:         r,
-		vocab:     vocab,
-		mbChan:    make(chan miniBatch, 4),
-		errChan:   make(chan error, 1),
-		trans:     trans,
-		mbSize:    mbSize,
-		pinMemory: pinMemory,
+		r:          r,
+		vocab:      vocab,
+		mbChan:     make(chan miniBatch, 4),
+		errChan:    make(chan error, 1),
+		trans1:     trans1,
+		trans2:     trans2,
+		mbSize:     mbSize,
+		pinMemory:  pinMemory,
+		colorSpace: colorSpace,
 	}
 	runtime.LockOSThread()
 	go m.read()
@@ -73,7 +87,7 @@ func (p *ImageLoader) Scan() bool {
 }
 
 func (p *ImageLoader) read() {
-	inputs := []torch.Tensor{}
+	inputs := []gocv.Mat{}
 	labels := []int64{}
 
 	defer func() {
@@ -91,24 +105,56 @@ func (p *ImageLoader) read() {
 		}
 		classStr := filepath.Base(filepath.Dir(hdr.Name))
 		label := p.vocab[classStr]
-		m, _, err := image.Decode(p.r)
+		buffer := make([]byte, hdr.Size)
+		p.r.Read(buffer)
+		var m gocv.Mat
+		if p.colorSpace == RGB {
+			m, err = gocv.IMDecode(buffer, gocv.IMReadColor)
+		} else if p.colorSpace == GRAY {
+			m, err = gocv.IMDecode(buffer, gocv.IMReadGrayScale)
+		} else {
+			log.Fatalf("Cannot read image with color space %v", p.colorSpace)
+		}
 		if err != nil {
 			p.errChan <- err
 			break
 		}
-		inputs = append(inputs, p.trans.Run(m).(torch.Tensor))
+		// NOTE(yancey1989): why m could be empty?
+		if m.Empty() {
+			continue
+		}
+		if p.colorSpace == RGB {
+			gocv.CvtColor(m, &m, gocv.ColorBGRToRGB)
+		}
+		inputs = append(inputs, p.trans1.Run(m).(gocv.Mat))
 		labels = append(labels, int64(label))
 		if len(inputs) == p.mbSize {
-			d := torch.Stack(inputs, 0)
-			l := torch.NewTensor(labels)
-			p.mbChan <- miniBatch{d, l}
-			inputs = []torch.Tensor{}
+			miniBatch, err := p.collectMiniBatch(inputs, labels)
+			if err != nil {
+				panic(err)
+			}
+			p.mbChan <- *miniBatch
+			inputs = []gocv.Mat{}
 			labels = []int64{}
 		}
 	}
-	if len(inputs) != 0 {
-		p.mbChan <- miniBatch{torch.Stack(inputs, 0), torch.NewTensor(labels)}
+}
+
+func (p *ImageLoader) collectMiniBatch(inputs []gocv.Mat, labels []int64) (*miniBatch, error) {
+	if len(inputs) == 0 {
+		return nil, fmt.Errorf("inputs size should greater then 0")
 	}
+	w := inputs[0].Cols()
+	h := inputs[0].Rows()
+	blob := gocv.NewMat()
+	defer blob.Close()
+	gocv.BlobFromImages(inputs, &blob, 1.0/255.0, image.Pt(w, h), gocv.NewScalar(0, 0, 0, 0), false, false, gocv.MatTypeCV32F)
+	i := p.trans2.Run(blob).(torch.Tensor)
+	l := torch.NewTensor(labels)
+	if p.pinMemory {
+		return &miniBatch{i.PinMemory(), l.PinMemory()}, nil
+	}
+	return &miniBatch{i, l}, nil
 }
 
 // Minibatch returns a minibash with data and label Tensor

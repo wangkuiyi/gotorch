@@ -43,7 +43,7 @@ func TestImageTgzLoaderError(t *testing.T) {
 		transforms.ToTensor(),
 		transforms.Normalize([]float32{0.1307}, []float32{0.3081}),
 	)
-	loader, e := New(f.Name(), vocab, trans, 3, false)
+	loader, e := New(f.Name(), vocab, trans, 3, false, "gray")
 	defer torch.FinishGC()
 	a.NoError(e)
 	a.False(loader.Scan())
@@ -64,7 +64,7 @@ func TestImageTgzLoader(t *testing.T) {
 		transforms.ToTensor(),
 		transforms.Normalize([]float32{0.1307}, []float32{0.3081}),
 	)
-	loader, e := New(fn, vocab, trans, 3, false)
+	loader, e := New(fn, vocab, trans, 3, false, "rgb")
 	defer torch.FinishGC()
 	a.NoError(e)
 	{
@@ -108,7 +108,9 @@ func TestImageTgzLoaderHeavy(t *testing.T) {
 		transforms.RandomHorizontalFlip(0.5),
 		transforms.ToTensor(),
 		transforms.Normalize([]float32{0.485, 0.456, 0.406}, []float32{0.229, 0.224, 0.225}))
-	loader, e := New(trainFn, vocab, trans, mbSize, false)
+
+	loader, e := New(trainFn, vocab, trans, mbSize, false, "rgb")
+	defer torch.FinishGC()
 	if e != nil {
 		log.Fatal(e)
 	}

@@ -99,7 +99,7 @@ func celebaLoader(data string, vocab map[string]int, mbSize int) *imageloader.Im
 		transforms.CenterCrop(imageSize),
 		transforms.ToTensor(),
 		transforms.Normalize([]float32{0.5, 0.5, 0.5}, []float32{0.5, 0.5, 0.5}))
-	loader, e := imageloader.New(data, vocab, trans, mbSize, torch.IsCUDAAvailable())
+	loader, e := imageloader.New(data, vocab, trans, mbSize, torch.IsCUDAAvailable(), "rgb")
 	if e != nil {
 		panic(e)
 	}
