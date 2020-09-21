@@ -1,10 +1,9 @@
 package transforms
 
 import (
-	"image"
 	"math/rand"
 
-	"github.com/disintegration/imaging"
+	"gocv.io/x/gocv"
 )
 
 // RandomHorizontalFlipTransformer randomly flips an image.
@@ -18,11 +17,12 @@ func RandomHorizontalFlip(p float32) *RandomHorizontalFlipTransformer {
 }
 
 // Run execute the random flip function and returns the flipped image object.
-func (hf *RandomHorizontalFlipTransformer) Run(input image.Image) image.Image {
+func (hf *RandomHorizontalFlipTransformer) Run(input gocv.Mat) gocv.Mat {
 	if rand.Float32() < hf.p {
-		return imaging.FlipH(input)
+		gocv.Flip(input, &input, 0)
 	}
 	return input
+
 }
 
 // RandomVerticalFlipTransformer randomly flips an image.
@@ -36,9 +36,9 @@ func RandomVerticalFlip(p float32) *RandomVerticalFlipTransformer {
 }
 
 // Run execute the random flip function and returns the flipped image object.
-func (hf *RandomVerticalFlipTransformer) Run(input image.Image) image.Image {
+func (hf *RandomVerticalFlipTransformer) Run(input gocv.Mat) gocv.Mat {
 	if rand.Float32() < hf.p {
-		return imaging.FlipV(input)
+		gocv.Flip(input, &input, 1)
 	}
 	return input
 }

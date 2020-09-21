@@ -12,7 +12,7 @@ func drawImage(size image.Rectangle, c color.Color) image.Image {
 	return m
 }
 
-func drawGrayImage(size image.Rectangle, c color.Color) image.Image {
+func drawGrayImage(size image.Rectangle, c color.Color) *image.Gray {
 	m := image.NewGray(size)
 	draw.Draw(m, m.Bounds(), &image.Uniform{c}, image.ZP, draw.Src)
 	return m

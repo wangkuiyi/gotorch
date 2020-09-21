@@ -3,56 +3,69 @@ package imageloader
 import (
 	"image"
 	"io"
+	"log"
 	"path/filepath"
 
 	torch "github.com/wangkuiyi/gotorch"
 	tgz "github.com/wangkuiyi/gotorch/tool/tgz"
 	"github.com/wangkuiyi/gotorch/vision/transforms"
+	"gocv.io/x/gocv"
 )
 
+// RGB color
+const RGB string = "rgb"
+
+// GRAY color
+const GRAY string = "gray"
+
 type sample struct {
-	data  image.Image
+	data  gocv.Mat
 	label int
 }
 
 // ImageLoader struct
 type ImageLoader struct {
-	r         *tgz.Reader
-	vocab     map[string]int
-	samples   chan sample
-	errChan   chan error
-	err       error
-	trans1    *transforms.ComposeTransformer // transforms before `ToTensor`
-	trans2    *transforms.ComposeTransformer // transforms after and include `ToTensor`
-	mbSize    int
-	inputs    []torch.Tensor
-	labels    []int64
-	pinMemory bool
+	r          *tgz.Reader
+	vocab      map[string]int
+	samples    chan sample
+	errChan    chan error
+	err        error
+	trans1     *transforms.ComposeTransformer // transforms before `ToTensor`
+	trans2     *transforms.ComposeTransformer // transforms after and include `ToTensor`
+	mbSize     int
+	inputs     []gocv.Mat
+	labels     []int64
+	pinMemory  bool
+	colorSpace string
 }
 
 // New returns an ImageLoader
 func New(fn string, vocab map[string]int, trans *transforms.ComposeTransformer,
-	mbSize int, pinMemory bool) (*ImageLoader, error) {
+	mbSize int, pinMemory bool, colorSpace string) (*ImageLoader, error) {
 	r, e := tgz.OpenFile(fn)
 	if e != nil {
 		return nil, e
 	}
 	trans1, trans2 := splitComposeByToTensor(trans)
 	m := &ImageLoader{
-		r:         r,
-		vocab:     vocab,
-		samples:   make(chan sample, mbSize*4),
-		errChan:   make(chan error, 1),
-		trans1:    trans1,
-		trans2:    trans2,
-		mbSize:    mbSize,
-		pinMemory: pinMemory,
+		r:          r,
+		vocab:      vocab,
+		samples:    make(chan sample, mbSize*4),
+		errChan:    make(chan error, 1),
+		trans1:     trans1,
+		trans2:     trans2,
+		mbSize:     mbSize,
+		pinMemory:  pinMemory,
+		colorSpace: colorSpace,
 	}
 	go m.read()
 	return m, nil
 }
 func (p *ImageLoader) tensorGC() {
-	p.inputs = []torch.Tensor{}
+	for _, input := range p.inputs {
+		input.Close()
+	}
+	p.inputs = []gocv.Mat{}
 	p.labels = []int64{}
 	torch.GC()
 }
@@ -75,6 +88,7 @@ func (p *ImageLoader) Scan() bool {
 func (p *ImageLoader) read() {
 	defer close(p.samples)
 	defer close(p.errChan)
+
 	for {
 		hdr, err := p.r.Next()
 		if err != nil {
@@ -86,12 +100,27 @@ func (p *ImageLoader) read() {
 		}
 		classStr := filepath.Base(filepath.Dir(hdr.Name))
 		label := p.vocab[classStr]
-		m, _, err := image.Decode(p.r)
+		buffer := make([]byte, hdr.Size)
+		p.r.Read(buffer)
+		var m gocv.Mat
+		if p.colorSpace == RGB {
+			m, err = gocv.IMDecode(buffer, gocv.IMReadColor)
+		} else if p.colorSpace == GRAY {
+			m, err = gocv.IMDecode(buffer, gocv.IMReadGrayScale)
+		} else {
+			log.Fatalf("Cannot read image with color space %v", p.colorSpace)
+		}
 		if err != nil {
 			p.errChan <- err
 			break
 		}
-		p.samples <- sample{p.trans1.Run(m).(image.Image), label}
+		if m.Empty() {
+			continue
+		}
+		if p.colorSpace == RGB {
+			gocv.CvtColor(m, &m, gocv.ColorBGRToRGB)
+		}
+		p.samples <- sample{p.trans1.Run(m).(gocv.Mat), label}
 	}
 }
 
@@ -99,7 +128,7 @@ func (p *ImageLoader) retreiveMinibatch() bool {
 	for i := 0; i < p.mbSize; i++ {
 		sample, ok := <-p.samples
 		if ok {
-			p.inputs = append(p.inputs, p.trans2.Run(sample.data).(torch.Tensor))
+			p.inputs = append(p.inputs, sample.data)
 			p.labels = append(p.labels, int64(sample.label))
 		} else {
 			if i == 0 {
@@ -113,7 +142,12 @@ func (p *ImageLoader) retreiveMinibatch() bool {
 
 // Minibatch returns a minibash with data and label Tensor
 func (p *ImageLoader) Minibatch() (torch.Tensor, torch.Tensor) {
-	i := torch.Stack(p.inputs, 0)
+	w := p.inputs[0].Cols()
+	h := p.inputs[0].Rows()
+	blob := gocv.NewMat()
+	defer blob.Close()
+	gocv.BlobFromImages(p.inputs, &blob, 1.0/255.0, image.Pt(w, h), gocv.NewScalar(0, 0, 0, 0), false, false, gocv.MatTypeCV32F)
+	i := p.trans2.Run(blob).(torch.Tensor)
 	l := torch.NewTensor(p.labels)
 	if p.pinMemory {
 		return i.PinMemory(), l.PinMemory()

@@ -5,7 +5,7 @@ import (
 	"math"
 	"math/rand"
 
-	"github.com/disintegration/imaging"
+	"gocv.io/x/gocv"
 )
 
 // Port from torch vision transform function:
@@ -16,7 +16,7 @@ type RandomResizedCropTransformer struct {
 	width, height  int
 	scale0, scale1 float64
 	ratio0, ratio1 float64
-	interpolation  imaging.ResampleFilter
+	interpolation  gocv.InterpolationFlags
 }
 
 // RandomResizedCrop returns the RandomResizedCropTransformer.
@@ -29,12 +29,12 @@ func RandomResizedCrop(height int, width ...int) *RandomResizedCropTransformer {
 		height, w,
 		0.08, 1.0,
 		3.0/4.0, 4.0/3.0,
-		imaging.Linear,
+		gocv.InterpolationLinear,
 	)
 }
 
 // RandomResizedCropD returns a RandomResizedCropTransformer with detailed params.
-func RandomResizedCropD(height, width int, scale0, scale1, ratio0, ratio1 float64, interpolation imaging.ResampleFilter) *RandomResizedCropTransformer {
+func RandomResizedCropD(height, width int, scale0, scale1, ratio0, ratio1 float64, interpolation gocv.InterpolationFlags) *RandomResizedCropTransformer {
 	return &RandomResizedCropTransformer{
 		width:         width,
 		height:        height,
@@ -42,7 +42,7 @@ func RandomResizedCropD(height, width int, scale0, scale1, ratio0, ratio1 float6
 		scale1:        scale1,
 		ratio0:        ratio0,
 		ratio1:        ratio1,
-		interpolation: imaging.Linear,
+		interpolation: gocv.InterpolationLinear,
 	}
 }
 
@@ -50,9 +50,9 @@ func uniform(from, to float64) float64 {
 	return (rand.Float64() + from) * (to - from)
 }
 
-func (t *RandomResizedCropTransformer) getParams(input image.Image) (int, int, int, int) {
-	width := input.Bounds().Max.X
-	height := input.Bounds().Max.Y
+func (t *RandomResizedCropTransformer) getParams(input gocv.Mat) (int, int, int, int) {
+	width := input.Cols()
+	height := input.Rows()
 	area := width * height
 
 	// try 10 times to generate random scaled image bounds.
@@ -92,11 +92,13 @@ func (t *RandomResizedCropTransformer) getParams(input image.Image) (int, int, i
 }
 
 // Run execute the random crop function and returns the cropped image object.
-func (t *RandomResizedCropTransformer) Run(input image.Image) image.Image {
+func (t *RandomResizedCropTransformer) Run(input gocv.Mat) gocv.Mat {
 	i, j, h, w := t.getParams(input)
-	cropped := imaging.Crop(input, image.Rectangle{
+	cropped := input.Region(image.Rectangle{
 		Min: image.Point{X: j, Y: i},
 		Max: image.Point{X: j + w, Y: i + h},
 	})
-	return imaging.Resize(cropped, t.width, t.height, t.interpolation)
+	defer cropped.Close()
+	gocv.Resize(cropped, &input, image.Point{t.width, t.height}, 0, 0, t.interpolation)
+	return input
 }

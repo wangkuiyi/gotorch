@@ -5,7 +5,7 @@ import (
 	"log"
 	"math/rand"
 
-	"github.com/disintegration/imaging"
+	"gocv.io/x/gocv"
 )
 
 // RandomCropTransformer randomly crops a image into some size.
@@ -23,20 +23,22 @@ func RandomCrop(height int, width ...int) *RandomCropTransformer {
 }
 
 // Run execute the random crop function and returns the cropped image object.
-func (t *RandomCropTransformer) Run(input image.Image) image.Image {
-	if w := input.Bounds().Max.X; t.width > w {
+func (t *RandomCropTransformer) Run(input gocv.Mat) gocv.Mat {
+	if w := input.Cols(); t.width > w {
 		log.Panicf("RandomCrop: wanted width %d larger than image width %d", t.width, w)
 	}
-	if h := input.Bounds().Max.Y; t.height > h {
+	if h := input.Rows(); t.height > h {
 		log.Panicf("RandomCrop: wanted height %d larger than image height %d", t.height, h)
 	}
-	x := rand.Intn(input.Bounds().Max.X - t.width + 1)
-	y := rand.Intn(input.Bounds().Max.Y - t.height + 1)
+	x := rand.Intn(input.Cols() - t.width + 1)
+	y := rand.Intn(input.Rows() - t.height + 1)
 
 	rect := image.Rectangle{
 		Min: image.Point{X: x, Y: y},
 		Max: image.Point{X: x + t.width, Y: y + t.height},
 	}
-	croped := imaging.Crop(input, rect)
-	return croped
+	cropped := input.Region(rect)
+	defer cropped.Close()
+	cropped.CopyTo(&input)
+	return input
 }

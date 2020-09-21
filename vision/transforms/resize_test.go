@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"gocv.io/x/gocv"
 )
 
 func TestResize(t *testing.T) {
@@ -16,9 +17,11 @@ func TestResize(t *testing.T) {
 	img.Set(1, 1, color.Black)
 	img.Set(0, 1, color.White)
 	img.Set(1, 0, color.White)
+	imgCv, _ := gocv.ImageToMatRGB(img)
 
 	trans := Resize(4, 4)
-	o := trans.Run(img)
+	oCv := trans.Run(imgCv)
+	o, _ := oCv.ToImage()
 
 	a.True(colorEqual(color.White, o.At(0, 0)))
 	a.True(colorEqual(color.Black, o.At(3, 3)))
