@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"image"
 	"io"
-	"log"
 	"path/filepath"
 	"runtime"
 
@@ -108,30 +107,21 @@ func (p *ImageLoader) read() {
 		label := p.vocab[classStr]
 		buffer := make([]byte, hdr.Size)
 		p.r.Read(buffer)
-		var m gocv.Mat
-		if p.colorSpace == RGB {
-			m, err = gocv.IMDecode(buffer, gocv.IMReadColor)
-		} else if p.colorSpace == GRAY {
-			m, err = gocv.IMDecode(buffer, gocv.IMReadGrayScale)
-		} else {
-			log.Fatalf("Cannot read image with color space %v", p.colorSpace)
-		}
+		m, err := readImage(buffer, p.colorSpace)
 		if err != nil {
 			p.errChan <- err
-			break
+			return
 		}
 		if m.Empty() {
 			continue
 		}
-		if p.colorSpace == RGB {
-			gocv.CvtColor(m, &m, gocv.ColorBGRToRGB)
-		}
 		inputs = append(inputs, p.trans1.Run(m).(gocv.Mat))
 		labels = append(labels, int64(label))
 		if len(inputs) == p.mbSize {
-			miniBatch, err := p.collectMiniBatch(inputs, labels)
+			miniBatch, err := p.collateMiniBatch(inputs, labels)
 			if err != nil {
-				panic(err)
+				p.errChan <- err
+				return
 			}
 			p.mbChan <- *miniBatch
 			inputs = []gocv.Mat{}
@@ -139,15 +129,16 @@ func (p *ImageLoader) read() {
 		}
 	}
 	if len(inputs) > 0 {
-		miniBatch, err := p.collectMiniBatch(inputs, labels)
+		miniBatch, err := p.collateMiniBatch(inputs, labels)
 		if err != nil {
-			panic(err)
+			p.errChan <- err
+			return
 		}
 		p.mbChan <- *miniBatch
 	}
 }
 
-func (p *ImageLoader) collectMiniBatch(inputs []gocv.Mat, labels []int64) (*miniBatch, error) {
+func (p *ImageLoader) collateMiniBatch(inputs []gocv.Mat, labels []int64) (*miniBatch, error) {
 	if len(inputs) == 0 {
 		return nil, fmt.Errorf("inputs size should greater then 0")
 	}
@@ -202,4 +193,20 @@ func splitComposeByToTensor(compose *transforms.ComposeTransformer) (*transforms
 		}
 	}
 	return transforms.Compose(compose.Transforms[:idx]...), transforms.Compose(compose.Transforms[idx:]...)
+}
+
+func readImage(buffer []byte, colorSpace string) (gocv.Mat, error) {
+	var m gocv.Mat
+	var e error
+	if colorSpace == RGB {
+		m, e = gocv.IMDecode(buffer, gocv.IMReadColor)
+	} else if colorSpace == GRAY {
+		m, e = gocv.IMDecode(buffer, gocv.IMReadGrayScale)
+	} else {
+		return m, fmt.Errorf("Cannot read image with color space %v", colorSpace)
+	}
+	if !m.Empty() && colorSpace == RGB {
+		gocv.CvtColor(m, &m, gocv.ColorBGRToRGB)
+	}
+	return m, e
 }
