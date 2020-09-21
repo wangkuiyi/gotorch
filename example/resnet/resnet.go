@@ -117,12 +117,24 @@ func test(model *models.ResnetModule, loader *imageloader.ImageLoader) {
 		testLoss/float32(samples), acc1/float32(samples), acc5/float32(samples))
 }
 
-func train(trainFn, testFn, save string, epochs int, pinMemory bool) {
-	// build label vocabulary
-	vocab, e := imageloader.BuildLabelVocabularyFromTgz(trainFn)
-	if e != nil {
-		log.Fatal(e)
+func train(trainFn, testFn, trainL, testL, ave string, epochs int, pinMemory bool) {
+	buildLabel := func(Fn, L string) map[string]int {
+		var vocab map[string]int
+		if Fn == "" {
+			vocab, e := imageloader.BuildLabelVocabularyFromTgz(trainFn)
+			if e != nil {
+				log.Fatal(e)
+			}
+		} else {
+			vocab = loadLabel(L)
+		}
+		return vocab
 	}
+
+	// build label vocabulary
+	trainVocab := buildLabel(trainFn, trainL)
+	testVocab := buildLabel(testFn, testL)
+
 	log.Print("building label vocabulary done.")
 	model := models.Resnet50()
 	model.To(device)
@@ -138,8 +150,8 @@ func train(trainFn, testFn, save string, epochs int, pinMemory bool) {
 	for epoch := 0; epoch < epochs; epoch++ {
 		adjustLearningRate(optimizer, epoch, lr)
 		startTime := time.Now()
-		trainLoader := imageNetLoader(trainFn, vocab, mbSize, pinMemory)
-		testLoader := imageNetLoader(testFn, vocab, mbSize, pinMemory)
+		trainLoader := imageNetLoader(trainFn, trainVocab, mbSize, pinMemory)
+		testLoader := imageNetLoader(testFn, testVocab, mbSize, pinMemory)
 		iter := 0
 		for trainLoader.Scan() {
 			iter++
@@ -156,6 +168,20 @@ func train(trainFn, testFn, save string, epochs int, pinMemory bool) {
 		test(model, testLoader)
 	}
 	saveModel(model, save)
+}
+
+func loadLabel(labelFn string) map[string]int {
+	f, e := os.Open(labelFn)
+	if e != nil {
+		log.Fatal(e)
+	}
+	defer f.Close()
+
+	labels := make(map[string]int)
+	if e := gob.NewDecoder(f).Decode(&labels); e != nil {
+		log.Fatal(e)
+	}
+	return labels
 }
 
 func saveModel(model *models.ResnetModule, modelFn string) {
@@ -183,13 +209,15 @@ func main() {
 	}
 
 	initializer.ManualSeed(1)
-	trainTar := flag.String("data", "/tmp/imagenet_training_shuffled.tar.gz", "data tarball")
-	testTar := flag.String("test", "/tmp/imagenet_testing_shuffled.tar.gz", "data tarball")
+	trainTar := flag.String("trainData", "/tmp/imagenet_training_shuffled.tar.gz", "train data tarball")
+	testTar := flag.String("testData", "/tmp/imagenet_testing_shuffled.tar.gz", "test data tarball")
+	trainLabel := flag.String("trainLabel", "", "train label")
+	testLabel := flag.String("testLabel", "", "test label")
 	save := flag.String("save", "/tmp/imagenet_model.gob", "the model file")
 	epochs := flag.Int("epochs", 5, "the number of epochs")
 	pinMemory := flag.Bool("pin_memory", false, "use pinned memory")
 
 	flag.Parse()
 
-	train(*trainTar, *testTar, *save, *epochs, *pinMemory && torch.IsCUDAAvailable())
+	train(*trainTar, *testTar, *trainLabel, *testLabel, *save, *epochs, *pinMemory && torch.IsCUDAAvailable())
 }
