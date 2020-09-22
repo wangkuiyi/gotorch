@@ -101,7 +101,7 @@ func (p *ImageLoader) read() {
 		classStr := filepath.Base(filepath.Dir(hdr.Name))
 		label := p.vocab[classStr]
 		buffer := make([]byte, hdr.Size)
-		p.r.Read(buffer)
+		io.ReadFull(p.r, buffer)
 		var m gocv.Mat
 		if p.colorSpace == RGB {
 			m, err = gocv.IMDecode(buffer, gocv.IMReadColor)
