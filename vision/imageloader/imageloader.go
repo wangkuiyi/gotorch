@@ -192,7 +192,7 @@ func readImage(buffer []byte, colorSpace string) (gocv.Mat, error) {
 	} else {
 		return m, fmt.Errorf("Cannot read image with color space %v", colorSpace)
 	}
-	if !m.Empty() && colorSpace == RGB {
+	if colorSpace == RGB {
 		gocv.CvtColor(m, &m, gocv.ColorBGRToRGB)
 	}
 	return m, e
