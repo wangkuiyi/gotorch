@@ -106,14 +106,14 @@ func (p *ImageLoader) read() {
 		classStr := filepath.Base(filepath.Dir(hdr.Name))
 		label := p.vocab[classStr]
 		buffer := make([]byte, hdr.Size)
-		p.r.Read(buffer)
+		io.ReadFull(p.r, buffer)
 		m, err := readImage(buffer, p.colorSpace)
 		if err != nil {
 			p.errChan <- err
 			break
 		}
 		if m.Empty() {
-			continue
+			panic("read invalid image content!")
 		}
 		inputs = append(inputs, p.trans1.Run(m).(gocv.Mat))
 		labels = append(labels, int64(label))
@@ -142,7 +142,7 @@ func (p *ImageLoader) collateMiniBatch(inputs []gocv.Mat, labels []int64) miniBa
 	return miniBatch{i, l}
 }
 
-// Minibatch returns a minibash with data and label Tensor
+// Minibatch returns a minibatch with data and label Tensor
 func (p *ImageLoader) Minibatch() (torch.Tensor, torch.Tensor) {
 	return p.input, p.label
 }

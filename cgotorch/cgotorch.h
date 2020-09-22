@@ -227,6 +227,8 @@ void Optimizer_Close(Optimizer opt);
 ////////////////////////////////////////////////////////////////////////////////
 
 const char *Torch_Device(const char *device_type, Device *device);
+void SetNumThreads(int32_t n);
+
 const char *Tensor_To(Tensor input, Device device, int8_t dtype,
                       Tensor *output);
 const char *Tensor_CastTo(Tensor input, int8_t dtype, Tensor *output);
