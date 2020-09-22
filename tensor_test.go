@@ -149,6 +149,7 @@ func TestTensorPinMemory(t *testing.T) {
 
 func TestTensorGC(t *testing.T) {
 	torch.GC()
+	defer torch.FinishGC()
 	runtime.LockOSThread()
 	c := make(chan torch.Tensor, 0)
 	{
