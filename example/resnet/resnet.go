@@ -117,12 +117,19 @@ func test(model *models.ResnetModule, loader *imageloader.ImageLoader) {
 		testLoss/float32(samples), acc1/float32(samples), acc5/float32(samples))
 }
 
-func train(trainFn, testFn, save string, epochs int, pinMemory bool) {
+func train(trainFn, testFn, label, save string, epochs int, pinMemory bool) {
 	// build label vocabulary
-	vocab, e := imageloader.BuildLabelVocabularyFromTgz(trainFn)
-	if e != nil {
-		log.Fatal(e)
+	var vocab map[string]int
+	if label == "" {
+		v, e := imageloader.BuildLabelVocabularyFromTgz(trainFn)
+		if e != nil {
+			log.Fatal(e)
+		}
+		vocab = v
+	} else {
+		vocab = loadLabel(label)
 	}
+
 	log.Print("building label vocabulary done.")
 	model := models.Resnet50()
 	model.To(device)
@@ -157,6 +164,20 @@ func train(trainFn, testFn, save string, epochs int, pinMemory bool) {
 	saveModel(model, save)
 }
 
+func loadLabel(labelFn string) map[string]int {
+	f, e := os.Open(labelFn)
+	if e != nil {
+		log.Fatal(e)
+	}
+	defer f.Close()
+
+	labels := make(map[string]int)
+	if e := gob.NewDecoder(f).Decode(&labels); e != nil {
+		log.Fatal(e)
+	}
+	return labels
+}
+
 func saveModel(model *models.ResnetModule, modelFn string) {
 	log.Println("Saving model to", modelFn)
 	f, e := os.Create(modelFn)
@@ -184,11 +205,12 @@ func main() {
 	initializer.ManualSeed(1)
 	trainTar := flag.String("data", "/tmp/imagenet_training_shuffled.tar.gz", "data tarball")
 	testTar := flag.String("test", "/tmp/imagenet_testing_shuffled.tar.gz", "data tarball")
+	label := flag.String("label", "", "label vocabulary")
 	save := flag.String("save", "/tmp/imagenet_model.gob", "the model file")
 	epochs := flag.Int("epochs", 5, "the number of epochs")
 	pinMemory := flag.Bool("pin_memory", false, "use pinned memory")
 
 	flag.Parse()
 
-	train(*trainTar, *testTar, *save, *epochs, *pinMemory && torch.IsCUDAAvailable())
+	train(*trainTar, *testTar, *label, *save, *epochs, *pinMemory && torch.IsCUDAAvailable())
 }
