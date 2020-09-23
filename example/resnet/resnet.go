@@ -113,7 +113,6 @@ func test(model *models.ResnetModule, loader *imageloader.ImageLoader) {
 		correct += pred.Eq(label.View(pred.Shape()...)).Sum(map[string]interface{}{"dim": 0, "keepDim": false}).Item().(int64)
 		samples += int(label.Shape()[0])
 	}
-	torch.FinishGC()
 	log.Printf("Test average loss: %.4f acc1: %.4f acc5: %.4f \n",
 		testLoss/float32(samples), acc1/float32(samples), acc5/float32(samples))
 }
@@ -153,7 +152,6 @@ func train(trainFn, testFn, save string, epochs int, pinMemory bool) {
 				startTime = time.Now()
 			}
 		}
-		torch.FinishGC()
 		test(model, testLoader)
 	}
 	saveModel(model, save)

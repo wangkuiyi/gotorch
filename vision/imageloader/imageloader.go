@@ -1,10 +1,11 @@
 package imageloader
 
 import (
+	"fmt"
 	"image"
 	"io"
-	"log"
 	"path/filepath"
+	"runtime"
 
 	torch "github.com/wangkuiyi/gotorch"
 	tgz "github.com/wangkuiyi/gotorch/tool/tgz"
@@ -12,29 +13,29 @@ import (
 	"gocv.io/x/gocv"
 )
 
+type miniBatch struct {
+	data  torch.Tensor
+	label torch.Tensor
+}
+
 // RGB color
 const RGB string = "rgb"
 
 // GRAY color
 const GRAY string = "gray"
 
-type sample struct {
-	data  gocv.Mat
-	label int
-}
-
 // ImageLoader struct
 type ImageLoader struct {
 	r          *tgz.Reader
 	vocab      map[string]int
-	samples    chan sample
+	mbChan     chan miniBatch
 	errChan    chan error
 	err        error
 	trans1     *transforms.ComposeTransformer // transforms before `ToTensor`
 	trans2     *transforms.ComposeTransformer // transforms after and include `ToTensor`
 	mbSize     int
-	inputs     []gocv.Mat
-	labels     []int64
+	input      torch.Tensor
+	label      torch.Tensor
 	pinMemory  bool
 	colorSpace string
 }
@@ -50,7 +51,7 @@ func New(fn string, vocab map[string]int, trans *transforms.ComposeTransformer,
 	m := &ImageLoader{
 		r:          r,
 		vocab:      vocab,
-		samples:    make(chan sample, mbSize*4),
+		mbChan:     make(chan miniBatch, 4),
 		errChan:    make(chan error, 1),
 		trans1:     trans1,
 		trans2:     trans2,
@@ -58,21 +59,14 @@ func New(fn string, vocab map[string]int, trans *transforms.ComposeTransformer,
 		pinMemory:  pinMemory,
 		colorSpace: colorSpace,
 	}
+	runtime.LockOSThread()
 	go m.read()
 	return m, nil
-}
-func (p *ImageLoader) tensorGC() {
-	for _, input := range p.inputs {
-		input.Close()
-	}
-	p.inputs = []gocv.Mat{}
-	p.labels = []int64{}
-	torch.GC()
 }
 
 // Scan return false if no more data
 func (p *ImageLoader) Scan() bool {
-	p.tensorGC()
+	torch.GC()
 	select {
 	case e := <-p.errChan:
 		if e != nil && e != io.EOF {
@@ -82,12 +76,23 @@ func (p *ImageLoader) Scan() bool {
 	default:
 		// no error received
 	}
-	return p.retreiveMinibatch()
+	if miniBatch, ok := <-p.mbChan; ok {
+		p.input = miniBatch.data
+		p.label = miniBatch.label
+		return true
+	}
+	torch.FinishGC()
+	return false
 }
 
 func (p *ImageLoader) read() {
-	defer close(p.samples)
-	defer close(p.errChan)
+	inputs := []gocv.Mat{}
+	labels := []int64{}
+
+	defer func() {
+		close(p.mbChan)
+		close(p.errChan)
+	}()
 
 	for {
 		hdr, err := p.r.Next()
@@ -102,57 +107,44 @@ func (p *ImageLoader) read() {
 		label := p.vocab[classStr]
 		buffer := make([]byte, hdr.Size)
 		io.ReadFull(p.r, buffer)
-		var m gocv.Mat
-		if p.colorSpace == RGB {
-			m, err = gocv.IMDecode(buffer, gocv.IMReadColor)
-		} else if p.colorSpace == GRAY {
-			m, err = gocv.IMDecode(buffer, gocv.IMReadGrayScale)
-		} else {
-			log.Fatalf("Cannot read image with color space %v", p.colorSpace)
-		}
+		m, err := readImage(buffer, p.colorSpace)
 		if err != nil {
 			p.errChan <- err
 			break
 		}
 		if m.Empty() {
-			continue
+			panic("read invalid image content!")
 		}
-		if p.colorSpace == RGB {
-			gocv.CvtColor(m, &m, gocv.ColorBGRToRGB)
+		inputs = append(inputs, p.trans1.Run(m).(gocv.Mat))
+		labels = append(labels, int64(label))
+		if len(inputs) == p.mbSize {
+			p.mbChan <- p.collateMiniBatch(inputs, labels)
+			inputs = []gocv.Mat{}
+			labels = []int64{}
 		}
-		p.samples <- sample{p.trans1.Run(m).(gocv.Mat), label}
+	}
+	if len(inputs) > 0 {
+		p.mbChan <- p.collateMiniBatch(inputs, labels)
 	}
 }
 
-func (p *ImageLoader) retreiveMinibatch() bool {
-	for i := 0; i < p.mbSize; i++ {
-		sample, ok := <-p.samples
-		if ok {
-			p.inputs = append(p.inputs, sample.data)
-			p.labels = append(p.labels, int64(sample.label))
-		} else {
-			if i == 0 {
-				return false
-			}
-			return true
-		}
-	}
-	return true
-}
-
-// Minibatch returns a minibash with data and label Tensor
-func (p *ImageLoader) Minibatch() (torch.Tensor, torch.Tensor) {
-	w := p.inputs[0].Cols()
-	h := p.inputs[0].Rows()
+func (p *ImageLoader) collateMiniBatch(inputs []gocv.Mat, labels []int64) miniBatch {
+	w := inputs[0].Cols()
+	h := inputs[0].Rows()
 	blob := gocv.NewMat()
 	defer blob.Close()
-	gocv.BlobFromImages(p.inputs, &blob, 1.0/255.0, image.Pt(w, h), gocv.NewScalar(0, 0, 0, 0), false, false, gocv.MatTypeCV32F)
+	gocv.BlobFromImages(inputs, &blob, 1.0/255.0, image.Pt(w, h), gocv.NewScalar(0, 0, 0, 0), false, false, gocv.MatTypeCV32F)
 	i := p.trans2.Run(blob).(torch.Tensor)
-	l := torch.NewTensor(p.labels)
+	l := torch.NewTensor(labels)
 	if p.pinMemory {
-		return i.PinMemory(), l.PinMemory()
+		return miniBatch{i.PinMemory(), l.PinMemory()}
 	}
-	return i, l
+	return miniBatch{i, l}
+}
+
+// Minibatch returns a minibatch with data and label Tensor
+func (p *ImageLoader) Minibatch() (torch.Tensor, torch.Tensor) {
+	return p.input, p.label
 }
 
 // Err returns the error during the scan process, if there is any. io.EOF is not
@@ -188,4 +180,20 @@ func splitComposeByToTensor(compose *transforms.ComposeTransformer) (*transforms
 		}
 	}
 	return transforms.Compose(compose.Transforms[:idx]...), transforms.Compose(compose.Transforms[idx:]...)
+}
+
+func readImage(buffer []byte, colorSpace string) (gocv.Mat, error) {
+	var m gocv.Mat
+	var e error
+	if colorSpace == RGB {
+		m, e = gocv.IMDecode(buffer, gocv.IMReadColor)
+	} else if colorSpace == GRAY {
+		m, e = gocv.IMDecode(buffer, gocv.IMReadGrayScale)
+	} else {
+		return m, fmt.Errorf("Cannot read image with color space %v", colorSpace)
+	}
+	if colorSpace == RGB {
+		gocv.CvtColor(m, &m, gocv.ColorBGRToRGB)
+	}
+	return m, e
 }
