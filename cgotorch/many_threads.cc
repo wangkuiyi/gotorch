@@ -1,22 +1,22 @@
-// Copyright 2020, GoTorch Authors
 #include <stdlib.h>
-#include <chrono>  // NOLINT
+
+#include <chrono>
 #include <iostream>
 #include <sstream>
 #include <string>
-#include <thread>  // NOLINT
+#include <thread>
 
 #include "torch/torch.h"
 
-namespace nn = torch::nn;              // for the literal `ms`
-using namespace std::chrono_literals;  // for 10ms // NOLINT
+namespace nn = torch::nn;  // for the literal `ms`
+
+using namespace std::chrono_literals;
 
 std::mutex mu;
 
 int main(int argc, char* argv[]) {
   std::string argv0 = argv[0];
-  auto pos = argv0.rfind('/');
-  if (pos != std::string::npos) {
+  if (auto pos = argv0.rfind('/'); pos != std::string::npos) {
     argv0 = argv0.substr(pos + 1);
   }
   std::stringstream thread_count_command;
@@ -26,7 +26,16 @@ int main(int argc, char* argv[]) {
   std::cout << std::string(20, '-') << std::endl;
 
   std::vector<std::thread> pool;
-  auto model = nn::Conv2d(nn::Conv2dOptions(3, 64, 1).stride(1).bias(false));
+  // Prepare inputs
+  auto x = torch::arange(75, torch::dtype(torch::kFloat).requires_grad(false))
+               .reshape({1, 3, 5, 5});
+  auto weight =
+      torch::arange(54, torch::dtype(torch::kFloat).requires_grad(false))
+          .reshape({2, 3, 3, 3});
+  auto kernel_size = weight.sizes().slice(2);
+  auto output = at::empty({0}, x.options());
+  auto finput = at::empty({0}, x.options());
+  auto fgrad_input = at::empty({0}, x.options());
 
   auto total = std::thread::hardware_concurrency();
   if (argc > 1) total = std::atoi(argv[1]);
@@ -42,14 +51,14 @@ int main(int argc, char* argv[]) {
                     << "), step " << step << std::endl;
           std::cout << "#Threads before `forward`:" << std::endl;
           auto _ = system(thread_count_command.str().c_str());
-          std::vector<torch::Tensor> data;
-          while (data.size() < 32) data.push_back(torch::rand({3, 599, 599}));
-          auto output = model->forward(torch::stack(data));
+          at::native::slow_conv2d_forward_out_cpu(output, finput, fgrad_input,
+                                                  x, weight, kernel_size, {},
+                                                  {1, 1}, {0, 0});
           std::cout << "#Threads after `forward`:" << std::endl;
           _ = system(thread_count_command.str().c_str());
           std::cout << std::string(20, '-') << std::endl;
         }
-        std::this_thread::sleep_for(10ms);  // Yield to another thread
+        std::this_thread::sleep_for(2s);  // Yield to another thread
       }
     }));
   }
