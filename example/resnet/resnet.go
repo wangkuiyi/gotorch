@@ -141,13 +141,12 @@ func train(trainFn, testFn, label, save string, epochs int, pinMemory bool) {
 	mbSize := 32
 	optimizer := torch.SGD(lr, momentum, 0, weightDecay, false)
 	optimizer.AddParameters(model.Parameters())
-
 	for epoch := 0; epoch < epochs; epoch++ {
 		adjustLearningRate(optimizer, epoch, lr)
-		startTime := time.Now()
 		trainLoader := imageNetLoader(trainFn, vocab, mbSize, pinMemory)
 		testLoader := imageNetLoader(testFn, vocab, mbSize, pinMemory)
 		iter := 0
+		startTime := time.Now()
 		for trainLoader.Scan() {
 			iter++
 			data, label := trainLoader.Minibatch()
@@ -157,11 +156,14 @@ func train(trainFn, testFn, label, save string, epochs int, pinMemory bool) {
 				throughput := float64(data.Shape()[0]*logInterval) / time.Since(startTime).Seconds()
 				log.Printf("Train Epoch: %d, Iteration: %d, loss:%f, acc1: %f, acc5:%f, throughput: %f samples/sec", epoch, iter, loss, acc1, acc5, throughput)
 				startTime = time.Now()
+				break
 			}
 		}
+		break
 		test(model, testLoader)
 	}
-	saveModel(model, save)
+	torch.FinishGC()
+	//saveModel(model, save)
 }
 
 func loadLabel(labelFn string) map[string]int {
