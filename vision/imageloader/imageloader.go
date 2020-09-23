@@ -128,7 +128,10 @@ func (p *ImageLoader) readSample() {
 func (p *ImageLoader) readMinibatch() {
 	inputs := []gocv.Mat{}
 	labels := []int64{}
-	defer close(p.mbChan)
+	defer func() {
+		close(p.mbChan)
+		close(p.errChan)
+	}()
 	for {
 		sample, ok := <-p.sampleChan
 		if !ok {
