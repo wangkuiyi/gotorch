@@ -1,4 +1,4 @@
-all : libcgotorch.so
+all : libcgotorch.so many_threads
 
 srcs := $(wildcard *.cc)
 hdrs := $(wildcard *.h)
@@ -21,5 +21,8 @@ libcgotorch.so : $(srcs) $(hdrs) ${LIBTORCH_DIR}
 	-D_GLIBCXX_USE_CXX11_ABI=${GLIBCXX_USE_CXX11_ABI} \
 	${CUDA_FLAGS}
 
+many_threads : many_threads.cc
+	${CXX} -fopenmp -std=c++14 $< -o $@ -O
+
 clean:
-	rm -rf *.so
+	rm -rf *.so many_threads
