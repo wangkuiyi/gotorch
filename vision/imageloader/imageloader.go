@@ -67,8 +67,8 @@ func New(fn string, vocab map[string]int, trans *transforms.ComposeTransformer,
 		colorSpace: colorSpace,
 	}
 	runtime.LockOSThread()
-	go m.readSample()
-	go m.readMinibatch()
+	go m.readSamples()
+	go m.samplesToMinibatches()
 	return m, nil
 }
 
@@ -93,7 +93,7 @@ func (p *ImageLoader) Scan() bool {
 	return false
 }
 
-func (p *ImageLoader) readSample() {
+func (p *ImageLoader) readSamples() {
 	defer func() {
 		close(p.sampleChan)
 	}()
@@ -113,7 +113,7 @@ func (p *ImageLoader) readSample() {
 		label := p.vocab[classStr]
 		buffer := make([]byte, hdr.Size)
 		io.ReadFull(p.r, buffer)
-		m, err := readImage(buffer, p.colorSpace)
+		m, err := decodeImage(buffer, p.colorSpace)
 		if err != nil {
 			p.errChan <- err
 			break
@@ -125,7 +125,7 @@ func (p *ImageLoader) readSample() {
 	}
 }
 
-func (p *ImageLoader) readMinibatch() {
+func (p *ImageLoader) samplesToMinibatches() {
 	inputs := []gocv.Mat{}
 	labels := []int64{}
 	defer func() {
@@ -205,7 +205,7 @@ func splitComposeByToTensor(compose *transforms.ComposeTransformer) (*transforms
 	return transforms.Compose(compose.Transforms[:idx]...), transforms.Compose(compose.Transforms[idx:]...)
 }
 
-func readImage(buffer []byte, colorSpace string) (gocv.Mat, error) {
+func decodeImage(buffer []byte, colorSpace string) (gocv.Mat, error) {
 	var m gocv.Mat
 	var e error
 	if colorSpace == RGB {
