@@ -13,6 +13,11 @@ import (
 	"gocv.io/x/gocv"
 )
 
+type sample struct {
+	data  gocv.Mat
+	label int64
+}
+
 type miniBatch struct {
 	data  torch.Tensor
 	label torch.Tensor
@@ -28,6 +33,7 @@ const GRAY string = "gray"
 type ImageLoader struct {
 	r          *tgz.Reader
 	vocab      map[string]int
+	sampleChan chan sample
 	mbChan     chan miniBatch
 	errChan    chan error
 	err        error
@@ -51,6 +57,7 @@ func New(fn string, vocab map[string]int, trans *transforms.ComposeTransformer,
 	m := &ImageLoader{
 		r:          r,
 		vocab:      vocab,
+		sampleChan: make(chan sample, mbSize*4),
 		mbChan:     make(chan miniBatch, 4),
 		errChan:    make(chan error, 1),
 		trans1:     trans1,
@@ -60,7 +67,8 @@ func New(fn string, vocab map[string]int, trans *transforms.ComposeTransformer,
 		colorSpace: colorSpace,
 	}
 	runtime.LockOSThread()
-	go m.read()
+	go m.readSample()
+	go m.readMinibatch()
 	return m, nil
 }
 
@@ -85,19 +93,17 @@ func (p *ImageLoader) Scan() bool {
 	return false
 }
 
-func (p *ImageLoader) read() {
-	inputs := []gocv.Mat{}
-	labels := []int64{}
-
+func (p *ImageLoader) readSample() {
 	defer func() {
-		close(p.mbChan)
-		close(p.errChan)
+		close(p.sampleChan)
 	}()
 
 	for {
 		hdr, err := p.r.Next()
 		if err != nil {
-			p.errChan <- err
+			if err != io.EOF {
+				p.errChan <- err
+			}
 			break
 		}
 		if !hdr.FileInfo().Mode().IsRegular() {
@@ -115,8 +121,25 @@ func (p *ImageLoader) read() {
 		if m.Empty() {
 			panic("read invalid image content!")
 		}
-		inputs = append(inputs, p.trans1.Run(m).(gocv.Mat))
-		labels = append(labels, int64(label))
+		p.sampleChan <- sample{p.trans1.Run(m).(gocv.Mat), int64(label)}
+	}
+}
+
+func (p *ImageLoader) readMinibatch() {
+	inputs := []gocv.Mat{}
+	labels := []int64{}
+	defer func() {
+		close(p.mbChan)
+		close(p.errChan)
+	}()
+	for {
+		sample, ok := <-p.sampleChan
+		if !ok {
+			p.errChan <- io.EOF
+			break
+		}
+		inputs = append(inputs, sample.data)
+		labels = append(labels, sample.label)
 		if len(inputs) == p.mbSize {
 			p.mbChan <- p.collateMiniBatch(inputs, labels)
 			inputs = []gocv.Mat{}

@@ -141,13 +141,12 @@ func train(trainFn, testFn, label, save string, epochs int, pinMemory bool) {
 	mbSize := 32
 	optimizer := torch.SGD(lr, momentum, 0, weightDecay, false)
 	optimizer.AddParameters(model.Parameters())
-
 	for epoch := 0; epoch < epochs; epoch++ {
 		adjustLearningRate(optimizer, epoch, lr)
-		startTime := time.Now()
 		trainLoader := imageNetLoader(trainFn, vocab, mbSize, pinMemory)
 		testLoader := imageNetLoader(testFn, vocab, mbSize, pinMemory)
 		iter := 0
+		startTime := time.Now()
 		for trainLoader.Scan() {
 			iter++
 			data, label := trainLoader.Minibatch()
