@@ -99,7 +99,7 @@ func (b *BottleneckModule) Forward(x torch.Tensor) torch.Tensor {
 	return out
 }
 
-func getExpension(t reflect.Type) int64 {
+func getExpansion(t reflect.Type) int64 {
 	if t.Name() == "BasicBlockModule" {
 		return 1
 	}
@@ -137,7 +137,7 @@ func Resnet(block reflect.Type, layers []int64, numClasses int64, zeroInitResidu
 	r := &ResnetModule{
 		C1:        nn.Conv2d(3, inplanes, 7, 2, 3, 1, 1, false, "zeros"),
 		BN1:       nn.BatchNorm2d(inplanes, 1e-5, 0.1, true, true),
-		FC:        nn.Linear(512*getExpension(block), numClasses, true),
+		FC:        nn.Linear(512*getExpansion(block), numClasses, true),
 		Inplanes:  inplanes,
 		Groups:    groups,
 		BaseWidth: widthPerGroup,
@@ -159,15 +159,15 @@ func (r *ResnetModule) makeLayer(block reflect.Type, planes, blocks, stride int6
 		stride = 1
 	}
 
-	if stride != 1 || r.Inplanes != planes*getExpension(block) {
-		downsample = nn.Sequential(nn.Conv2d(r.Inplanes, planes*getExpension(block), 1, stride, 0, 1, 1, false, "zeros"),
-			nn.BatchNorm2d(planes*getExpension(block), 1e-5, 0.1, true, true))
+	if stride != 1 || r.Inplanes != planes*getExpansion(block) {
+		downsample = nn.Sequential(nn.Conv2d(r.Inplanes, planes*getExpansion(block), 1, stride, 0, 1, 1, false, "zeros"),
+			nn.BatchNorm2d(planes*getExpansion(block), 1e-5, 0.1, true, true))
 	}
 
 	layers := []nn.IModule{}
 	layers = append(layers, createBlock(block, r.Inplanes, planes, stride, downsample,
 		r.Groups, r.BaseWidth, previousDilation))
-	r.Inplanes = planes * getExpension(block)
+	r.Inplanes = planes * getExpansion(block)
 	for i := int64(1); i < blocks; i++ {
 		layers = append(layers, createBlock(block, r.Inplanes, planes, 1, nil,
 			r.Groups, r.BaseWidth, r.Dilation))
