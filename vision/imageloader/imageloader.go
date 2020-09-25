@@ -158,10 +158,10 @@ func (p *ImageLoader) collateMiniBatch(inputs []gocv.Mat, labels []int64) miniBa
 	defer func() {
 		// `gocv.Mat`s must be released manually
 		blob.Close()
-		for _, i := inputs {
+		for _, i := range inputs {
 			i.Close()
 		}
-	}
+	}()
 	gocv.BlobFromImages(inputs, &blob, 1.0/255.0, image.Pt(w, h), gocv.NewScalar(0, 0, 0, 0), false, false, gocv.MatTypeCV32F)
 	i := p.trans2.Run(blob).(torch.Tensor)
 	l := torch.NewTensor(labels)
