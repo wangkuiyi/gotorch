@@ -44,9 +44,8 @@ func rangeI(n int64) []int64 {
 	return res
 }
 
-func adjustLearningRate(opt torch.Optimizer, epoch int, lr float64) {
-	newLR := lr * math.Pow(0.1, float64(epoch)/30.0)
-	opt.SetLR(newLR)
+func adjustLearningRate(epoch int, lr float64) float64 {
+	return lr * math.Pow(0.1, float64(epoch)/30.0)
 }
 
 func accuracy(output, target torch.Tensor, topk []int64) []float32 {
@@ -94,11 +93,12 @@ func trainOneMinibatch(image, target torch.Tensor, model *models.ResnetModule, o
 }
 
 func test(model *models.ResnetModule, loader *imageloader.ImageLoader) {
+	model.Train(false)
 	testLoss := float32(0)
 	acc1 := float32(0)
 	acc5 := float32(0)
 	correct := int64(0)
-	samples := 0
+	iters := 0
 	for loader.Scan() {
 		data, label := loader.Minibatch()
 		data = data.To(device, data.Dtype())
@@ -111,10 +111,10 @@ func test(model *models.ResnetModule, loader *imageloader.ImageLoader) {
 		pred := output.Argmax(1)
 		testLoss += loss.Item().(float32)
 		correct += pred.Eq(label.View(pred.Shape()...)).Sum(map[string]interface{}{"dim": 0, "keepDim": false}).Item().(int64)
-		samples += int(label.Shape()[0])
+		iters++
 	}
 	log.Printf("Test average loss: %.4f acc1: %.4f acc5: %.4f \n",
-		testLoss/float32(samples), acc1/float32(samples), acc5/float32(samples))
+		testLoss/float32(iters), acc1/float32(iters), acc5/float32(iters))
 }
 
 func train(trainFn, testFn, label, save string, epochs int, pinMemory bool) {
@@ -135,14 +135,19 @@ func train(trainFn, testFn, label, save string, epochs int, pinMemory bool) {
 	model.To(device)
 	model.Train(true)
 
-	lr := 0.1
+	// As the baseline implementation https://arxiv.org/pdf/1512.03385.pdf.
+	// the learning rate is 0.1 with mini-batch size 256 (32 images per GPUs).
+	// On some devices, The mini-batch size can be 128 on a single CUDA device.
+	// to keep consistant with the baseline, we multiply the learning rate by 0.5 also.
+	mbSize := 128
+	lr := 0.1 * (128.0 / 256)
 	momentum := 0.9
 	weightDecay := 1e-4
-	mbSize := 32
 	optimizer := torch.SGD(lr, momentum, 0, weightDecay, false)
 	optimizer.AddParameters(model.Parameters())
 	for epoch := 0; epoch < epochs; epoch++ {
-		adjustLearningRate(optimizer, epoch, lr)
+		newLR := adjustLearningRate(epoch, lr)
+		optimizer.SetLR(newLR)
 		trainLoader := imageNetLoader(trainFn, vocab, mbSize, pinMemory)
 		testLoader := imageNetLoader(testFn, vocab, mbSize, pinMemory)
 		iter := 0
@@ -154,7 +159,7 @@ func train(trainFn, testFn, label, save string, epochs int, pinMemory bool) {
 			loss, acc1, acc5 := trainOneMinibatch(data.To(device, data.Dtype()), label.To(device, label.Dtype()), model, optimizer)
 			if iter%logInterval == 0 {
 				throughput := float64(data.Shape()[0]*logInterval) / time.Since(startTime).Seconds()
-				log.Printf("Train Epoch: %d, Iteration: %d, loss:%f, acc1: %f, acc5:%f, throughput: %f samples/sec", epoch, iter, loss, acc1, acc5, throughput)
+				log.Printf("Train Epoch: %d, Iteration: %d, loss:%f, acc1: %f, acc5:%f, throughput: %f samples/sec, lr: %f", epoch, iter, loss, acc1, acc5, throughput, newLR)
 				startTime = time.Now()
 			}
 		}
