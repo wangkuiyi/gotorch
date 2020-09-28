@@ -44,8 +44,10 @@ func rangeI(n int64) []int64 {
 	return res
 }
 
-func adjustLearningRate(epoch int, lr float64) float64 {
-	return lr * math.Pow(0.1, float64(epoch)/30.0)
+func adjustLearningRate(opt torch.Optimizer, epoch int, lr float64) {
+	newLR := lr * math.Pow(0.1, float64(epoch)/30.0)
+	log.Printf("Adjust learning rate, epoch: %d, lr: %f", epoch, lr)
+	opt.SetLR(newLR)
 }
 
 func accuracy(output, target torch.Tensor, topk []int64) []float32 {
@@ -137,17 +139,16 @@ func train(trainFn, testFn, label, save string, epochs int, pinMemory bool) {
 
 	// As the baseline implementation https://arxiv.org/pdf/1512.03385.pdf.
 	// the learning rate is 0.1 with mini-batch size 256 (32 images per GPUs).
-	// On some devices, The mini-batch size can be 128 on a single CUDA device.
-	// to keep consistant with the baseline, we multiply the learning rate by 0.5 also.
+	// On some CUDA devices, The mini-batch size can be 128(256 * k) on a single CUDA device.
+	// to keep consistant with the baseline, we multiply the learning rate by k also.
 	mbSize := 128
-	lr := 0.1 * (128.0 / 256)
+	lr := 0.1 * float64(mbSize*1.0/256)
 	momentum := 0.9
 	weightDecay := 1e-4
 	optimizer := torch.SGD(lr, momentum, 0, weightDecay, false)
 	optimizer.AddParameters(model.Parameters())
 	for epoch := 0; epoch < epochs; epoch++ {
-		newLR := adjustLearningRate(epoch, lr)
-		optimizer.SetLR(newLR)
+		adjustLearningRate(optimizer, epoch, lr)
 		trainLoader := imageNetLoader(trainFn, vocab, mbSize, pinMemory)
 		testLoader := imageNetLoader(testFn, vocab, mbSize, pinMemory)
 		iter := 0
@@ -159,7 +160,7 @@ func train(trainFn, testFn, label, save string, epochs int, pinMemory bool) {
 			loss, acc1, acc5 := trainOneMinibatch(data.To(device, data.Dtype()), label.To(device, label.Dtype()), model, optimizer)
 			if iter%logInterval == 0 {
 				throughput := float64(data.Shape()[0]*logInterval) / time.Since(startTime).Seconds()
-				log.Printf("Train Epoch: %d, Iteration: %d, loss:%f, acc1: %f, acc5:%f, throughput: %f samples/sec, lr: %f", epoch, iter, loss, acc1, acc5, throughput, newLR)
+				log.Printf("Train Epoch: %d, Iteration: %d, loss:%f, acc1: %f, acc5:%f, throughput: %f samples/sec", epoch, iter, loss, acc1, acc5, throughput)
 				startTime = time.Now()
 			}
 		}
