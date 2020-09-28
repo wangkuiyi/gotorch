@@ -36,12 +36,11 @@ type ImageLoader struct {
 	sampleChan chan sample
 	mbChan     chan miniBatch
 	errChan    chan error
-	err        error
 	trans1     *transforms.ComposeTransformer // transforms before `ToTensor`
 	trans2     *transforms.ComposeTransformer // transforms after and include `ToTensor`
 	mbSize     int
-	input      torch.Tensor
-	label      torch.Tensor
+	miniBatch  miniBatch
+	err        error
 	pinMemory  bool
 	colorSpace string
 }
@@ -85,8 +84,7 @@ func (p *ImageLoader) Scan() bool {
 		// no error received
 	}
 	if miniBatch, ok := <-p.mbChan; ok {
-		p.input = miniBatch.data
-		p.label = miniBatch.label
+		p.miniBatch = miniBatch
 		return true
 	}
 	torch.FinishGC()
@@ -173,7 +171,7 @@ func (p *ImageLoader) collateMiniBatch(inputs []gocv.Mat, labels []int64) miniBa
 
 // Minibatch returns a minibatch with data and label Tensor
 func (p *ImageLoader) Minibatch() (torch.Tensor, torch.Tensor) {
-	return p.input, p.label
+	return p.miniBatch.data, p.miniBatch.label
 }
 
 // Err returns the error during the scan process, if there is any. io.EOF is not

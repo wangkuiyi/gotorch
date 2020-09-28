@@ -46,6 +46,7 @@ func rangeI(n int64) []int64 {
 
 func adjustLearningRate(opt torch.Optimizer, epoch int, lr float64) {
 	newLR := lr * math.Pow(0.1, float64(epoch)/30.0)
+	log.Printf("Adjust learning rate, epoch: %d, lr: %f", epoch, lr)
 	opt.SetLR(newLR)
 }
 
@@ -94,11 +95,12 @@ func trainOneMinibatch(image, target torch.Tensor, model *models.ResnetModule, o
 }
 
 func test(model *models.ResnetModule, loader *imageloader.ImageLoader) {
+	model.Train(false)
 	testLoss := float32(0)
 	acc1 := float32(0)
 	acc5 := float32(0)
 	correct := int64(0)
-	samples := 0
+	iters := 0
 	for loader.Scan() {
 		data, label := loader.Minibatch()
 		data = data.To(device, data.Dtype())
@@ -111,10 +113,10 @@ func test(model *models.ResnetModule, loader *imageloader.ImageLoader) {
 		pred := output.Argmax(1)
 		testLoss += loss.Item().(float32)
 		correct += pred.Eq(label.View(pred.Shape()...)).Sum(map[string]interface{}{"dim": 0, "keepDim": false}).Item().(int64)
-		samples += int(label.Shape()[0])
+		iters++
 	}
 	log.Printf("Test average loss: %.4f acc1: %.4f acc5: %.4f \n",
-		testLoss/float32(samples), acc1/float32(samples), acc5/float32(samples))
+		testLoss/float32(iters), acc1/float32(iters), acc5/float32(iters))
 }
 
 func train(trainFn, testFn, label, save string, epochs int, pinMemory bool) {
@@ -135,10 +137,15 @@ func train(trainFn, testFn, label, save string, epochs int, pinMemory bool) {
 	model.To(device)
 	model.Train(true)
 
-	lr := 0.1
+	// As the baseline implementation https://arxiv.org/pdf/1512.03385.pdf.
+	// The learning rate is 0.1, with the mini-batch size 256 (32 images per GPUs).
+	// Some times, we can scale the mini-batch size to improve the CUDA utilization.
+	// When the mini-batch size scaled to 128(256 * k) on a single CUDA device,
+	// to keep consistent with the baseline, we multiply the learning rate by k also.
+	mbSize := 128
+	lr := 0.1 * float64(mbSize*1.0/256)
 	momentum := 0.9
 	weightDecay := 1e-4
-	mbSize := 32
 	optimizer := torch.SGD(lr, momentum, 0, weightDecay, false)
 	optimizer.AddParameters(model.Parameters())
 	for epoch := 0; epoch < epochs; epoch++ {
