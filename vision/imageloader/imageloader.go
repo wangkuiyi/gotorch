@@ -92,7 +92,6 @@ func (p *ImageLoader) Scan() bool {
 }
 
 func (p *ImageLoader) readSamples() {
-	runtime.LockOSThread()
 	defer func() {
 		close(p.sampleChan)
 	}()
@@ -125,7 +124,6 @@ func (p *ImageLoader) readSamples() {
 }
 
 func (p *ImageLoader) samplesToMinibatches() {
-	runtime.LockOSThread()
 	inputs := []gocv.Mat{}
 	labels := []int64{}
 	defer func() {
