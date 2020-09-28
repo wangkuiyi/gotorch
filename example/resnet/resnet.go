@@ -138,9 +138,10 @@ func train(trainFn, testFn, label, save string, epochs int, pinMemory bool) {
 	model.Train(true)
 
 	// As the baseline implementation https://arxiv.org/pdf/1512.03385.pdf.
-	// the learning rate is 0.1 with mini-batch size 256 (32 images per GPUs).
-	// On some CUDA devices, The mini-batch size can be 128(256 * k) on a single CUDA device.
-	// to keep consistant with the baseline, we multiply the learning rate by k also.
+	// The learning rate is 0.1, with the mini-batch size 256 (32 images per GPUs).
+	// Some times, we can scale the mini-batch size to improve the CUDA utilization.
+	// When the mini-batch size scaled to 128(256 * k) on a single CUDA device,
+	// to keep consistent with the baseline, we multiply the learning rate by k also.
 	mbSize := 128
 	lr := 0.1 * float64(mbSize*1.0/256)
 	momentum := 0.9
