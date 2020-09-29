@@ -124,6 +124,7 @@ func (p *ImageLoader) readSamples() {
 }
 
 func (p *ImageLoader) samplesToMinibatches() {
+	runtime.LockOSThread()
 	inputs := []gocv.Mat{}
 	labels := []int64{}
 	defer func() {
@@ -150,6 +151,7 @@ func (p *ImageLoader) samplesToMinibatches() {
 }
 
 func (p *ImageLoader) collateMiniBatch(inputs []gocv.Mat, labels []int64) miniBatch {
+	runtime.LockOSThread()
 	w := inputs[0].Cols()
 	h := inputs[0].Rows()
 	blob := gocv.NewMat()
