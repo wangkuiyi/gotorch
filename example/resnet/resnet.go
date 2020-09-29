@@ -45,8 +45,10 @@ func rangeI(n int64) []int64 {
 }
 
 func adjustLearningRate(opt torch.Optimizer, epoch int, lr float64) {
-	newLR := lr * math.Pow(0.1, float64(epoch)/30.0)
-	log.Printf("Adjust learning rate, epoch: %d, lr: %f", epoch, lr)
+	// set the learning rate to the the initialize learning rate decayed
+	// by 10 for every 30 epochs.
+	newLR := lr * math.Pow(0.1, math.Floor(float64(epoch)/30.0))
+	log.Printf("Adjust learning rate, epoch: %d, lr: %f", epoch, newLR)
 	opt.SetLR(newLR)
 }
 
