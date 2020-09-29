@@ -96,7 +96,7 @@ func trainOneMinibatch(image, target torch.Tensor, model *models.ResnetModule, o
 	return loss.Item().(float32), acc1, acc5
 }
 
-func test(model *models.ResnetModule, loader *imageloader.ImageLoader) {
+func test(model *models.ResnetModule, loader *imageloader.ImageLoader, epoch int) {
 	model.Train(false)
 	testLoss := float32(0)
 	acc1 := float32(0)
@@ -117,8 +117,8 @@ func test(model *models.ResnetModule, loader *imageloader.ImageLoader) {
 		correct += pred.Eq(label.View(pred.Shape()...)).Sum(map[string]interface{}{"dim": 0, "keepDim": false}).Item().(int64)
 		iters++
 	}
-	log.Printf("Test average loss: %.4f acc1: %.4f acc5: %.4f \n",
-		testLoss/float32(iters), acc1/float32(iters), acc5/float32(iters))
+	log.Printf("Test Epoch: %d, average loss: %.4f acc1: %.4f acc5: %.4f \n",
+		epoch, testLoss/float32(iters), acc1/float32(iters), acc5/float32(iters))
 }
 
 func train(trainFn, testFn, label, save string, epochs int, pinMemory bool) {
@@ -145,11 +145,12 @@ func train(trainFn, testFn, label, save string, epochs int, pinMemory bool) {
 	// When the mini-batch size scaled to 128(256 * k) on a single CUDA device,
 	// to keep consistent with the baseline, we multiply the learning rate by k also.
 	mbSize := 128
-	lr := 0.1 * float64(mbSize*1.0/256)
+	lr := 0.1 * float64(mbSize) / 256
 	momentum := 0.9
 	weightDecay := 1e-4
 	optimizer := torch.SGD(lr, momentum, 0, weightDecay, false)
 	optimizer.AddParameters(model.Parameters())
+	log.Printf("mini-batch size: %d, initialize LR: %f, momentum: %f, weight decay: %f", mbSize, lr, momentum, weightDecay)
 	for epoch := 0; epoch < epochs; epoch++ {
 		adjustLearningRate(optimizer, epoch, lr)
 		trainLoader := imageNetLoader(trainFn, vocab, mbSize, pinMemory)
@@ -167,7 +168,7 @@ func train(trainFn, testFn, label, save string, epochs int, pinMemory bool) {
 				startTime = time.Now()
 			}
 		}
-		test(model, testLoader)
+		test(model, testLoader, epoch)
 	}
 	saveModel(model, save)
 }
