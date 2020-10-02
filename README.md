@@ -75,6 +75,6 @@ executable binary  # x86_64, ARM, CUDA, TPU
   - [Port Functionals and Modules](doc/develop_functionals_and_modules.md) [(汉语)](./doc/develop_functionals_and_modules_cn.md)
   - [Shuffle Images in Tarballs](doc/shuffle_tarball.md) [(汉语)](./doc/shuffle_tarball_cn.md)
 - Examples
-  - [MNIST Training](./example/mnist)
+  - [MNIST Training and Prediction on Raspberry Pi](./example/mnist) [Demo on Youtube](https://www.youtube.com/watch?v=izpeb_FugII&t=5s)
   - [Adversarial Learning](./example/dcgan)
   - [Train ResNet50 Using ImageNet](./example/resnet)
