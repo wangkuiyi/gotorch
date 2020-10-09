@@ -81,6 +81,5 @@ make CXX="$CXX" \
      GLIBCXX_USE_CXX11_ABI="$GLIBCXX_USE_CXX11_ABI" \
      LOAD="$LOAD" \
      CUDA_FLAGS="$CUDA_FLAGS" \
-     -f Makefile;
-
+     -f Makefile -j
 popd
