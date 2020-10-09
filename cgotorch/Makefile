@@ -12,8 +12,6 @@ objs := $(srcs:%.cc=%.o)
 	-O -c $< -o $@
 
 libcgotorch.so: $(objs) ${LIBTORCH_DIR}
-	rm -f libtorch
-	ln -s ${LIBTORCH_DIR} libtorch
 	${CXX} 	-L libtorch/lib \
 	$(objs) \
 	-shared \

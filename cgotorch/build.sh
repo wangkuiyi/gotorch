@@ -73,6 +73,9 @@ elif [[ "$OS" == "darwin" ]]; then
     fi
 fi
 
+rm -f libtorch
+ln -s ${LIBTORCH_DIR} libtorch
+
 set -o xtrace
 make CXX="$CXX" \
      LIB_SUFFIX="$LIB_SUFFIX" \
