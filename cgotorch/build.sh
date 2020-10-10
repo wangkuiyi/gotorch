@@ -15,13 +15,13 @@ INSTALL_NAME=""
 CUDA_FLAGS=""
 
 function build_linux_no_cuda() {
-	CXX="clang++"
-        LIBTORCH_DIR="linux/libtorch"
-        GLIBCXX_USE_CXX11_ABI="0"
-        if [[ ! -d "$DIR/$LIBTORCH_DIR" ]]; then
-            curl -LsO 'https://download.pytorch.org/libtorch/cpu/libtorch-shared-with-deps-1.6.0%2Bcpu.zip'
-            unzip -qq -o libtorch-shared-with-deps-1.6.0%2Bcpu.zip -d linux
-        fi
+    CXX="clang++"
+    LIBTORCH_DIR="linux/libtorch"
+    GLIBCXX_USE_CXX11_ABI="0"
+    if [[ ! -d "$DIR/$LIBTORCH_DIR" ]]; then
+        curl -LsO 'https://download.pytorch.org/libtorch/cpu/libtorch-shared-with-deps-1.6.0%2Bcpu.zip'
+        unzip -qq -o libtorch-shared-with-deps-1.6.0%2Bcpu.zip -d linux
+    fi
 }
 
 if [[ "$OS" == "linux" ]]; then
@@ -52,13 +52,13 @@ if [[ "$OS" == "linux" ]]; then
                 curl -Lso libtorch-cxx11-1.6.0-linux-cuda102.zip 'https://download.pytorch.org/libtorch/cu102/libtorch-cxx11-abi-shared-with-deps-1.6.0.zip'
                 unzip -qq -o libtorch-cxx11-1.6.0-linux-cuda102.zip -d linux-cuda102
             fi
-	else
-	    echo "Unknown CUDA version: $CUDA_VERSION"
-	    build_linux_no_cuda
+    else
+        echo "Unknown CUDA version: $CUDA_VERSION"
+        build_linux_no_cuda
         fi
     else
         echo "Building for Linux without CUDA ...";
-	build_linux_no_cuda
+        build_linux_no_cuda
     fi
 elif [[ "$OS" == "darwin" ]]; then
     echo "Building for macOS ...";

@@ -4,7 +4,7 @@ srcs := $(wildcard *.cc)
 hdrs := $(wildcard *.h)
 objs := $(srcs:%.cc=%.o)
 
-%.o: %.cc $(hdrs)
+%.o: %.cc %.h torchdef.h
 	${CXX} -std=c++14 \
 	-I .. -I libtorch/include \
 	-I libtorch/include/torch/csrc/api/include \
@@ -22,4 +22,4 @@ libcgotorch.so: $(objs) ${LIBTORCH_DIR}
 	-lc10 -ltorch -ltorch_cpu
 
 clean:
-	rm -rf *.so
+	rm -rf *.so *.o

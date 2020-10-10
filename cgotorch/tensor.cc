@@ -1,14 +1,8 @@
 // Copyright 2020, GoTorch Authors
-#include <iostream>
-#include <sstream>
+#include "cgotorch/tensor.h"
+
 #include <string>
 #include <vector>
-
-#include "torch/script.h"
-#include "torch/torch.h"
-
-// FIXME(shendiaomo): including cgotorch.h before torch/torch.h will fail
-#include "cgotorch/cgotorch.h"
 
 const char *Tensor_Detach(Tensor a, Tensor *result) {
   try {
@@ -116,6 +110,8 @@ const char *Tensor_String(Tensor a) {
   snprintf(r, s.size() + 1, "%s", s.c_str());
   return r;
 }
+
+void FreeString(const char *s) { delete[] s; }
 
 const char *Tensor_To(Tensor input, Device device, int8_t dtype,
                       Tensor *output) {

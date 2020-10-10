@@ -1,15 +1,7 @@
 // Copyright 2020, GoTorch Authors
-#include "torch/torch.h"
+#include "cgotorch/torch.h"
 
-#include <iostream>
-#include <sstream>
-#include <string>
 #include <vector>
-
-#include "torch/script.h"
-
-// FIXME(shendiaomo): including cgotorch.h before torch/torch.h will fail
-#include "cgotorch/cgotorch.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 // Helper functions
@@ -45,6 +37,19 @@ const char *Rand(int64_t *size, int64_t length, int64_t require_grad,
     at::Tensor t = torch::rand(torch::IntArrayRef(size, length),
                                at::TensorOptions().requires_grad(require_grad));
     *result = new at::Tensor(t);
+    return nullptr;
+  } catch (const std::exception &e) {
+    return exception_str(e.what());
+  }
+}
+
+const char *Stack(Tensor *tensors, int64_t tensors_size, int64_t dim,
+                  Tensor *result) {
+  try {
+    std::vector<torch::Tensor> data;
+    while (data.size() < tensors_size) data.push_back(**tensors++);
+    auto out = at::stack(data, dim);
+    *result = new at::Tensor(out);
     return nullptr;
   } catch (const std::exception &e) {
     return exception_str(e.what());
@@ -401,8 +406,6 @@ const char *SqueezeWithDim(Tensor a, int64_t dim, Tensor *result) {
     return exception_str(e.what());
   }
 }
-
-void FreeString(const char *s) { delete[] s; }
 
 // We use the pointer int64_t* to represent an optional int64_t parameter -- the
 // value nullptr indicate not-specified.  Please be aware that we need only one

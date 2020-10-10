@@ -1,14 +1,7 @@
 // Copyright 2020, GoTorch Authors
-#include <iostream>
-#include <sstream>
-#include <string>
+#include "cgotorch/pickle.h"
+
 #include <vector>
-
-#include "torch/script.h"
-#include "torch/torch.h"
-
-// FIXME(shendiaomo): including cgotorch.h before torch/torch.h will fail
-#include "cgotorch/cgotorch.h"
 
 const char* Tensor_Encode(Tensor a, ByteBuffer* r) {
   try {

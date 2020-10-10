@@ -1,12 +1,9 @@
 // Copyright 2020, GoTorch Authors
+#include "cgotorch/functional.h"
+
 #include <string>
 #include <unordered_map>
-
-#include "torch/script.h"
-#include "torch/torch.h"
-
-// FIXME(shendiaomo): including cgotorch.h before torch/torch.h will fail
-#include "cgotorch/cgotorch.h"
+#include <vector>
 
 const char *BatchNorm(Tensor input, Tensor weight, Tensor bias,
                       Tensor running_mean, Tensor running_var, int8_t training,
@@ -204,19 +201,6 @@ const char *AdaptiveAvgPool2d(Tensor input, int64_t *output_size_data,
     auto out = torch::nn::functional::adaptive_avg_pool2d(
         *input, torch::nn::functional::AdaptiveAvgPool2dFuncOptions(
                     torch::IntArrayRef(output_size_data, output_size_len)));
-    *result = new at::Tensor(out);
-    return nullptr;
-  } catch (const std::exception &e) {
-    return exception_str(e.what());
-  }
-}
-
-const char *Stack(Tensor *tensors, int64_t tensors_size, int64_t dim,
-                  Tensor *result) {
-  try {
-    std::vector<torch::Tensor> data;
-    while (data.size() < tensors_size) data.push_back(**tensors++);
-    auto out = at::stack(data, dim);
     *result = new at::Tensor(out);
     return nullptr;
   } catch (const std::exception &e) {

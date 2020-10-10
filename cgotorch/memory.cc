@@ -1,8 +1,5 @@
 // Copyright 2020, GoTorch Authors
-#include "torch/torch.h"
-
-// FIXME(shendiaomo): including cgotorch.h before torch/torch.h will fail
-#include "cgotorch/cgotorch.h"
+#include "cgotorch/memory.h"
 
 thread_local bool gcPrepared = false;
 

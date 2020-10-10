@@ -1,18 +1,9 @@
 // Copyright 2020, GoTorch Authors
-#include <iostream>
-#include <sstream>
-#include <string>
-#include <vector>
-
-#include "torch/script.h"
-#include "torch/torch.h"
-
 #ifdef WITH_CUDA
 #include "c10/cuda/CUDAStream.h"
 #endif
 
-// FIXME(shendiaomo): including cgotorch.h before torch/torch.h will fail
-#include "cgotorch/cgotorch.h"
+#include "cgotorch/cuda.h"
 
 bool IsCUDAAvailable() { return torch::cuda::is_available(); }
 
