@@ -3,9 +3,9 @@
 
 #include <stdbool.h>
 #include <stdint.h>
-#include <torch/torch.h>
 
 #ifdef __cplusplus
+#include <torch/torch.h>
 #include <vector>
 extern "C" {
 typedef at::Tensor *Tensor;
