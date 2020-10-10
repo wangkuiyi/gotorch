@@ -24,6 +24,13 @@ const char *Tensor_Dtype(Tensor tensor, int8_t *dtype);
 const char *Tensor_SetData(Tensor self, Tensor new_data);
 const char *Tensor_FromBlob(void *data, int8_t dtype, int64_t *sizes_data,
                             int64_t sizes_data_len, Tensor *result);
+const char *Tensor_To(Tensor input, Device device, int8_t dtype,
+                      Tensor *output);
+const char *Tensor_CastTo(Tensor input, int8_t dtype, Tensor *output);
+const char *Tensor_CopyTo(Tensor input, Device device, Tensor *output);
+const char *Tensor_PinMemory(Tensor input, Tensor *output);
+const char *Tensor_CUDA(Tensor input, Device device, int8_t non_blocking,
+                        Tensor *output);
 
 ////////////////////////////////////////////////////////////////////////////////
 // Backward, Gradient

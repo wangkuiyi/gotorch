@@ -111,6 +111,8 @@ const char *Tensor_String(Tensor a) {
   return r;
 }
 
+void FreeString(const char *s) { delete[] s; }
+
 const char *Tensor_To(Tensor input, Device device, int8_t dtype,
                       Tensor *output) {
   try {

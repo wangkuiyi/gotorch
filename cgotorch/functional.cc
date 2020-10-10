@@ -207,16 +207,3 @@ const char *AdaptiveAvgPool2d(Tensor input, int64_t *output_size_data,
     return exception_str(e.what());
   }
 }
-
-const char *Stack(Tensor *tensors, int64_t tensors_size, int64_t dim,
-                  Tensor *result) {
-  try {
-    std::vector<torch::Tensor> data;
-    while (data.size() < tensors_size) data.push_back(**tensors++);
-    auto out = at::stack(data, dim);
-    *result = new at::Tensor(out);
-    return nullptr;
-  } catch (const std::exception &e) {
-    return exception_str(e.what());
-  }
-}
