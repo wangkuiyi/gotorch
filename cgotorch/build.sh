@@ -73,6 +73,9 @@ elif [[ "$OS" == "darwin" ]]; then
     fi
 fi
 
+rm -f libtorch
+ln -s ${LIBTORCH_DIR} libtorch
+
 set -o xtrace
 make CXX="$CXX" \
      LIB_SUFFIX="$LIB_SUFFIX" \
@@ -81,6 +84,5 @@ make CXX="$CXX" \
      GLIBCXX_USE_CXX11_ABI="$GLIBCXX_USE_CXX11_ABI" \
      LOAD="$LOAD" \
      CUDA_FLAGS="$CUDA_FLAGS" \
-     -f Makefile;
-
+     -f Makefile -j
 popd
