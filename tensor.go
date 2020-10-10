@@ -2,10 +2,10 @@
 
 package gotorch
 
-// #cgo CFLAGS: -I ${SRCDIR}/cgotorch
+// #cgo CFLAGS: -I ${SRCDIR}
 // #cgo LDFLAGS: -L ${SRCDIR}/cgotorch -Wl,-rpath ${SRCDIR}/cgotorch -lcgotorch
 // #cgo LDFLAGS: -L ${SRCDIR}/cgotorch/libtorch/lib -Wl,-rpath ${SRCDIR}/cgotorch/libtorch/lib -lc10 -ltorch -ltorch_cpu
-// #include "cgotorch.h"
+// #include "cgotorch/cgotorch.h"
 import "C"
 
 import (
