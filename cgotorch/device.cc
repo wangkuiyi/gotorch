@@ -1,14 +1,8 @@
 // Copyright 2020, GoTorch Authors
-#include <iostream>
-#include <sstream>
+#include "cgotorch/device.h"
+
 #include <string>
-#include <vector>
-
-#include "torch/script.h"
-#include "torch/torch.h"
-
-// FIXME(shendiaomo): including cgotorch.h before torch/torch.h will fail
-#include "cgotorch/cgotorch.h"
+#include <unordered_map>
 
 std::unordered_map<std::string, torch::DeviceType> device_type_map = {
     {"cpu", torch::kCPU}, {"cuda", torch::kCUDA}};

@@ -1,11 +1,8 @@
 // Copyright 2020, GoTorch Authors
+#include "cgotorch/init.h"
+
+#include <string>
 #include <unordered_map>
-
-#include "torch/script.h"
-#include "torch/torch.h"
-
-// FIXME(shendiaomo): including cgotorch.h before torch/torch.h will fail
-#include "cgotorch/cgotorch.h"
 
 std::unordered_map<std::string, torch::nn::init::FanModeType> fan_mode_map = {
     {"fan_in", torch::kFanIn},

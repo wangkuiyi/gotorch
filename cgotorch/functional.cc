@@ -1,12 +1,9 @@
 // Copyright 2020, GoTorch Authors
+#include "cgotorch/functional.h"
+
 #include <string>
 #include <unordered_map>
-
-#include "torch/script.h"
-#include "torch/torch.h"
-
-// FIXME(shendiaomo): including cgotorch.h before torch/torch.h will fail
-#include "cgotorch/cgotorch.h"
+#include <vector>
 
 const char *BatchNorm(Tensor input, Tensor weight, Tensor bias,
                       Tensor running_mean, Tensor running_var, int8_t training,

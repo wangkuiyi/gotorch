@@ -1,14 +1,8 @@
 // Copyright 2020, GoTorch Authors
-#include <iostream>
-#include <sstream>
+#include "cgotorch/tensor.h"
+
 #include <string>
 #include <vector>
-
-#include "torch/script.h"
-#include "torch/torch.h"
-
-// FIXME(shendiaomo): including cgotorch.h before torch/torch.h will fail
-#include "cgotorch/cgotorch.h"
 
 const char *Tensor_Detach(Tensor a, Tensor *result) {
   try {

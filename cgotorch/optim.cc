@@ -1,12 +1,7 @@
 // Copyright 2020, GoTorch Authors
-#include <tuple>
+#include "cgotorch/optim.h"
+
 #include <vector>
-
-#include "torch/script.h"
-#include "torch/torch.h"
-
-// FIXME(shendiaomo): including cgotorch.h before torch/torch.h will fail
-#include "cgotorch/cgotorch.h"
 
 Optimizer SGD(double learning_rate, double momentum, double dampening,
               double weight_decay, int64_t nesterov) {
