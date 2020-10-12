@@ -11,3 +11,4 @@ data
 *.pt
 trace.out
 *.log
+*.o
