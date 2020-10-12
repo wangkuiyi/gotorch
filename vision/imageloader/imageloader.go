@@ -244,7 +244,7 @@ func splitComposeByToTensor(compose *transforms.ComposeTransformer) (*transforms
 	return transforms.Compose(compose.Transforms[:idx]...), transforms.Compose(compose.Transforms[idx:]...)
 }
 
-func decodeImage(buffer []byte, colorSpace string) (gocv.Mat, error) {
+func decodeImageInOSThread(buffer []byte, colorSpace string) (gocv.Mat, error) {
 	var m gocv.Mat
 	var e error
 	if colorSpace == RGB {
@@ -258,4 +258,35 @@ func decodeImage(buffer []byte, colorSpace string) (gocv.Mat, error) {
 		gocv.CvtColor(m, &m, gocv.ColorBGRToRGB)
 	}
 	return m, e
+}
+
+func decodeImage(buffer []byte, colorSpace string) (gocv.Mat, error) {
+	decodeImageArgs <- decodeImageArg{buffer, colorSpace}
+	r := <-decodeImageRets
+	return r.mat, r.err
+}
+
+type decodeImageArg struct {
+	buffer     []byte
+	colorSpace string
+}
+
+type decodeImageRet struct {
+	mat gocv.Mat
+	err error
+}
+
+var (
+	decodeImageArgs = make(chan decodeImageArg, 10)
+	decodeImageRets = make(chan decodeImageRet, 10)
+)
+
+func init() {
+	go func() {
+		runtime.LockOSThread()
+		for req := range decodeImageArgs {
+			mat, err := decodeImageInOSThread(req.buffer, req.colorSpace)
+			decodeImageRets <- decodeImageRet{mat, err}
+		}
+	}()
 }
