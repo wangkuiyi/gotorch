@@ -50,6 +50,11 @@ type ImageLoader struct {
 	seed        int64
 }
 
+var (
+	readSamplesCh          = make(chan func(), 0)
+	samplesToMinibatchesCh = make(chan func(), 0)
+)
+
 // New returns an ImageLoader
 func New(fn string, vocab map[string]int, trans *transforms.ComposeTransformer,
 	mbSize, bufSize int, seed int64, pinMemory bool, colorSpace string) (*ImageLoader, error) {
@@ -73,10 +78,10 @@ func New(fn string, vocab map[string]int, trans *transforms.ComposeTransformer,
 		bufSize:     bufSize,
 		seed:        seed,
 	}
-	runtime.LockOSThread()
-	go m.readSamples()
 	go m.shuffleSamples()
-	go m.samplesToMinibatches()
+	// `readSamples` and `samplesToMinibatches` calls `gocv`, we make them only run in background OS threads.
+	readSamplesCh <- func() { m.readSamples() }
+	samplesToMinibatchesCh <- func() { m.samplesToMinibatches() }
 	return m, nil
 }
 
@@ -244,7 +249,7 @@ func splitComposeByToTensor(compose *transforms.ComposeTransformer) (*transforms
 	return transforms.Compose(compose.Transforms[:idx]...), transforms.Compose(compose.Transforms[idx:]...)
 }
 
-func decodeImageInOSThread(buffer []byte, colorSpace string) (gocv.Mat, error) {
+func decodeImage(buffer []byte, colorSpace string) (gocv.Mat, error) {
 	var m gocv.Mat
 	var e error
 	if colorSpace == RGB {
@@ -260,33 +265,17 @@ func decodeImageInOSThread(buffer []byte, colorSpace string) (gocv.Mat, error) {
 	return m, e
 }
 
-func decodeImage(buffer []byte, colorSpace string) (gocv.Mat, error) {
-	decodeImageArgs <- decodeImageArg{buffer, colorSpace}
-	r := <-decodeImageRets
-	return r.mat, r.err
-}
-
-type decodeImageArg struct {
-	buffer     []byte
-	colorSpace string
-}
-
-type decodeImageRet struct {
-	mat gocv.Mat
-	err error
-}
-
-var (
-	decodeImageArgs = make(chan decodeImageArg, 10)
-	decodeImageRets = make(chan decodeImageRet, 10)
-)
-
 func init() {
 	go func() {
 		runtime.LockOSThread()
-		for req := range decodeImageArgs {
-			mat, err := decodeImageInOSThread(req.buffer, req.colorSpace)
-			decodeImageRets <- decodeImageRet{mat, err}
+		for f := range readSamplesCh {
+			f()
+		}
+	}()
+	go func() {
+		runtime.LockOSThread()
+		for f := range samplesToMinibatchesCh {
+			f()
 		}
 	}()
 }
