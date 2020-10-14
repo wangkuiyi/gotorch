@@ -266,6 +266,10 @@ func decodeImage(buffer []byte, colorSpace string) (gocv.Mat, error) {
 }
 
 func init() {
+	// We use these background threads to call `gocv`. This is because `gocv` makes
+	// `Cgo` calls extensively, if we call `gocv` directly in goroutines(each epoch
+	// creates a new goroutine), the `Cgo` calls will cause Go runtime to create too
+	// many threads.
 	go func() {
 		runtime.LockOSThread()
 		for f := range readSamplesCh {
