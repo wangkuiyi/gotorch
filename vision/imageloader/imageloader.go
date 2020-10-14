@@ -178,6 +178,7 @@ func (p *ImageLoader) shuffleSamples() {
 		p.shuffleChan <- buffer[randIdx]
 		buffer[randIdx] = sample
 	}
+	rand.Shuffle(len(buffer), func(i, j int) { buffer[i], buffer[j] = buffer[j], buffer[i] })
 	for _, sample := range buffer {
 		p.shuffleChan <- sample
 	}

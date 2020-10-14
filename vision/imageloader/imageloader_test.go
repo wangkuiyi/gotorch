@@ -73,7 +73,7 @@ func TestImageTgzLoader(t *testing.T) {
 		data, label := loader.Minibatch()
 		a.Equal([]int64{3, 3, 2, 2}, data.Shape())
 		a.Equal([]int64{3}, label.Shape())
-		a.Equal(label.String(), " 1\n 0\n 0\n[ CPULongType{3} ]")
+		a.Equal(" 1\n 0\n 1\n[ CPULongType{3} ]", label.String())
 	}
 	{
 		// second iteration with minibatch size is 2
@@ -81,7 +81,7 @@ func TestImageTgzLoader(t *testing.T) {
 		data, label := loader.Minibatch()
 		a.Equal([]int64{2, 3, 2, 2}, data.Shape())
 		a.Equal([]int64{2}, label.Shape())
-		a.Equal(label.String(), " 0\n 1\n[ CPULongType{2} ]")
+		a.Equal(" 0\n 0\n[ CPULongType{2} ]", label.String())
 	}
 	// no more data at the third iteration
 	a.False(loader.Scan())
