@@ -32,18 +32,19 @@ const GRAY string = "gray"
 
 // ImageLoader struct
 type ImageLoader struct {
-	r           *tgz.Reader
-	vocab       map[string]int
-	sampleChan  chan sample
-	mbChan      chan miniBatch
-	errChan     chan error
-	trans1      *transforms.ComposeTransformer // transforms before `ToTensor`
-	trans2      *transforms.ComposeTransformer // transforms after and include `ToTensor`
-	mbSize      int
-	miniBatch   miniBatch
-	err         error
-	pinMemory   bool
-	colorSpace  string
+	r          *tgz.Reader
+	vocab      map[string]int
+	sampleChan chan sample
+	mbChan     chan miniBatch
+	errChan    chan error
+	trans1     *transforms.ComposeTransformer // transforms before `ToTensor`
+	trans2     *transforms.ComposeTransformer // transforms after and include `ToTensor`
+	mbSize     int
+	miniBatch  miniBatch
+	err        error
+	pinMemory  bool
+	colorSpace string
+	// shuffle buffer configuration
 	bufSize     int
 	shuffleChan chan sample
 	seed        int64
