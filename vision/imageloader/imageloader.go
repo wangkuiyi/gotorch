@@ -7,9 +7,10 @@ import (
 	"math/rand"
 	"path/filepath"
 	"runtime"
+	"sync"
 
 	torch "github.com/wangkuiyi/gotorch"
-	tgz "github.com/wangkuiyi/gotorch/tool/tgz"
+	"github.com/wangkuiyi/gotorch/tool/tgz"
 	"github.com/wangkuiyi/gotorch/vision/transforms"
 	"gocv.io/x/gocv"
 )
@@ -53,6 +54,9 @@ type ImageLoader struct {
 var (
 	readSamplesCh          = make(chan func(), 1)
 	samplesToMinibatchesCh = make(chan func(), 1)
+	activeInstanceCounter  = 0 // Track the number of instances of the type `ImageLoader`
+	counterMu              = &sync.Mutex{}
+	threadGroupWaterline   = 0 // The number of working thread groups should be as large as the max value of `activeInstanceCounter`
 )
 
 // New returns an ImageLoader
@@ -82,6 +86,18 @@ func New(fn string, vocab map[string]int, trans *transforms.ComposeTransformer,
 	// `readSamples` and `samplesToMinibatches` calls `gocv`, we make them only run in background OS threads.
 	readSamplesCh <- func() { m.readSamples() }
 	samplesToMinibatchesCh <- func() { m.samplesToMinibatches() }
+	counterMu.Lock()
+	defer counterMu.Unlock()
+	activeInstanceCounter++
+	if activeInstanceCounter > threadGroupWaterline {
+		newWorkingThreadGroup()
+		threadGroupWaterline = activeInstanceCounter
+	}
+	runtime.SetFinalizer(m, func(m *ImageLoader) {
+		counterMu.Lock()
+		activeInstanceCounter--
+		counterMu.Unlock()
+	})
 	return m, nil
 }
 
@@ -265,7 +281,7 @@ func decodeImage(buffer []byte, colorSpace string) (gocv.Mat, error) {
 	return m, e
 }
 
-func init() {
+func newWorkingThreadGroup() {
 	// We use these background threads to call `gocv`. This is because `gocv` makes
 	// `Cgo` calls extensively, if we call `gocv` directly in goroutines(each epoch
 	// creates a new goroutine), the `Cgo` calls will cause Go runtime to create too
