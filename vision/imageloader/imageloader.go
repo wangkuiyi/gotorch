@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"image"
 	"io"
+	"math/rand"
 	"path/filepath"
 	"runtime"
 
@@ -43,30 +44,38 @@ type ImageLoader struct {
 	err        error
 	pinMemory  bool
 	colorSpace string
+	// shuffle buffer configuration
+	bufSize     int
+	shuffleChan chan sample
+	seed        int64
 }
 
 // New returns an ImageLoader
 func New(fn string, vocab map[string]int, trans *transforms.ComposeTransformer,
-	mbSize int, pinMemory bool, colorSpace string) (*ImageLoader, error) {
+	mbSize, bufSize int, seed int64, pinMemory bool, colorSpace string) (*ImageLoader, error) {
 	r, e := tgz.OpenFile(fn)
 	if e != nil {
 		return nil, e
 	}
 	trans1, trans2 := splitComposeByToTensor(trans)
 	m := &ImageLoader{
-		r:          r,
-		vocab:      vocab,
-		sampleChan: make(chan sample, mbSize*4),
-		mbChan:     make(chan miniBatch, 4),
-		errChan:    make(chan error, 1),
-		trans1:     trans1,
-		trans2:     trans2,
-		mbSize:     mbSize,
-		pinMemory:  pinMemory,
-		colorSpace: colorSpace,
+		r:           r,
+		vocab:       vocab,
+		sampleChan:  make(chan sample, mbSize*4),
+		mbChan:      make(chan miniBatch, 4),
+		shuffleChan: make(chan sample, mbSize*4),
+		errChan:     make(chan error, 1),
+		trans1:      trans1,
+		trans2:      trans2,
+		mbSize:      mbSize,
+		pinMemory:   pinMemory,
+		colorSpace:  colorSpace,
+		bufSize:     bufSize,
+		seed:        seed,
 	}
 	runtime.LockOSThread()
 	go m.readSamples()
+	go m.shuffleSamples()
 	go m.samplesToMinibatches()
 	return m, nil
 }
@@ -131,7 +140,7 @@ func (p *ImageLoader) samplesToMinibatches() {
 		close(p.errChan)
 	}()
 	for {
-		sample, ok := <-p.sampleChan
+		sample, ok := <-p.shuffleChan
 		if !ok {
 			p.errChan <- io.EOF
 			break
@@ -146,6 +155,32 @@ func (p *ImageLoader) samplesToMinibatches() {
 	}
 	if len(inputs) > 0 {
 		p.mbChan <- p.collateMiniBatch(inputs, labels)
+	}
+}
+
+func (p *ImageLoader) shuffleSamples() {
+	buffer := []sample{}
+	rand.Seed(p.seed)
+	defer close(p.shuffleChan)
+	for i := 0; i < p.bufSize; i++ {
+		sample, ok := <-p.sampleChan
+		if !ok {
+			break
+		}
+		buffer = append(buffer, sample)
+	}
+	for {
+		sample, ok := <-p.sampleChan
+		if !ok {
+			break
+		}
+		randIdx := rand.Intn(len(buffer))
+		p.shuffleChan <- buffer[randIdx]
+		buffer[randIdx] = sample
+	}
+	rand.Shuffle(len(buffer), func(i, j int) { buffer[i], buffer[j] = buffer[j], buffer[i] })
+	for _, sample := range buffer {
+		p.shuffleChan <- sample
 	}
 }
 
