@@ -51,8 +51,8 @@ type ImageLoader struct {
 }
 
 var (
-	readSamplesCh          = make(chan func(), 0)
-	samplesToMinibatchesCh = make(chan func(), 0)
+	readSamplesCh          = make(chan func(), 1)
+	samplesToMinibatchesCh = make(chan func(), 1)
 )
 
 // New returns an ImageLoader
