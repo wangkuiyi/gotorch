@@ -49,7 +49,7 @@ GoTorch works with the following open-source communities to form Go+Torch.
 
 - the [Go+](https://github.com/goplus/gop) community,
 - the PyTorch community, and
-- the TenosrFlow XLA ecosystem.
+- the TensorFlow XLA ecosystem.
 
 The following figure reveals the stack of technologies.
 
