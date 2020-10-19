@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/gob"
 	"flag"
+	"fmt"
 	"log"
 	"math"
 	"os"
@@ -44,6 +45,31 @@ func rangeI(n int64) []int64 {
 	return res
 }
 
+type averageMeter struct {
+	name         string
+	sum, average float32
+	count        int
+}
+
+func newAverageMetric(name string) *averageMeter {
+	return &averageMeter{
+		name:    name,
+		sum:     0.0,
+		average: 0.0,
+		count:   0,
+	}
+}
+
+func (m *averageMeter) update(value float32) {
+	m.sum += value
+	m.count++
+	m.average = m.sum / float32(m.count)
+}
+
+func (m *averageMeter) String() string {
+	return fmt.Sprintf("%s: %.2f", m.name, m.average)
+}
+
 func adjustLearningRate(opt torch.Optimizer, epoch int, lr float64) {
 	// set the learning rate to the the initialize learning rate decayed
 	// by 10 for every 30 epochs.
@@ -71,12 +97,20 @@ func accuracy(output, target torch.Tensor, topk []int64) []float32 {
 	return res
 }
 
-func imageNetLoader(fn string, vocab map[string]int, mbSize int, pinMemory bool) *imageloader.ImageLoader {
-	trans := transforms.Compose(
-		transforms.RandomResizedCrop(224),
-		transforms.RandomHorizontalFlip(0.5),
-		transforms.ToTensor(),
-		transforms.Normalize([]float32{0.485, 0.456, 0.406}, []float32{0.229, 0.224, 0.225}))
+func imageNetLoader(fn string, vocab map[string]int, mbSize int, pinMemory, isTrain bool) *imageloader.ImageLoader {
+	var trans *transforms.ComposeTransformer
+	if isTrain {
+		trans = transforms.Compose(
+			transforms.RandomResizedCrop(224),
+			transforms.RandomHorizontalFlip(0.5),
+			transforms.ToTensor(),
+			transforms.Normalize([]float32{0.485, 0.456, 0.406}, []float32{0.229, 0.224, 0.225}))
+	} else {
+		trans = transforms.Compose(transforms.Resize(256),
+			transforms.CenterCrop(224),
+			transforms.ToTensor(),
+			transforms.Normalize([]float32{0.485, 0.456, 0.406}, []float32{0.229, 0.224, 0.225}))
+	}
 
 	loader, e := imageloader.New(fn, vocab, trans, mbSize, mbSize*10, time.Now().UnixNano(), pinMemory, "rgb")
 	if e != nil {
@@ -151,23 +185,33 @@ func train(trainFn, testFn, label, save string, epochs int, pinMemory bool) {
 	optimizer := torch.SGD(lr, momentum, 0, weightDecay, false)
 	optimizer.AddParameters(model.Parameters())
 	log.Printf("mini-batch size: %d, initialize LR: %f, momentum: %f, weight decay: %f", mbSize, lr, momentum, weightDecay)
+
 	for epoch := 0; epoch < epochs; epoch++ {
 		adjustLearningRate(optimizer, epoch, lr)
-		trainLoader := imageNetLoader(trainFn, vocab, mbSize, pinMemory)
-		testLoader := imageNetLoader(testFn, vocab, mbSize, pinMemory)
+		trainLoader := imageNetLoader(trainFn, vocab, mbSize, pinMemory, true)
+		testLoader := imageNetLoader(testFn, vocab, mbSize, pinMemory, false)
 		iter := 0
+		avgAcc1 := newAverageMetric("acc1")
+		avgAcc5 := newAverageMetric("acc5")
+		avgLoss := newAverageMetric("loss")
+		avgThroughput := newAverageMetric("throughput")
 		startTime := time.Now()
 		for trainLoader.Scan() {
 			iter++
 			data, label := trainLoader.Minibatch()
 			optimizer.ZeroGrad()
 			loss, acc1, acc5 := trainOneMinibatch(data.To(device, data.Dtype()), label.To(device, label.Dtype()), model, optimizer)
+			avgAcc1.update(acc1)
+			avgAcc5.update(acc5)
+			avgLoss.update(loss)
 			if iter%logInterval == 0 {
 				throughput := float64(data.Shape()[0]*logInterval) / time.Since(startTime).Seconds()
+				avgThroughput.update(float32(throughput))
 				log.Printf("Train Epoch: %d, Iteration: %d, loss:%f, acc1: %f, acc5:%f, throughput: %f samples/sec", epoch, iter, loss, acc1, acc5, throughput)
 				startTime = time.Now()
 			}
 		}
+		log.Printf("Train Epoch: %d, %s, %s, %s, %s", epoch, avgLoss, avgAcc1, avgAcc5, avgThroughput)
 		test(model, testLoader, epoch)
 	}
 	saveModel(model, save)
