@@ -83,7 +83,14 @@ func New(fn string, vocab map[string]int, trans *transforms.ComposeTransformer,
 		seed:        seed,
 	}
 	go m.shuffleSamples()
-	// `readSamples` and `samplesToMinibatches` calls `gocv`, we make them only run in background OS threads.
+
+	// `readSamples` and `samplesToMinibatches` calls `gocv`, we make them only run
+	// in background OS threads. Otherwise, if we run them in goroutines like
+	// `go m.readSamples()` and `go samplesToMinibatches`, the two goroutines will
+	// create many OS threads without `runtime.LockOSThread` because of the Cgo
+	// mechanism, or cause memory leak with a `runtime.LockOSThread` call. See the
+	// comment of `func newWorkingThreadGroup` for the thread explosion issue and
+	// https://github.com/opencv/opencv/issues/9745 for the memory leak issue.
 	readSamplesCh <- func() { m.readSamples() }
 	samplesToMinibatchesCh <- func() { m.samplesToMinibatches() }
 	counterMu.Lock()
