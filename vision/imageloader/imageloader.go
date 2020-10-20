@@ -7,9 +7,10 @@ import (
 	"math/rand"
 	"path/filepath"
 	"runtime"
+	"sync"
 
 	torch "github.com/wangkuiyi/gotorch"
-	tgz "github.com/wangkuiyi/gotorch/tool/tgz"
+	"github.com/wangkuiyi/gotorch/tool/tgz"
 	"github.com/wangkuiyi/gotorch/vision/transforms"
 	"gocv.io/x/gocv"
 )
@@ -50,6 +51,14 @@ type ImageLoader struct {
 	seed        int64
 }
 
+var (
+	readSamplesCh          = make(chan func(), 1)
+	samplesToMinibatchesCh = make(chan func(), 1)
+	activeInstanceCounter  = 0 // Track the number of instances of the type `ImageLoader`
+	counterMu              = &sync.Mutex{}
+	threadGroupWaterline   = 0 // The number of working thread groups should be as large as the max value of `activeInstanceCounter`
+)
+
 // New returns an ImageLoader
 func New(fn string, vocab map[string]int, trans *transforms.ComposeTransformer,
 	mbSize, bufSize int, seed int64, pinMemory bool, colorSpace string) (*ImageLoader, error) {
@@ -73,10 +82,29 @@ func New(fn string, vocab map[string]int, trans *transforms.ComposeTransformer,
 		bufSize:     bufSize,
 		seed:        seed,
 	}
-	runtime.LockOSThread()
-	go m.readSamples()
 	go m.shuffleSamples()
-	go m.samplesToMinibatches()
+
+	// `readSamples` and `samplesToMinibatches` calls `gocv`, we make them only run
+	// in background OS threads. Otherwise, if we run them in goroutines like
+	// `go m.readSamples()` and `go samplesToMinibatches`, the two goroutines will
+	// create many OS threads without `runtime.LockOSThread` because of the Cgo
+	// mechanism, or cause memory leak with a `runtime.LockOSThread` call. See the
+	// comment of `func newWorkingThreadGroup` for the thread explosion issue and
+	// https://github.com/opencv/opencv/issues/9745 for the memory leak issue.
+	readSamplesCh <- func() { m.readSamples() }
+	samplesToMinibatchesCh <- func() { m.samplesToMinibatches() }
+	counterMu.Lock()
+	defer counterMu.Unlock()
+	activeInstanceCounter++
+	if activeInstanceCounter > threadGroupWaterline {
+		newWorkingThreadGroup()
+		threadGroupWaterline = activeInstanceCounter
+	}
+	runtime.SetFinalizer(m, func(m *ImageLoader) {
+		counterMu.Lock()
+		activeInstanceCounter--
+		counterMu.Unlock()
+	})
 	return m, nil
 }
 
@@ -258,4 +286,23 @@ func decodeImage(buffer []byte, colorSpace string) (gocv.Mat, error) {
 		gocv.CvtColor(m, &m, gocv.ColorBGRToRGB)
 	}
 	return m, e
+}
+
+func newWorkingThreadGroup() {
+	// We use these background threads to call `gocv`. This is because `gocv` makes
+	// `Cgo` calls extensively, if we call `gocv` directly in goroutines(each epoch
+	// creates a new goroutine), the `Cgo` calls will cause Go runtime to create too
+	// many threads.
+	go func() {
+		runtime.LockOSThread()
+		for f := range readSamplesCh {
+			f()
+		}
+	}()
+	go func() {
+		runtime.LockOSThread()
+		for f := range samplesToMinibatchesCh {
+			f()
+		}
+	}()
 }
