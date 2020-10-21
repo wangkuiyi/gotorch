@@ -20,7 +20,7 @@ const char *Rand(int64_t *size, int64_t length, int64_t require_grad,
 // torch.empty
 const char *Empty(int64_t *size, int64_t length, int64_t require_grad,
                   Tensor *result);
-// torch.zeors
+// torch.ones
 const char *Ones(int64_t *size, int64_t length, int64_t require_grad,
                  Tensor *result);
 // torch.eye

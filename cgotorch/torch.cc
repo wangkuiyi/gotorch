@@ -18,12 +18,12 @@ const char *exception_str(const char *e) {
 // Tensor construction and operations
 ////////////////////////////////////////////////////////////////////////////////
 
-const char *RandN(int64_t *size, int64_t length, int64_t require_grad,
+const char *RandN(int64_t *size, int64_t length, int64_t requires_grad,
                   Tensor *result) {
   try {
     at::Tensor t =
         torch::randn(torch::IntArrayRef(size, length),
-                     at::TensorOptions().requires_grad(require_grad));
+                     at::TensorOptions().requires_grad(requires_grad));
     *result = new at::Tensor(t);
     return nullptr;
   } catch (const std::exception &e) {
@@ -31,11 +31,12 @@ const char *RandN(int64_t *size, int64_t length, int64_t require_grad,
   }
 }
 
-const char *Rand(int64_t *size, int64_t length, int64_t require_grad,
+const char *Rand(int64_t *size, int64_t length, int64_t requires_grad,
                  Tensor *result) {
   try {
-    at::Tensor t = torch::rand(torch::IntArrayRef(size, length),
-                               at::TensorOptions().requires_grad(require_grad));
+    at::Tensor t =
+        torch::rand(torch::IntArrayRef(size, length),
+                    at::TensorOptions().requires_grad(requires_grad));
     *result = new at::Tensor(t);
     return nullptr;
   } catch (const std::exception &e) {
@@ -56,12 +57,12 @@ const char *Stack(Tensor *tensors, int64_t tensors_size, int64_t dim,
   }
 }
 
-const char *Empty(int64_t *size, int64_t length, int64_t require_grad,
+const char *Empty(int64_t *size, int64_t length, int64_t requires_grad,
                   Tensor *result) {
   try {
     at::Tensor t =
         torch::empty(torch::IntArrayRef(size, length),
-                     at::TensorOptions().requires_grad(require_grad));
+                     at::TensorOptions().requires_grad(requires_grad));
     *result = new at::Tensor(t);
     return nullptr;
   } catch (const std::exception &e) {
@@ -69,12 +70,13 @@ const char *Empty(int64_t *size, int64_t length, int64_t require_grad,
   }
 }
 
-// torch.zeors
-const char *Ones(int64_t *size, int64_t length, int64_t require_grad,
+// torch.ones
+const char *Ones(int64_t *size, int64_t length, int64_t requires_grad,
                  Tensor *result) {
   try {
-    at::Tensor t = torch::ones(torch::IntArrayRef(size, length),
-                               at::TensorOptions().requires_grad(require_grad));
+    at::Tensor t =
+        torch::ones(torch::IntArrayRef(size, length),
+                    at::TensorOptions().requires_grad(requires_grad));
     *result = new at::Tensor(t);
     return nullptr;
   } catch (const std::exception &e) {
@@ -83,10 +85,10 @@ const char *Ones(int64_t *size, int64_t length, int64_t require_grad,
 }
 
 // torch.eye
-const char *Eye(int64_t n, int64_t m, int64_t require_grad, Tensor *result) {
+const char *Eye(int64_t n, int64_t m, int64_t requires_grad, Tensor *result) {
   try {
     at::Tensor t =
-        torch::eye(n, m, at::TensorOptions().requires_grad(require_grad));
+        torch::eye(n, m, at::TensorOptions().requires_grad(requires_grad));
     *result = new at::Tensor(t);
     return nullptr;
   } catch (const std::exception &e) {
@@ -96,11 +98,11 @@ const char *Eye(int64_t n, int64_t m, int64_t require_grad, Tensor *result) {
 
 // torch.full, only for float32
 const char *Full(int64_t *size, int64_t length, float value,
-                 int64_t require_grad, Tensor *result) {
+                 int64_t requires_grad, Tensor *result) {
   try {
     at::Tensor t =
         torch::full(torch::IntArrayRef(size, length), value,
-                    torch::TensorOptions().requires_grad(require_grad));
+                    torch::TensorOptions().requires_grad(requires_grad));
     *result = new at::Tensor(t);
     return nullptr;
   } catch (const std::exception &e) {
@@ -109,11 +111,11 @@ const char *Full(int64_t *size, int64_t length, float value,
 }
 
 // torch.arange
-const char *Arange(float start, float end, float step, int64_t require_grad,
+const char *Arange(float start, float end, float step, int64_t requires_grad,
                    Tensor *result) {
   try {
     at::Tensor t = torch::arange(
-        start, end, step, torch::TensorOptions().requires_grad(require_grad));
+        start, end, step, torch::TensorOptions().requires_grad(requires_grad));
     *result = new at::Tensor(t);
     return nullptr;
   } catch (const std::exception &e) {
@@ -123,10 +125,10 @@ const char *Arange(float start, float end, float step, int64_t require_grad,
 
 // torch.linspace
 const char *Linspace(float start, float end, int64_t steps,
-                     int64_t require_grad, Tensor *result) {
+                     int64_t requires_grad, Tensor *result) {
   try {
     at::Tensor t = torch::linspace(
-        start, end, steps, torch::TensorOptions().requires_grad(require_grad));
+        start, end, steps, torch::TensorOptions().requires_grad(requires_grad));
     *result = new at::Tensor(t);
     return nullptr;
   } catch (const std::exception &e) {
@@ -136,11 +138,11 @@ const char *Linspace(float start, float end, int64_t steps,
 
 // torch.logspace
 const char *Logspace(float start, float end, int64_t steps, double base,
-                     int64_t require_grad, Tensor *result) {
+                     int64_t requires_grad, Tensor *result) {
   try {
     at::Tensor t =
         torch::logspace(start, end, steps, base,
-                        torch::TensorOptions().requires_grad(require_grad));
+                        torch::TensorOptions().requires_grad(requires_grad));
     *result = new at::Tensor(t);
     return nullptr;
   } catch (const std::exception &e) {
