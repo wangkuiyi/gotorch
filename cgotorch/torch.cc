@@ -34,8 +34,9 @@ const char *RandN(int64_t *size, int64_t length, int64_t requires_grad,
 const char *Rand(int64_t *size, int64_t length, int64_t requires_grad,
                  Tensor *result) {
   try {
-    at::Tensor t = torch::rand(torch::IntArrayRef(size, length),
-                               at::TensorOptions().requires_grad(requires_grad));
+    at::Tensor t =
+        torch::rand(torch::IntArrayRef(size, length),
+                    at::TensorOptions().requires_grad(requires_grad));
     *result = new at::Tensor(t);
     return nullptr;
   } catch (const std::exception &e) {
@@ -73,8 +74,9 @@ const char *Empty(int64_t *size, int64_t length, int64_t requires_grad,
 const char *Ones(int64_t *size, int64_t length, int64_t requires_grad,
                  Tensor *result) {
   try {
-    at::Tensor t = torch::ones(torch::IntArrayRef(size, length),
-                               at::TensorOptions().requires_grad(requires_grad));
+    at::Tensor t =
+        torch::ones(torch::IntArrayRef(size, length),
+                    at::TensorOptions().requires_grad(requires_grad));
     *result = new at::Tensor(t);
     return nullptr;
   } catch (const std::exception &e) {
