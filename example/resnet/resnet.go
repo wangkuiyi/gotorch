@@ -51,7 +51,7 @@ type averageMeter struct {
 	count        int
 }
 
-func newAverageMetric(name string) *averageMeter {
+func newAverageMeter(name string) *averageMeter {
 	return &averageMeter{
 		name:    name,
 		sum:     0.0,
@@ -64,10 +64,6 @@ func (m *averageMeter) update(value float32) {
 	m.sum += value
 	m.count++
 	m.average = m.sum / float32(m.count)
-}
-
-func (m *averageMeter) String() string {
-	return fmt.Sprintf("%s: %.2f", m.name, m.average)
 }
 
 func adjustLearningRate(opt torch.Optimizer, epoch int, lr float64) {
@@ -106,7 +102,8 @@ func imageNetLoader(fn string, vocab map[string]int, mbSize int, pinMemory, isTr
 			transforms.ToTensor(),
 			transforms.Normalize([]float32{0.485, 0.456, 0.406}, []float32{0.229, 0.224, 0.225}))
 	} else {
-		trans = transforms.Compose(transforms.Resize(256),
+		trans = transforms.Compose(
+			transforms.Resize(256),
 			transforms.CenterCrop(224),
 			transforms.ToTensor(),
 			transforms.Normalize([]float32{0.485, 0.456, 0.406}, []float32{0.229, 0.224, 0.225}))
@@ -132,10 +129,9 @@ func trainOneMinibatch(image, target torch.Tensor, model *models.ResnetModule, o
 
 func test(model *models.ResnetModule, loader *imageloader.ImageLoader, epoch int) {
 	model.Train(false)
-	testLoss := float32(0)
-	acc1 := float32(0)
-	acc5 := float32(0)
-	correct := int64(0)
+	avgLoss := newAverageMeter("loss")
+	avgAcc1 := newAverageMeter("acc1")
+	avgAcc5 := newAverageMeter("acc5")
 	iters := 0
 	for loader.Scan() {
 		data, label := loader.Minibatch()
@@ -143,16 +139,16 @@ func test(model *models.ResnetModule, loader *imageloader.ImageLoader, epoch int
 		label = label.To(device, label.Dtype())
 		output := model.Forward(data)
 		acc := accuracy(output, label, []int64{1, 5})
-		acc1 += acc[0]
-		acc5 += acc[1]
-		loss := F.CrossEntropy(output, label, torch.Tensor{}, -100, "mean")
-		pred := output.Argmax(1)
-		testLoss += loss.Item().(float32)
-		correct += pred.Eq(label.View(pred.Shape()...)).Sum(map[string]interface{}{"dim": 0, "keepDim": false}).Item().(int64)
+		avgAcc1.update(acc[0])
+		avgAcc5.update(acc[1])
+		loss := F.CrossEntropy(output, label, torch.Tensor{}, -100, "mean").Item().(float32)
+		avgLoss.update(loss)
+		if iters%logInterval == 0 {
+			log.Printf("Test Iteration: %d, loss: %.4f(%.4f), acc1: %.4f(%.4f), acc5: %.4f(%.4f)", iters, loss, avgLoss.average, acc[0], avgAcc1.average, acc[1], avgAcc5.average)
+		}
 		iters++
 	}
-	log.Printf("Test Epoch: %d, average loss: %.4f acc1: %.4f acc5: %.4f \n",
-		epoch, testLoss/float32(iters), acc1/float32(iters), acc5/float32(iters))
+	log.Printf(" * acc1: %f, acc5: %f", avgAcc1.average, avgAcc5.average)
 }
 
 func train(trainFn, testFn, label, save string, epochs int, pinMemory bool) {
@@ -190,28 +186,28 @@ func train(trainFn, testFn, label, save string, epochs int, pinMemory bool) {
 		adjustLearningRate(optimizer, epoch, lr)
 		trainLoader := imageNetLoader(trainFn, vocab, mbSize, pinMemory, true)
 		testLoader := imageNetLoader(testFn, vocab, mbSize, pinMemory, false)
-		iter := 0
-		avgAcc1 := newAverageMetric("acc1")
-		avgAcc5 := newAverageMetric("acc5")
-		avgLoss := newAverageMetric("loss")
-		avgThroughput := newAverageMetric("throughput")
+		iters := 0
+		avgAcc1 := newAverageMeter("acc1")
+		avgAcc5 := newAverageMeter("acc5")
+		avgLoss := newAverageMeter("loss")
+		avgThroughput := newAverageMeter("throughput")
 		startTime := time.Now()
 		for trainLoader.Scan() {
-			iter++
 			data, label := trainLoader.Minibatch()
 			optimizer.ZeroGrad()
 			loss, acc1, acc5 := trainOneMinibatch(data.To(device, data.Dtype()), label.To(device, label.Dtype()), model, optimizer)
 			avgAcc1.update(acc1)
 			avgAcc5.update(acc5)
 			avgLoss.update(loss)
-			if iter%logInterval == 0 {
+			if iters%logInterval == 0 {
 				throughput := float64(data.Shape()[0]*logInterval) / time.Since(startTime).Seconds()
 				avgThroughput.update(float32(throughput))
-				log.Printf("Train Epoch: %d, Iteration: %d, loss:%f, acc1: %f, acc5:%f, throughput: %f samples/sec", epoch, iter, loss, acc1, acc5, throughput)
+				log.Printf("Train Epoch: %d, Iteration: %d, loss:%.4f(%.4f), acc1: %.4f(%.4f), acc5:%.4f(%.4f), throughput: %.4f(%.4f) samples/sec",
+					epoch, iters, loss, avgLoss.average, acc1, avgAcc1.average, acc5, avgAcc5.average, throughput, avgThroughput.average)
 				startTime = time.Now()
 			}
+			iters++
 		}
-		log.Printf("Train Epoch: %d, %s, %s, %s, %s", epoch, avgLoss, avgAcc1, avgAcc5, avgThroughput)
 		test(model, testLoader, epoch)
 	}
 	saveModel(model, save)
@@ -246,6 +242,24 @@ func saveModel(model *models.ResnetModule, modelFn string) {
 	}
 }
 
+func loadModel(modelFn string, device torch.Device) *models.ResnetModule {
+	f, e := os.Open(modelFn)
+	if e != nil {
+		log.Fatal(e)
+	}
+	defer f.Close()
+
+	states := make(map[string]torch.Tensor)
+	if e := gob.NewDecoder(f).Decode(&states); e != nil {
+		log.Fatal(e)
+	}
+
+	model := models.Resnet50()
+	model.SetStateDict(states)
+	model.To(device)
+	return model
+}
+
 func main() {
 	if torch.IsCUDAAvailable() {
 		log.Println("CUDA is valid")
@@ -256,14 +270,32 @@ func main() {
 	}
 
 	initializer.ManualSeed(1)
-	trainTar := flag.String("data", "/tmp/imagenet_training_shuffled.tar.gz", "data tarball")
-	testTar := flag.String("test", "/tmp/imagenet_testing_shuffled.tar.gz", "data tarball")
-	label := flag.String("label", "", "label vocabulary")
-	save := flag.String("save", "/tmp/imagenet_model.gob", "the model file")
-	epochs := flag.Int("epochs", 5, "the number of epochs")
-	pinMemory := flag.Bool("pin_memory", false, "use pinned memory")
+	trainCmd := flag.NewFlagSet("train", flag.ExitOnError)
+	trainTar := trainCmd.String("data", "/tmp/imagenet_training_shuffled.tar.gz", "data tarball")
+	testTar := trainCmd.String("test", "/tmp/imagenet_testing_shuffled.tar.gz", "data tarball")
+	label := trainCmd.String("label", "", "label vocabulary")
+	save := trainCmd.String("save", "/tmp/imagenet_model.gob", "the model file")
+	epochs := trainCmd.Int("epochs", 5, "the number of epochs")
+	pinMemory := trainCmd.Bool("pin_memory", false, "use pinned memory")
 
-	flag.Parse()
+	validateCmd := flag.NewFlagSet("validate", flag.ExitOnError)
+	valTar := validateCmd.String("data", "/tmp/imagenet_testing_shuffled.tar.gz", "data tarball")
+	valLabel := validateCmd.String("label", "", "label vocabulary")
+	load := validateCmd.String("load", "/tmp/mnist_model.gob", "the model file")
 
-	train(*trainTar, *testTar, *label, *save, *epochs, *pinMemory && torch.IsCUDAAvailable())
+	if len(os.Args) < 2 {
+		fmt.Fprintf(os.Stderr, "Usage: %s needs subcommand train or validate\n", os.Args[0])
+		os.Exit(1)
+	}
+
+	switch os.Args[1] {
+	case "train":
+		trainCmd.Parse(os.Args[2:])
+		train(*trainTar, *testTar, *label, *save, *epochs, *pinMemory && torch.IsCUDAAvailable())
+	case "validate":
+		validateCmd.Parse(os.Args[2:])
+		testLoader := imageNetLoader(*valTar, loadLabel(*valLabel), 128, false, false)
+		model := loadModel(*load, device)
+		test(model, testLoader, 0)
+	}
 }
