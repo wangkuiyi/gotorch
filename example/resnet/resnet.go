@@ -127,7 +127,7 @@ func trainOneMinibatch(image, target torch.Tensor, model *models.ResnetModule, o
 	return loss.Item().(float32), acc1, acc5
 }
 
-func test(model *models.ResnetModule, loader *imageloader.ImageLoader, epoch int) {
+func validate(model *models.ResnetModule, loader *imageloader.ImageLoader, epoch int) {
 	model.Train(false)
 	avgLoss := newAverageMeter("loss")
 	avgAcc1 := newAverageMeter("acc1")
@@ -208,7 +208,7 @@ func train(trainFn, testFn, label, save string, epochs int, pinMemory bool) {
 			}
 			iters++
 		}
-		test(model, testLoader, epoch)
+		validate(model, testLoader, epoch)
 	}
 	saveModel(model, save)
 }
@@ -296,6 +296,6 @@ func main() {
 		validateCmd.Parse(os.Args[2:])
 		testLoader := imageNetLoader(*valTar, loadLabel(*valLabel), 128, false, false)
 		model := loadModel(*load, device)
-		test(model, testLoader, 0)
+		validate(model, testLoader, 0)
 	}
 }
