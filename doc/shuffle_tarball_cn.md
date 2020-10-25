@@ -14,7 +14,8 @@
 顺序方式去读取包含大量图像文件的 `.tar` 或 `.tar.gz` 包，而无需频繁移动磁头去寻找文件。
 
 ## 注意
-   在 macOS 上应该使用 gnu-tar 代替 bsdtar
+
+在 macOS 上应该使用 gnu-tar 代替 bsdtar。
 
 ## 打乱顺序（Shuffling）
 
