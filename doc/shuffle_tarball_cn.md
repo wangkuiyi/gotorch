@@ -13,6 +13,9 @@
 一个描述头部和紧随其后的文件内容。特别地，目录只包含描述部分而没有文件内容。这种结构允许我们以
 顺序方式去读取包含大量图像文件的 `.tar` 或 `.tar.gz` 包，而无需频繁移动磁头去寻找文件。
 
+## 注意
+   在 macOS 上应该使用 gnu-tar 代替 bsdtar
+
 ## 打乱顺序（Shuffling）
 
 在深度学习中，保证输入模型的每一批数据（minibatch）中包含不同的标签是至关重要的。这个特性称为
@@ -53,7 +56,7 @@ drwxr-x---  0 myleott myleott     0 Dec 10  2015 mnist_png/testing/2/
 `tarball_divide` 和 `tarball_merge`。 我们可以通过以下命令来安装它们：
 
 ```bash
-go get github.com/wangkuiyi/gotorch/tools/...
+go get github.com/wangkuiyi/gotorch/tool/...
 ```
 
 运行上述命令后，我们可以在 `$GOPATH/bin` 中找到这两个工具的二进制文件。
@@ -105,6 +108,7 @@ go get github.com/wangkuiyi/gotorch/tools/...
    rm [0-9].tar.gz
    tarball_divide mnist_png_testing.tar.gz
    tarball_merge -out=mnist_png_testing_shuffled.tar.gz [0-9].tar.gz
+   rm [0-9].tar.gz
    tar tvf mnist_png_testing_shuffled.tar.gz | grep \.png$ | wc -l
    tar tvf mnist_png_testing.tar.gz | grep \.png$ | wc -l
    ```

@@ -19,6 +19,9 @@ file content.  A directory does not have content, but only headers.  This format
 allows us to read sequentially from `.tar` or `.tar.gz` file for image files
 without causing frequent mechanical movements in hard drives.
 
+## Caution
+   gnu-tar should be used on macOS instead of bsdtar.
+
 ## Shuffling
 
 It is critical in deep learning to ensure that each minibatch or consecutive
@@ -68,7 +71,7 @@ divide-and-merge strategy -- `tarball_divide` and `tarball_merge`.
 To install them, we need the Go compiler and run the following commands.
 
 ```bash
-go get github.com/wangkuiyi/gotorch/tools/...
+go get github.com/wangkuiyi/gotorch/tool/...
 ```
 
 We can then find the executable files in `$GOPATH/bin`.
