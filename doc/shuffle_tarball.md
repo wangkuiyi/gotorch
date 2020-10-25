@@ -20,7 +20,8 @@ allows us to read sequentially from `.tar` or `.tar.gz` file for image files
 without causing frequent mechanical movements in hard drives.
 
 ## Caution
-   gnu-tar should be used on macOS instead of bsdtar.
+
+We must use GNU tar instead of bsdtar on macOS.
 
 ## Shuffling
 
