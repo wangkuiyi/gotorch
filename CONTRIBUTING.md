@@ -21,6 +21,7 @@ $GOPATH/src/github.com/wangkuiyi/gotorch/cgotorch/build.sh
 Run the Go examples and unit tests.
 
 ```bash
+cd $GOPATH/src/github.com/wangkuiyi/gotorch
 go test -v github.com/wangkuiyi/gotorch/...
 ```
 
