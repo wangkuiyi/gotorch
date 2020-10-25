@@ -4,7 +4,6 @@ import (
 	"encoding/gob"
 	"flag"
 	"fmt"
-	"image"
 	"log"
 	"os"
 	"path/filepath"
@@ -17,6 +16,7 @@ import (
 	"github.com/wangkuiyi/gotorch/vision/imageloader"
 	"github.com/wangkuiyi/gotorch/vision/models"
 	"github.com/wangkuiyi/gotorch/vision/transforms"
+	"gocv.io/x/gocv"
 )
 
 var device torch.Device
@@ -169,17 +169,7 @@ func loadModel(modelFn string) *models.MLPModule {
 }
 
 func predictFile(fn string, m *models.MLPModule) {
-	f, e := os.Open(fn)
-	if e != nil {
-		log.Fatal(e)
-	}
-	defer f.Close()
-
-	img, _, e := image.Decode(f)
-	if e != nil {
-		log.Fatalf("Cannot decode input image: %v", e)
-	}
-
+	img := gocv.IMRead(fn, gocv.IMReadGrayScale)
 	t := transforms.ToTensor().Run(img)
 	n := transforms.Normalize([]float32{0.1307}, []float32{0.3081}).Run(t)
 	fmt.Println(m.Forward(n).Argmax().Item())
