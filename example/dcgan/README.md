@@ -22,7 +22,7 @@ Training loss of PyTorch:
 
 From the Web page [CelebA
 dataset](http://mmlab.ie.cuhk.edu.hk/projects/CelebA.html), we can choose to
-download the ZIP archive `img_align_celeba.zip` from Googel Drive or Baidu
+download the ZIP archive `img_align_celeba.zip` from Google Drive or Baidu
 Drive.
 
 The following command unzip the archive and creates a tarball `train.tgz` of the
