@@ -9,3 +9,4 @@
 #include "cgotorch/pickle.h"
 #include "cgotorch/tensor.h"
 #include "cgotorch/torch.h"
+#include "cgotorch/parallel.h"
