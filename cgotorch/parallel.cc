@@ -2,6 +2,7 @@
 #ifdef WITH_CUDA
 #include <torch/nn/parallel/data_parallel.h>
 #endif
+
 #include "cgotorch/parallel.h"
 
 typedef Tensor (*ForwardMethod)(void *, Tensor);
@@ -12,13 +13,13 @@ struct goModule {
   char *m_;
   ForwardMethod f_;
   goModule(char *m, void *f) : m_(m), f_(reinterpret_cast<ForwardMethod>(f)) {}
-  at::Tensor forward(at::Tensor input) {
+  at::Tensor forward(at::Tensor input) {  // NOLINT: include_what_you_use
     // TODO(shendiaomo): check the return value of `f_`
     return *f_(m_, &input);
   }
 };
 
-const char *DataParallel(char *go_module, void* f, Tensor input, Device *device,
+const char *DataParallel(char *go_module, void *f, Tensor input, Device *device,
                          int64_t size, Device *output, int64_t dim) {
 #ifdef WITH_CUDA
   try {

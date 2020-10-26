@@ -11,7 +11,7 @@ extern "C" {
 // Parallel
 ////////////////////////////////////////////////////////////////////////////////
 
-const char *DataParallel(char *go_module, void* f, Tensor input, Device *device,
+const char *DataParallel(char *go_module, void *f, Tensor input, Device *device,
                          int64_t size, Device *output, int64_t dim);
 #ifdef __cplusplus
 }
