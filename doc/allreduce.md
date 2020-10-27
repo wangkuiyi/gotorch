@@ -1,6 +1,5 @@
 # AllReduce
 
-
 ## Introduction
 
 Data parallelism enables distributed training by communicating gradients before the optimizer step to make sure that parameters of all model replicas are updated using exactly the same set of gradients, and hence model replicas can stay consistent across iterations.
@@ -26,7 +25,6 @@ Before discussing how to support AllReduce in GoTorch, it's necessary to have a 
 PyTorch offers several tools to facilitate distributed training, including [DataParallel](https://pytorch.org/docs/stable/generated/torch.nn.DataParallel.html#torch.nn.DataParallel) for single-process multi-thread data parallel training using multiple GPUs on the same machine, [DistributedDataParallel](https://pytorch.org/docs/stable/generated/torch.nn.parallel.DistributedDataParallel.html#torch.nn.parallel.DistributedDataParallel) for multi-process data parallel training across GPUs and machines.
 
 Single-process multi-GPU is not the recommended mode now, becase of its overhead of scatter/gather and GIL contention in every forward pass. So, let's focus on DistributedDataParallel.
-
 
 ### Collective Communication Library
 
@@ -75,6 +73,8 @@ int main(int argc, char** argv) {
 
 The training samples are partitioned statically in distributed training of PyTorch. The [DistributedSampler](https://pytorch.org/docs/stable/_modules/torch/utils/data/distributed.html#DistributedSampler) generates a sequence of indices of training samples for each training process. Then, each training process load subset samples by the indices.
 
+**Note:** The dataset is assumed to be of constant size.
+
 ### Launch Utility
 
 The `torch.distributed` package provides a launch utility in [torch.distributed.launch](https://github.com/pytorch/pytorch/blob/master/torch/distributed/launch.py). This helper utility can be used to launch multiple processes per node for distributed training. If the utility is used for GPU training, each distributed process will be operating on a single GPU.
@@ -89,21 +89,31 @@ The naive implementation of training procedures in [Introduction](#Introduction)
 
 PyTorch does more optimizations to solve these two problems:
 
-- bucket gradients to reduce AllReduce kernels overhead.
-- register AllReduce kernels as autograd hooks to overlap communication and computation.
+- Bucketing gradients to reduce AllReduce kernels overhead.
+- Registering AllReduce kernels as autograd hooks to overlap communication and computation.
 
 For more details, please refer to the [paper](https://arxiv.org/abs/2006.15704).
 
 
 ## AllReduce in GoTorch
 
-### Stage 1
+We plan to implement the functionalities of DistributedDataParallel gradually in GoTorch. At stage 1, we provide a naive solution. A MNIST distributed example is the target in this stage. At stage 2, we will provide a optimized solution. Bucketing gradients and registering hooks will be implemented at this stage.
+
+### RecordIODataLoader
 
 
 
+### Go wrapper of c10d Library
 
+[ProcessGroupNCCL](https://github.com/pytorch/pytorch/blob/master/torch/lib/c10d/ProcessGroupNCCL.hpp) implements NCCL bindings for c10d library. After adding a Go wrapper of this class, we could doing allreduce on torch tensors in Go.
 
-### Stage 2
+### Go Launch Utility
+
+Go provides [os/exec](https://golang.org/pkg/os/exec/) library to spawn processes.
+
+### Optimization at Stage 2
+
+TBD
 
 ## Reference
 
