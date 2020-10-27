@@ -62,6 +62,9 @@ var (
 // New returns an ImageLoader
 func New(fn string, vocab map[string]int, trans *transforms.ComposeTransformer,
 	mbSize, bufSize int, seed int64, pinMemory bool, colorSpace string) (*ImageLoader, error) {
+	if mbSize <= 0 {
+		panic("mbSize(batch size) should be greater than 0")
+	}
 	r, e := tgz.OpenFile(fn)
 	if e != nil {
 		return nil, e

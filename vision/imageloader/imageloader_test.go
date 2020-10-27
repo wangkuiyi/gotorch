@@ -65,7 +65,6 @@ func TestImageTgzLoader(t *testing.T) {
 		transforms.Normalize([]float32{0.1307}, []float32{0.3081}),
 	)
 	loader, e := New(fn, vocab, trans, 3, 3, 1, false, "rgb")
-	defer torch.FinishGC()
 	a.NoError(e)
 	{
 		// first iteration
@@ -89,6 +88,37 @@ func TestImageTgzLoader(t *testing.T) {
 
 	_, e = BuildLabelVocabularyFromTgz("no file")
 	a.Error(e)
+}
+
+func TestCornerCase(t *testing.T) {
+	a := assert.New(t)
+	d, e := ioutil.TempDir("", "gotorch_image_tgz_loader*")
+	a.NoError(e)
+
+	fn, e := tgz.SynthesizeTarball(d)
+	a.NoError(e)
+	expectedVocab := map[string]int{"0": 0, "1": 1}
+	vocab, e := BuildLabelVocabularyFromTgz(fn)
+	a.NoError(e)
+	a.Equal(expectedVocab, vocab)
+	trans := transforms.Compose(
+		transforms.ToTensor(),
+		transforms.Normalize([]float32{0.1307}, []float32{0.3081}),
+	)
+	loader, e := New(fn, vocab, trans, 5, 3, 1, false, "rgb")
+	a.NoError(e)
+	a.NotPanics(func() {
+		for loader.Scan() {
+			data, label := loader.Minibatch()
+			a.Equal([]int64{5, 3, 2, 2}, data.Shape())
+			a.Equal([]int64{5}, label.Shape())
+		}
+	})
+	a.NoError(loader.Err())
+
+	a.Panics(func() { New(fn, vocab, trans, -1, 3, 1, false, "rgb") })
+	a.Panics(func() { New(fn, vocab, trans, 0, 3, 1, false, "rgb") })
+
 }
 
 func TestImageTgzLoaderHeavy(t *testing.T) {
