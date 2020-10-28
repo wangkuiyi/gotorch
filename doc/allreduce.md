@@ -118,16 +118,16 @@ The naive implementation of training procedures
 in [Introduction](#Introduction) section has two performance concerns:
 
 - Collective communication performs poorly on
-small tensors, which will be especially prominent on large models
-with massive numbers of small parameters.
+  small tensors, which will be especially prominent on large models
+  with massive numbers of small parameters.
 - Separating gradient computation and synchronization forfeits the opportunity
-to overlap computation with communication due to the hard boundary in between.
+  to overlap computation with communication due to the hard boundary in between.
 
 PyTorch does more optimizations to solve these two problems:
 
 - Bucketing gradients to reduce AllReduce kernels overhead.
 - Registering AllReduce kernels as autograd hooks
-to overlap communication and computation.
+  to overlap communication and computation.
 
 For more details, please refer to the [paper](https://arxiv.org/abs/2006.15704).
 
@@ -149,11 +149,9 @@ At stage 1, we support static sharding only.
 Following are the steps of static sharding in distributed training:
 
 1. Convert samples into RecordIO format.
-
 1. Partition records into several tasks. Each task contains
-a sequence of `{file, start_idx, end_idx}` structs.
+   a sequence of `{file, start_idx, end_idx}` structs.
 1. Shuffle tasks and assign a subset of tasks to a training process.
-
 1. Decode records in tasks and feed to the neural network.
 
 ### Go Wrapper of c10d Library
