@@ -144,13 +144,13 @@ Bucketing gradients and registering hooks will be implemented at this stage.
 
 The RecordIO format is a simple format for a sequence of binary records.
 It provides a way to seek the beginning of any record in a file.
-We could partition the data in RecordIO format into training processes.
+We could partition the RecordIO data and assgin to training processes.
 At stage 1, we support static sharding only.
 Following are the steps of static sharding in distributed training:
 
 1. Convert samples into RecordIO format.
 1. Partition records into several tasks. Each task contains
-   a sequence of `{file, start_idx, end_idx}` structs.
+   one or more `{file, start_idx, end_idx}` tuples.
 1. Shuffle tasks and assign a subset of tasks to a training process.
 1. Decode records in tasks and feed to the neural network.
 
