@@ -12,12 +12,27 @@ const char *Gloo_NewFileStore(const char *path, int64_t num_workers,
   }
 }
 
-const char *Gloo_NewProcessGroupGloo(FileStore *store, int64_t rank,
+const char *Gloo_NewProcessGroupGloo(FileStore store, int64_t rank,
                                      int64_t size, ProcessGroupGloo *pg) {
   try {
     *pg = new c10d::ProcessGroupGloo(
-        std::shared_ptr<c10d::Store>(static_cast<c10d::FileStore *>(*store)),
+        std::shared_ptr<c10d::Store>(static_cast<c10d::FileStore *>(store)),
         rank, size);
+    return nullptr;
+  } catch (const std::exception &e) {
+    return exception_str(e.what());
+  }
+}
+
+const char *Gloo_allreduce(ProcessGroupGloo pg, Tensor *tensors,
+                           int64_t length) {
+  try {
+    std::vector<torch::Tensor> ts;
+    while (ts.size() < length) {
+      ts.push_back(**tensors++);
+    }
+    auto work = static_cast<c10d::ProcessGroupGloo *>(pg)->allreduce(ts);
+    work->wait();
     return nullptr;
   } catch (const std::exception &e) {
     return exception_str(e.what());

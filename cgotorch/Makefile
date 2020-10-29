@@ -13,7 +13,7 @@ objs := $(srcs:%.cc=%.o)
 	-O -c $< -o $@
 
 libcgotorch.so: $(objs) ${LIBTORCH_DIR}
-	${CXX} 	-v -L libtorch/lib \
+	${CXX} -L libtorch/lib \
 	$(objs) \
 	-shared \
 	-o $@ ${INSTALL_NAME} \
