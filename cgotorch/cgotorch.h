@@ -3,6 +3,7 @@
 #include "cgotorch/cuda.h"
 #include "cgotorch/device.h"
 #include "cgotorch/functional.h"
+#include "cgotorch/gloo.h"
 #include "cgotorch/init.h"
 #include "cgotorch/memory.h"
 #include "cgotorch/optim.h"
