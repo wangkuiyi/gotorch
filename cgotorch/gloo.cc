@@ -1,0 +1,25 @@
+// Copyright 2020, GoTorch Authors
+
+#include "cgotorch/gloo.h"
+
+const char *Gloo_NewFileStore(const char *path, int64_t num_workers,
+                              FileStore *store) {
+  try {
+    *store = new c10d::FileStore(std::string(path), num_workers);
+    return nullptr;
+  } catch (const std::exception &e) {
+    return exception_str(e.what());
+  }
+}
+
+const char *Gloo_NewProcessGroupGloo(FileStore *store, int64_t rank,
+                                     int64_t size, ProcessGroupGloo *pg) {
+  try {
+    *pg = new c10d::ProcessGroupGloo(
+        std::shared_ptr<c10d::Store>(static_cast<c10d::FileStore *>(*store)),
+        rank, size);
+    return nullptr;
+  } catch (const std::exception &e) {
+    return exception_str(e.what());
+  }
+}
