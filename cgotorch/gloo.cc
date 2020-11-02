@@ -1,6 +1,9 @@
 // Copyright 2020, GoTorch Authors
 
 #include "cgotorch/gloo.h"
+#include <memory>
+#include <string>
+#include <vector>
 
 const char *Gloo_NewFileStore(const char *path, int64_t num_workers,
                               FileStore *store) {

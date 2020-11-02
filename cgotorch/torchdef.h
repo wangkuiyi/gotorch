@@ -8,8 +8,8 @@
 #include <torch/torch.h>
 #include <c10d/FileStore.hpp>
 #include <c10d/ProcessGroupGloo.hpp>
-#include <vector>
 
+#include <vector>  // NOLINT
 extern "C" {
 typedef at::Tensor *Tensor;
 typedef torch::optim::Optimizer *Optimizer;
