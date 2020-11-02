@@ -9,28 +9,88 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func allreduce(rank, size int64, a Tensor, f *os.File, wg *sync.WaitGroup) {
-	defer wg.Done()
-
-	fs := NewFileStore(f.Name(), size)
-	pg := NewProcessGroupGloo(fs, rank, size)
-	pg.AllReduce([]Tensor{a})
-}
-
 func TestGlooAllReduce(t *testing.T) {
 	f, _ := ioutil.TempFile("", "sample")
 	defer os.Remove(f.Name())
 
 	a := NewTensor([][]float32{{1, 2}, {3, 4}})
 	b := NewTensor([][]float32{{4, 3}, {2, 1}})
+
+	ts := []Tensor{a, b}
 	wg := sync.WaitGroup{}
 	wg.Add(2)
 
-	go allreduce(0, 2, a, f, &wg)
-	go allreduce(1, 2, b, f, &wg)
+	for i := 0; i < 2; i++ {
+		go func(rank int64, a Tensor) {
+			defer wg.Done()
+			fs := NewFileStore(f.Name(), 2)
+			pg := NewProcessGroupGloo(fs, rank, 2)
+			pg.AllReduce([]Tensor{a})
+		}(int64(i), ts[i])
+	}
 
 	wg.Wait()
 
 	assert.Equal(t, " 5  5\n 5  5\n[ CPUFloatType{2,2} ]", a.String())
 	assert.Equal(t, " 5  5\n 5  5\n[ CPUFloatType{2,2} ]", b.String())
+}
+
+func TestGlooAllReduceCoalesced(t *testing.T) {
+	f, _ := ioutil.TempFile("", "sample")
+	defer os.Remove(f.Name())
+
+	a1 := NewTensor([][]float32{{1, 2}})
+	a2 := NewTensor([][]float32{{3, 4}})
+	a := []Tensor{a1, a2}
+
+	b1 := NewTensor([][]float32{{4, 3}})
+	b2 := NewTensor([][]float32{{2, 1}})
+	b := []Tensor{b1, b2}
+
+	ts := [][]Tensor{a, b}
+
+	wg := sync.WaitGroup{}
+	wg.Add(2)
+
+	for i := 0; i < 2; i++ {
+		go func(rank int64, a []Tensor) {
+			defer wg.Done()
+			fs := NewFileStore(f.Name(), 2)
+			pg := NewProcessGroupGloo(fs, rank, 2)
+			pg.AllReduceCoalesced(a)
+		}(int64(i), ts[i])
+	}
+
+	wg.Wait()
+
+	assert.Equal(t, " 5  5\n[ CPUFloatType{1,2} ]", a1.String())
+	assert.Equal(t, " 5  5\n[ CPUFloatType{1,2} ]", b1.String())
+	assert.Equal(t, " 5  5\n[ CPUFloatType{1,2} ]", a2.String())
+	assert.Equal(t, " 5  5\n[ CPUFloatType{1,2} ]", b2.String())
+}
+
+func TestGlooBroadcast(t *testing.T) {
+	f, _ := ioutil.TempFile("", "sample")
+	defer os.Remove(f.Name())
+
+	a := NewTensor([][]float32{{1, 2}, {3, 4}})
+	b := NewTensor([][]float32{{4, 3}, {2, 1}})
+
+	ts := []Tensor{a, b}
+	wg := sync.WaitGroup{}
+	wg.Add(2)
+
+	for i := 0; i < 2; i++ {
+		go func(rank int64, a Tensor) {
+			defer wg.Done()
+			fs := NewFileStore(f.Name(), 2)
+			pg := NewProcessGroupGloo(fs, rank, 2)
+			pg.Broadcast([]Tensor{a})
+		}(int64(i), ts[i])
+	}
+
+	wg.Wait()
+
+	assert.Equal(t, " 1  2\n 3  4\n[ CPUFloatType{2,2} ]", a.String())
+	assert.Equal(t, " 1  2\n 3  4\n[ CPUFloatType{2,2} ]", b.String())
 }

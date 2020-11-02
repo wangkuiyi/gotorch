@@ -14,6 +14,13 @@ const char *Gloo_NewProcessGroupGloo(FileStore store, int64_t rank,
 
 const char *Gloo_allreduce(ProcessGroupGloo pg, Tensor *tensors,
                            int64_t length);
+
+const char *Gloo_allreduce_coalesced(ProcessGroupGloo pg, Tensor *tensors,
+                                     int64_t length);
+
+const char *Gloo_broadcast(ProcessGroupGloo pg, Tensor *tensors,
+                           int64_t length);
+
 #ifdef __cplusplus
 }
 #endif

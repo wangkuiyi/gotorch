@@ -87,5 +87,5 @@ make CXX="$CXX" \
      LOAD="$LOAD" \
      CUDA_FLAGS="$CUDA_FLAGS" \
      DEPS="$DEPS" \
-     -f Makefile -j `nproc`
+     -f Makefile -j `getconf _NPROCESSORS_ONLN`
 popd

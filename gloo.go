@@ -31,7 +31,7 @@ func NewProcessGroupGloo(fs FileStore, rank, size int64) ProcessGroupGloo {
 	return ProcessGroupGloo{&t}
 }
 
-// AllReduce sum tensors
+// AllReduce method: todo(qijun) only support sum
 func (pg ProcessGroupGloo) AllReduce(tensors []Tensor) {
 	CT := []C.Tensor{}
 	for _, t := range tensors {
@@ -39,4 +39,26 @@ func (pg ProcessGroupGloo) AllReduce(tensors []Tensor) {
 	}
 	p := (*C.Tensor)(unsafe.Pointer(&CT[0]))
 	MustNil(unsafe.Pointer(C.Gloo_allreduce(*pg.PGG, p, C.int64_t(len(CT)))))
+}
+
+// AllReduceCoalesced method: tensors will be flattened and
+// concatenated (coalesced). This means that input tensors
+// must have the same device, layout and type.
+func (pg ProcessGroupGloo) AllReduceCoalesced(tensors []Tensor) {
+	CT := []C.Tensor{}
+	for _, t := range tensors {
+		CT = append(CT, C.Tensor(*t.T))
+	}
+	p := (*C.Tensor)(unsafe.Pointer(&CT[0]))
+	MustNil(unsafe.Pointer(C.Gloo_allreduce_coalesced(*pg.PGG, p, C.int64_t(len(CT)))))
+}
+
+// Broadcast method
+func (pg ProcessGroupGloo) Broadcast(tensors []Tensor) {
+	CT := []C.Tensor{}
+	for _, t := range tensors {
+		CT = append(CT, C.Tensor(*t.T))
+	}
+	p := (*C.Tensor)(unsafe.Pointer(&CT[0]))
+	MustNil(unsafe.Pointer(C.Gloo_broadcast(*pg.PGG, p, C.int64_t(len(CT)))))
 }

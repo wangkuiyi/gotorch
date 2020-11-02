@@ -44,3 +44,34 @@ const char *Gloo_allreduce(ProcessGroupGloo pg, Tensor *tensors,
     return exception_str(e.what());
   }
 }
+
+const char *Gloo_allreduce_coalesced(ProcessGroupGloo pg, Tensor *tensors,
+                                     int64_t length) {
+  try {
+    std::vector<torch::Tensor> ts;
+    while (ts.size() < length) {
+      ts.push_back(**tensors++);
+    }
+    auto work =
+        static_cast<c10d::ProcessGroupGloo *>(pg)->allreduce_coalesced(ts);
+    work->wait();
+    return nullptr;
+  } catch (const std::exception &e) {
+    return exception_str(e.what());
+  }
+}
+
+const char *Gloo_broadcast(ProcessGroupGloo pg, Tensor *tensors,
+                           int64_t length) {
+  try {
+    std::vector<torch::Tensor> ts;
+    while (ts.size() < length) {
+      ts.push_back(**tensors++);
+    }
+    auto work = static_cast<c10d::ProcessGroupGloo *>(pg)->broadcast(ts);
+    work->wait();
+    return nullptr;
+  } catch (const std::exception &e) {
+    return exception_str(e.what());
+  }
+}
