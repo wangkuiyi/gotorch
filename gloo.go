@@ -7,16 +7,27 @@ package gotorch
 import "C"
 import "unsafe"
 
-// FileStore struct
-type FileStore struct {
-	FS *C.FileStore
+// Store struct
+type Store struct {
+	Store *C.Store
 }
 
 // NewFileStore creates a FileStore instance
-func NewFileStore(path string, size int64) FileStore {
-	var t C.FileStore
+func NewFileStore(path string, size int64) Store {
+	var t C.Store
 	MustNil(unsafe.Pointer(C.Gloo_NewFileStore(C.CString(path), C.int64_t(size), &t)))
-	return FileStore{&t}
+	return Store{&t}
+}
+
+// NewTCPStore creates a TCPStore instance
+func NewTCPStore(addr string, port, size int64, isServer bool) Store {
+	is := 0
+	if isServer {
+		is = 1
+	}
+	var t C.Store
+	MustNil(unsafe.Pointer(C.Gloo_NewTCPStore(C.CString(addr), C.int64_t(port), C.int64_t(size), C.int64_t(is), &t)))
+	return Store{&t}
 }
 
 // ProcessGroupGloo struct
@@ -25,9 +36,9 @@ type ProcessGroupGloo struct {
 }
 
 // NewProcessGroupGloo creates a ProcessGroupGloo instance
-func NewProcessGroupGloo(fs FileStore, rank, size int64) ProcessGroupGloo {
+func NewProcessGroupGloo(s Store, rank, size int64) ProcessGroupGloo {
 	var t C.ProcessGroupGloo
-	MustNil(unsafe.Pointer(C.Gloo_NewProcessGroupGloo(*fs.FS, C.int64_t(rank), C.int64_t(size), &t)))
+	MustNil(unsafe.Pointer(C.Gloo_NewProcessGroupGloo(*s.Store, C.int64_t(rank), C.int64_t(size), &t)))
 	return ProcessGroupGloo{&t}
 }
 
