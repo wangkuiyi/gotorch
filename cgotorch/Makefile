@@ -21,7 +21,7 @@ libcgotorch.so: $(objs) ${LIBTORCH_DIR}
 	-Wl,-rpath,libtorch/lib \
 	-Wl,-${LOAD} libtorch/lib/libc10.${LIB_SUFFIX} \
 	-lc10 -ltorch -ltorch_cpu \
-	`pkg-config --cflags --libs libuv`
+	${DEPS}
 
 clean:
 	rm -rf *.so *.o
