@@ -15,9 +15,12 @@ const char *Gloo_NewFileStore(const char *path, int64_t num_workers,
 const char *Gloo_NewProcessGroupGloo(FileStore store, int64_t rank,
                                      int64_t size, ProcessGroupGloo *pg) {
   try {
+    auto d = c10d::ProcessGroupGloo::createDefaultDevice();
+    auto opt = c10d::ProcessGroupGloo::Options();
+    opt.devices.push_back(d);
     *pg = new c10d::ProcessGroupGloo(
         std::shared_ptr<c10d::Store>(static_cast<c10d::FileStore *>(store)),
-        rank, size);
+        rank, size, opt);
     return nullptr;
   } catch (const std::exception &e) {
     return exception_str(e.what());

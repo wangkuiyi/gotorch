@@ -32,7 +32,7 @@ func NewProcessGroupGloo(fs FileStore, rank, size int64) ProcessGroupGloo {
 }
 
 // AllReduce sum tensors
-func (ProcessGroupGloo pg) AllReduce(tensors []Tensor) {
+func (pg ProcessGroupGloo) AllReduce(tensors []Tensor) {
 	CT := []C.Tensor{}
 	for _, t := range tensors {
 		CT = append(CT, C.Tensor(*t.T))
