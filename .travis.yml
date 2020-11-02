@@ -22,6 +22,7 @@ addons:
     packages:
       - opencv
       - pkgconfig
+      - libuv # to use gloo in macOS, we install libuv
     update: true
 
 branches:
