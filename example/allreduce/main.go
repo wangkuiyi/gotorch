@@ -2,9 +2,6 @@ package main
 
 import (
 	"flag"
-	"fmt"
-	"log"
-	"os"
 
 	torch "github.com/wangkuiyi/gotorch"
 	F "github.com/wangkuiyi/gotorch/nn/functional"
@@ -26,13 +23,6 @@ func getGrads(params []torch.Tensor) (grads []torch.Tensor) {
 func main() {
 	flag.Parse()
 
-	f, err := os.OpenFile(fmt.Sprintf("%d.log", *rank), os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0666)
-	if err != nil {
-		log.Fatalf("error opening file: %v", err)
-	}
-	defer f.Close()
-	log.SetOutput(f)
-
 	ts := torch.NewTCPStore(*masterAddr, int64(*masterPort), int64(*size), *rank == 0)
 	defer ts.Close()
 	pg := torch.NewProcessGroupGloo(ts, int64(*rank), int64(*size))
@@ -43,11 +33,9 @@ func main() {
 	params := net.Parameters()
 	opt.AddParameters(params)
 
-	log.Println(params[0].Index(0).Item())
 	for _, p := range params {
 		pg.Broadcast([]torch.Tensor{p})
 	}
-	log.Println(params[0].Index(0).Item())
 
 	for i := 0; i < 10; i++ {
 		data := torch.Rand([]int64{16, 28, 28}, false)
@@ -59,10 +47,7 @@ func main() {
 		loss.Backward()
 
 		grads := getGrads(params)
-
-		log.Println(grads[0].Index(0).Item())
 		pg.AllReduceCoalesced(grads)
-		log.Println(grads[0].Index(0).Item())
 
 		opt.Step()
 	}
