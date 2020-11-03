@@ -24,7 +24,9 @@ func TestGlooAllReduce(t *testing.T) {
 		go func(rank int64, a Tensor) {
 			defer wg.Done()
 			fs := NewFileStore(f.Name(), 2)
+			defer fs.Close()
 			pg := NewProcessGroupGloo(fs, rank, 2)
+			defer pg.Close()
 			pg.AllReduce([]Tensor{a})
 		}(int64(i), ts[i])
 	}
@@ -47,7 +49,9 @@ func TestGlooAllReduceWithTCPStore(t *testing.T) {
 		go func(rank int64, a Tensor) {
 			defer wg.Done()
 			ts := NewTCPStore("127.0.0.1", 11111, 2, rank == 0)
+			defer ts.Close()
 			pg := NewProcessGroupGloo(ts, rank, 2)
+			defer pg.Close()
 			pg.AllReduce([]Tensor{a})
 		}(int64(i), ts[i])
 	}
@@ -79,7 +83,9 @@ func TestGlooAllReduceCoalesced(t *testing.T) {
 		go func(rank int64, a []Tensor) {
 			defer wg.Done()
 			fs := NewFileStore(f.Name(), 2)
+			defer fs.Close()
 			pg := NewProcessGroupGloo(fs, rank, 2)
+			defer pg.Close()
 			pg.AllReduceCoalesced(a)
 		}(int64(i), ts[i])
 	}
@@ -107,7 +113,9 @@ func TestGlooBroadcast(t *testing.T) {
 		go func(rank int64, a Tensor) {
 			defer wg.Done()
 			fs := NewFileStore(f.Name(), 2)
+			defer fs.Close()
 			pg := NewProcessGroupGloo(fs, rank, 2)
+			defer pg.Close()
 			pg.Broadcast([]Tensor{a})
 		}(int64(i), ts[i])
 	}

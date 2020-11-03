@@ -30,6 +30,12 @@ func NewTCPStore(addr string, port, size int64, isServer bool) Store {
 	return Store{&t}
 }
 
+// Close a store
+func (s Store) Close() {
+	MustNil(unsafe.Pointer(C.Gloo_DeleteStore(*s.Store)))
+	s.Store = nil
+}
+
 // ProcessGroupGloo struct
 type ProcessGroupGloo struct {
 	PGG *C.ProcessGroupGloo
@@ -40,6 +46,12 @@ func NewProcessGroupGloo(s Store, rank, size int64) ProcessGroupGloo {
 	var t C.ProcessGroupGloo
 	MustNil(unsafe.Pointer(C.Gloo_NewProcessGroupGloo(*s.Store, C.int64_t(rank), C.int64_t(size), &t)))
 	return ProcessGroupGloo{&t}
+}
+
+// Close a group
+func (pg ProcessGroupGloo) Close() {
+	MustNil(unsafe.Pointer(C.Gloo_DeleteProcessGroupGloo(*pg.PGG)))
+	pg.PGG = nil
 }
 
 // AllReduce method: todo(qijun) only support sum

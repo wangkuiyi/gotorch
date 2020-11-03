@@ -6,10 +6,10 @@
 
 #ifdef __cplusplus
 #include <torch/torch.h>
-#include <c10d/FileStore.hpp>
 #include <c10d/ProcessGroupGloo.hpp>
-#include <c10d/TCPStore.hpp>
+#include <c10d/Store.hpp>
 
+#include <memory>  // NOLINT
 #include <vector>  // NOLINT
 extern "C" {
 typedef at::Tensor *Tensor;
@@ -17,10 +17,8 @@ typedef torch::optim::Optimizer *Optimizer;
 typedef torch::data::datasets::MNIST *MNIST;
 typedef torch::data::transforms::Normalize<> *Normalize;
 typedef torch::Device *Device;
-typedef std::vector<char> *ByteBuffer;  // NOLINT
-typedef c10d::Store *Store;
-typedef c10d::FileStore *FileStore;
-typedef c10d::TCPStore *TCPStore;
+typedef std::vector<char> *ByteBuffer;        // NOLINT
+typedef std::shared_ptr<c10d::Store> *Store;  // NOLINT
 typedef c10d::ProcessGroupGloo *ProcessGroupGloo;
 #else
 typedef void *Tensor;
@@ -30,8 +28,6 @@ typedef void *Normalize;
 typedef void *Device;
 typedef void *ByteBuffer;
 typedef void *Store;
-typedef void *FileStore;
-typedef void *TCPStore;
 typedef void *ProcessGroupGloo;
 #endif
 typedef void *CUDAStream;
