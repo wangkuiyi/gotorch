@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"reflect"
+	"sort"
 
 	torch "github.com/wangkuiyi/gotorch"
 )
@@ -163,12 +164,21 @@ func (m *Module) NamedBuffers() map[string]torch.Tensor {
 	return r
 }
 
+func sortKeys(ts map[string]torch.Tensor) (keys []string) {
+	for k := range ts {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	return
+}
+
 // Parameters returns trainable parameters (recursively)
 func (m *Module) Parameters() []torch.Tensor {
 	result := make([]torch.Tensor, 0)
 	n := m.NamedParameters()
-	for _, v := range n {
-		result = append(result, v)
+	keys := sortKeys(n)
+	for _, k := range keys {
+		result = append(result, n[k])
 	}
 	return result
 }
@@ -177,8 +187,9 @@ func (m *Module) Parameters() []torch.Tensor {
 func (m *Module) Buffers() []torch.Tensor {
 	result := make([]torch.Tensor, 0)
 	n := m.NamedBuffers()
-	for _, v := range n {
-		result = append(result, v)
+	keys := sortKeys(n)
+	for _, k := range keys {
+		result = append(result, n[k])
 	}
 	return result
 }
