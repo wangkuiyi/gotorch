@@ -15,7 +15,7 @@ type myModelModule struct {
 // Forward executes the calculation
 func (m *myModelModule) Forward(x torch.Tensor) torch.Tensor {
 	fmt.Println("Forward")
-	return torch.Tensor{nil}
+	return torch.RandN([]int64{1, 1}, false)
 }
 
 func myModel() *myModelModule {
@@ -30,4 +30,6 @@ func TestDataParallel(t *testing.T) {
 	assert.Panics(t, func() {
 		DataParallel(m, torch.Tensor{nil}, []torch.Device{}, torch.Device{}, 0)
 	})
+	// Only for CUDA
+	// DataParallel(m, torch.RandN([]int64{1,1}, false), []torch.Device{}, torch.Device{}, 0)
 }

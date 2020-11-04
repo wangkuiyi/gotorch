@@ -20,7 +20,7 @@ func goModuleForward(m *C.char, input C.Tensor) C.Tensor {
 	module := (*(*nn.IModule)(unsafe.Pointer(m)))
 	forward := reflect.ValueOf(module).MethodByName("Forward")
 	args := []reflect.Value{reflect.ValueOf(torch.Tensor{(*unsafe.Pointer)(&input)})}
-	return C.Tensor(forward.Call(args)[0].Interface().(torch.Tensor).T)
+	return *(*C.Tensor)(forward.Call(args)[0].Interface().(torch.Tensor).T)
 }
 
 // DataParallel Evaluates module(input) in parallel across the given devices.
@@ -34,7 +34,8 @@ func goModuleForward(m *C.char, input C.Tensor) C.Tensor {
 func DataParallel(m nn.IModule, input torch.Tensor, devices []torch.Device, outputDevice torch.Device, dim int64) torch.Tensor {
 	// Convert `m` to `*C.char` to workaround the "cgo argument has Go pointer to Go
 	// pointer" check
-	torch.MustNil(unsafe.Pointer(C.DataParallel((*C.char)(unsafe.Pointer(&m)), C.goModuleForward, C.Tensor(input.T), nil, 0, nil, 0)))
+	torch.MustNil(unsafe.Pointer(C.DataParallel((*C.char)(unsafe.Pointer(&m)), C.goModuleForward, *(*C.Tensor)(input.T), nil, 0, nil, 0)))
 	runtime.KeepAlive(&m)
+	runtime.KeepAlive(&input)
 	return torch.Tensor{}
 }
