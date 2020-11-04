@@ -31,7 +31,8 @@ const char *DataParallel(char *go_module, void *f, Tensor input,
           "invalid memory address or nil pointer dereference of input tensor");
     }
     torch::nn::parallel::data_parallel(std::make_shared<goModule>(go_module, f),
-                                       *input)
+                                       *input);
+    return nullptr;
   } catch (const std::exception &e) {
     return exception_str(e.what());
   }
