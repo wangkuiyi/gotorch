@@ -8,6 +8,7 @@ package parallel
 import "C"
 import (
 	"reflect"
+	"runtime"
 	"unsafe"
 
 	torch "github.com/wangkuiyi/gotorch"
@@ -34,5 +35,6 @@ func DataParallel(m nn.IModule, input torch.Tensor, devices []torch.Device, outp
 	// Convert `m` to `*C.char` to workaround the "cgo argument has Go pointer to Go
 	// pointer" check
 	torch.MustNil(unsafe.Pointer(C.DataParallel((*C.char)(unsafe.Pointer(&m)), C.goModuleForward, C.Tensor(input.T), nil, 0, nil, 0)))
+	runtime.KeepAlive(&m)
 	return torch.Tensor{}
 }

@@ -4,12 +4,13 @@
 #endif
 
 #include "cgotorch/parallel.h"
+#include <memory>
 
 typedef Tensor (*ForwardMethod)(void *, Tensor);
 
 // goModule wraps the `goModuleForward` funciton defined in nn/parallel.go into
 // a class method
-struct goModule {
+struct goModule : torch::nn::Module {
   char *m_;
   ForwardMethod f_;
   goModule(char *m, void *f) : m_(m), f_(reinterpret_cast<ForwardMethod>(f)) {}
@@ -19,12 +20,16 @@ struct goModule {
   }
 };
 
-const char *DataParallel(char *go_module, void *f, Tensor input, Device *device,
+const char *DataParallel(char *go_module, void *f, Tensor input, Device *devices,
                          int64_t size, Device *output, int64_t dim) {
 #ifdef WITH_CUDA
   try {
+    if (input == nullptr) {
+      throw std::runtime_error(
+         "invalid memory address or nil pointer dereference of input tensor");
+	}
+    torch::nn::parallel::data_parallel(std::make_shared<goModule>(go_module, f), *input)
   } catch (const std::exception &e) {
-    torch::nn::parallel::data_parallel({go_module, f}, *input);
     return exception_str(e.what());
   }
 #else
