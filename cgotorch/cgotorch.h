@@ -6,6 +6,7 @@
 #include "cgotorch/init.h"
 #include "cgotorch/memory.h"
 #include "cgotorch/optim.h"
+#include "cgotorch/parallel.h"
 #include "cgotorch/pickle.h"
 #include "cgotorch/tensor.h"
 #include "cgotorch/torch.h"
