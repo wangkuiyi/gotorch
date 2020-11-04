@@ -22,6 +22,7 @@ addons:
     packages:
       - opencv
       - pkgconfig
+      - libuv # to use gloo in macOS, we install libuv
     update: true
 
 branches:
@@ -33,6 +34,7 @@ install:
 
 script:
   - export LD_LIBRARY_PATH=$TRAVIS_BUILD_DIR/cgotorch/libtorch/lib
+  - pushd $HOME && bash $TRAVIS_BUILD_DIR/.circleci/install_gloo.sh && popd
   - go generate ./...
   - go install ./...
   - go test -coverprofile=coverage.txt -covermode=atomic -v -race ./...

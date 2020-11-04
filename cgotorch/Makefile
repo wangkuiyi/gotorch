@@ -13,13 +13,15 @@ objs := $(srcs:%.cc=%.o)
 	-O -c $< -o $@
 
 libcgotorch.so: $(objs) ${LIBTORCH_DIR}
-	${CXX} 	-L libtorch/lib \
+	${CXX} -L libtorch/lib \
 	$(objs) \
 	-shared \
 	-o $@ ${INSTALL_NAME} \
+	-lc10d -lgloo \
 	-Wl,-rpath,libtorch/lib \
 	-Wl,-${LOAD} libtorch/lib/libc10.${LIB_SUFFIX} \
-	-lc10 -ltorch -ltorch_cpu
+	-lc10 -ltorch -ltorch_cpu \
+	${DEPS}
 
 clean:
 	rm -rf *.so *.o

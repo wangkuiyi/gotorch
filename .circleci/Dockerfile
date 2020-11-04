@@ -10,6 +10,11 @@ RUN sudo python3 -m pip install -qq pre-commit cpplint
 RUN sudo gem install mdl
 RUN go get golang.org/x/lint/golint
 RUN sudo cp $GOPATH/bin/* /usr/local/bin/
+
 # install gocv
 RUN go get -u -d gocv.io/x/gocv
 RUN cd $GOPATH/src/gocv.io/x/gocv && make install
+
+# install gloo
+COPY install_gloo.sh /
+RUN sudo /install_gloo.sh && sudo rm /install_gloo.sh

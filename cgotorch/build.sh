@@ -13,6 +13,7 @@ LOAD="force_load"
 LIB_SUFFIX="so"
 INSTALL_NAME=""
 CUDA_FLAGS=""
+DEPS=""
 
 function build_linux_no_cuda() {
     CXX="clang++"
@@ -67,6 +68,7 @@ elif [[ "$OS" == "darwin" ]]; then
     LIB_SUFFIX="dylib"
     INSTALL_NAME="-install_name @rpath/\$@"
     LOAD="all_load"
+    DEPS=`pkg-config --cflags --libs libuv`
     if [[ ! -d "$DIR/$LIBTORCH_DIR" ]]; then
         curl -LsO https://download.pytorch.org/libtorch/cpu/libtorch-macos-1.6.0.zip
         unzip -qq -o libtorch-macos-1.6.0.zip -d macos
@@ -84,5 +86,6 @@ make CXX="$CXX" \
      GLIBCXX_USE_CXX11_ABI="$GLIBCXX_USE_CXX11_ABI" \
      LOAD="$LOAD" \
      CUDA_FLAGS="$CUDA_FLAGS" \
-     -f Makefile -j
+     DEPS="$DEPS" \
+     -f Makefile -j `getconf _NPROCESSORS_ONLN`
 popd
