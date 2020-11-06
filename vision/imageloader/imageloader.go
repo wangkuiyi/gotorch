@@ -25,12 +25,6 @@ type miniBatch struct {
 	label torch.Tensor
 }
 
-// RGB color
-const RGB string = "rgb"
-
-// GRAY color
-const GRAY string = "gray"
-
 // ImageLoader struct
 type ImageLoader struct {
 	r          *tgz.Reader
@@ -278,15 +272,13 @@ func splitComposeByToTensor(compose *transforms.ComposeTransformer) (*transforms
 func decodeImage(buffer []byte, colorSpace string) (gocv.Mat, error) {
 	var m gocv.Mat
 	var e error
-	if colorSpace == RGB {
+	if colorSpace == "rgb" {
 		m, e = gocv.IMDecode(buffer, gocv.IMReadColor)
-	} else if colorSpace == GRAY {
+		gocv.CvtColor(m, &m, gocv.ColorBGRToRGB)
+	} else if colorSpace == "gray" {
 		m, e = gocv.IMDecode(buffer, gocv.IMReadGrayScale)
 	} else {
 		return m, fmt.Errorf("Cannot read image with color space %v", colorSpace)
-	}
-	if colorSpace == RGB {
-		gocv.CvtColor(m, &m, gocv.ColorBGRToRGB)
 	}
 	return m, e
 }
