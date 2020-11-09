@@ -2,8 +2,6 @@ package main
 
 import (
 	"bufio"
-	"bytes"
-	"encoding/gob"
 	"flag"
 	"fmt"
 	"io/ioutil"
@@ -14,6 +12,7 @@ import (
 	"sync"
 	"time"
 
+	torch_recordio "github.com/wangkuiyi/gotorch/tool/recordio"
 	"github.com/wangkuiyi/recordio"
 )
 
@@ -23,31 +22,17 @@ var output = flag.String("output", "", "output record files directory")
 var shuffle = flag.Bool("shuffle", true, "shuffle dataset")
 var recordsPerShard = flag.Int("recordsPerShard", 4096, "maximum number of records per shard file")
 
-type imageRecord struct {
-	Image []byte
-	Label int
-}
-
-func loadImage(fname string, vocab map[string]int) (*imageRecord, error) {
+func loadImage(fname string, vocab map[string]int) (*torch_recordio.ImageRecord, error) {
 	b, err := ioutil.ReadFile(fname)
 	if err != nil {
 		return nil, err
 	}
 	classStr := filepath.Base(filepath.Dir(fname))
-	ir := &imageRecord{
+	ir := &torch_recordio.ImageRecord{
 		Image: b,
 		Label: vocab[classStr],
 	}
 	return ir, nil
-}
-
-func encode(ir *imageRecord) ([]byte, error) {
-	buf := &bytes.Buffer{}
-	err := gob.NewEncoder(buf).Encode(*ir)
-	if err != nil {
-		return nil, err
-	}
-	return buf.Bytes(), nil
 }
 
 func buildLabelVocabulary(label string) (map[string]int, error) {
@@ -116,7 +101,7 @@ func main() {
 			w := recordio.NewWriter(f, -1, -1)
 			for row := s; row < e; row++ {
 				ir, _ := loadImage(files[row], vocab)
-				b, _ := encode(ir)
+				b, _ := ir.Encode()
 				w.Write(b)
 			}
 			w.Close()
