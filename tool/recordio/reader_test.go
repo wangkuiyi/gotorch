@@ -19,16 +19,19 @@ func TestReader(t *testing.T) {
 	f1, _ := ioutil.TempFile("", "sample1")
 	defer os.Remove(f1.Name())
 	w1 := recordio.NewWriter(f1, -1, -1)
-	w1.Write(b)
-	w1.Write(b)
+	i1 := 6
+	for i := 0; i < i1; i++ {
+		w1.Write(b)
+	}
 	w1.Close()
 
 	f2, _ := ioutil.TempFile("", "sample2")
 	defer os.Remove(f2.Name())
 	w2 := recordio.NewWriter(f1, -1, -1)
-	w2.Write(b)
-	w2.Write(b)
-	w2.Write(b)
+	i2 := 18
+	for i := 0; i < i2; i++ {
+		w2.Write(b)
+	}
 	w2.Close()
 
 	files := []string{f1.Name(), f2.Name()}
@@ -44,5 +47,5 @@ func TestReader(t *testing.T) {
 		}
 		i++
 	}
-	assert.Equal(t, 5, i)
+	assert.Equal(t, i1+i2, i)
 }
