@@ -211,3 +211,14 @@ const char *Tensor_Index(Tensor input, int64_t *index, int64_t index_len,
     return exception_str(e.what());
   }
 }
+
+const char *Tensor_Reshape(Tensor input, int64_t *shape, int64_t shape_len,
+                           Tensor *result) {
+  try {
+    std::vector<int64_t> s(shape, shape + shape_len);
+    *result = new at::Tensor(input->reshape(at::IntArrayRef(s)));
+    return nullptr;
+  } catch (const std::exception &e) {
+    return exception_str(e.what());
+  }
+}

@@ -189,3 +189,12 @@ func (a Tensor) Index(index ...int64) Tensor {
 	SetTensorFinalizer((*unsafe.Pointer)(&t))
 	return Tensor{(*unsafe.Pointer)(&t)}
 }
+
+func (a Tensor) Reshape(sizes ...int64) Tensor {
+	var t C.Tensor
+	MustNil(unsafe.Pointer(C.Tensor_Reshape(
+		C.Tensor(*a.T),
+		(*C.int64_t)(unsafe.Pointer(&sizes[0])),
+		C.int64_t(len(sizes)), &t)))
+	return Tensor{(*unsafe.Pointer)(&t)}
+}

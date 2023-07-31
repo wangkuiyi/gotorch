@@ -31,7 +31,8 @@ const char *Tensor_CopyTo(Tensor input, Device device, Tensor *output);
 const char *Tensor_PinMemory(Tensor input, Tensor *output);
 const char *Tensor_CUDA(Tensor input, Device device, int8_t non_blocking,
                         Tensor *output);
-
+const char *Tensor_Reshape(Tensor input, int64_t *shape, int64_t shape_len,
+                           Tensor *result);
 ////////////////////////////////////////////////////////////////////////////////
 // Backward, Gradient
 ////////////////////////////////////////////////////////////////////////////////
