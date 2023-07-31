@@ -9,6 +9,7 @@
 
 #include <vector>
 extern "C" {
+typedef c10::IValue *IValue;
 typedef at::Tensor *Tensor;
 typedef torch::optim::Optimizer *Optimizer;
 typedef torch::data::datasets::MNIST *MNIST;
@@ -16,6 +17,7 @@ typedef torch::data::transforms::Normalize<> *Normalize;
 typedef torch::Device *Device;
 typedef std::vector<char> *ByteBuffer;  // NOLINT
 #else
+typedef void *IValue;
 typedef void *Tensor;
 typedef void *Optimizer;
 typedef void *MNIST;

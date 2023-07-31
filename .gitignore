@@ -12,3 +12,4 @@ data
 trace.out
 *.log
 *.o
+.idea/

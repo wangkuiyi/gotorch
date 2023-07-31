@@ -19,8 +19,8 @@ function build_linux_no_cuda() {
     LIBTORCH_DIR="linux/libtorch"
     GLIBCXX_USE_CXX11_ABI="0"
     if [[ ! -d "$DIR/$LIBTORCH_DIR" ]]; then
-        curl -LsO 'https://download.pytorch.org/libtorch/cpu/libtorch-shared-with-deps-1.6.0%2Bcpu.zip'
-        unzip -qq -o libtorch-shared-with-deps-1.6.0%2Bcpu.zip -d linux
+        curl -LsO 'https://download.pytorch.org/libtorch/cpu/libtorch-cxx11-abi-shared-with-deps-2.0.1%2Bcpu.zip'
+        unzip -qq -o libtorch-cxx11-abi-shared-with-deps-2.0.1%2Bcpu.zip -d linux
     fi
 }
 
@@ -38,12 +38,12 @@ if [[ "$OS" == "linux" ]]; then
         NVCC=$(whereis cuda | cut -f 2 -d ' ')/bin/nvcc
         CUDA_VERSION=$("$NVCC" --version | grep release | grep -Eo "[0-9]+.[0-9]+" | head -1)
         CUDA_FLAGS="$CUDA_FLAGS -DWITH_CUDA -I /usr/local/cuda/include"
-        if [[ "$CUDA_VERSION" == "10.1" ]]; then
+        if [[ "$CUDA_VERSION" == "11.7" ]]; then
             echo "Building for Linux with CUDA 10.1";
-            LIBTORCH_DIR="linux-cuda101/libtorch"
+            LIBTORCH_DIR="linux-cuda117/libtorch"
             if [[ ! -d "$DIR/$LIBTORCH_DIR" ]]; then
-                curl -Lso libtorch-cxx11-1.6.0-linux-cuda101.zip 'https://download.pytorch.org/libtorch/cu101/libtorch-cxx11-abi-shared-with-deps-1.6.0%2Bcu101.zip'
-                unzip -qq -o libtorch-cxx11-1.6.0-linux-cuda101.zip -d linux-cuda101
+                curl -Lso libtorch-cxx11-2.0.1-linux-cuda117.zip 'https://download.pytorch.org/libtorch/cu117/libtorch-cxx11-abi-shared-with-deps-2.0.1%2Bcu117.zip'
+                unzip -qq -o libtorch-cxx11-2.0.1-linux-cuda117.zip -d linux-cuda117
             fi
         elif [[ "$CUDA_VERSION" == "10.2" ]]; then
             echo "Building for Linux with CUDA 10.2";
@@ -68,8 +68,8 @@ elif [[ "$OS" == "darwin" ]]; then
     INSTALL_NAME="-install_name @rpath/\$@"
     LOAD="all_load"
     if [[ ! -d "$DIR/$LIBTORCH_DIR" ]]; then
-        curl -LsO https://download.pytorch.org/libtorch/cpu/libtorch-macos-1.6.0.zip
-        unzip -qq -o libtorch-macos-1.6.0.zip -d macos
+        curl -LsO https://download.pytorch.org/libtorch/cpu/libtorch-macos-2.0.1.zip
+        unzip -qq -o libtorch-macos-2.0.1.zip -d macos
     fi
 fi
 
