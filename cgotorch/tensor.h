@@ -33,6 +33,8 @@ const char *Tensor_CUDA(Tensor input, Device device, int8_t non_blocking,
                         Tensor *output);
 const char *Tensor_Reshape(Tensor input, int64_t *shape, int64_t shape_len,
                            Tensor *result);
+const char *Tensor_Split(Tensor input, int64_t split_size, int64_t dim,
+                         Tensor **results, int64_t *results_len);
 ////////////////////////////////////////////////////////////////////////////////
 // Backward, Gradient
 ////////////////////////////////////////////////////////////////////////////////

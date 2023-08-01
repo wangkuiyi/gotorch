@@ -190,6 +190,7 @@ func (a Tensor) Index(index ...int64) Tensor {
 	return Tensor{(*unsafe.Pointer)(&t)}
 }
 
+// Reshape calls Tensor::reshape to return a tensor with the given shape
 func (a Tensor) Reshape(sizes ...int64) Tensor {
 	var t C.Tensor
 	MustNil(unsafe.Pointer(C.Tensor_Reshape(
@@ -197,4 +198,31 @@ func (a Tensor) Reshape(sizes ...int64) Tensor {
 		(*C.int64_t)(unsafe.Pointer(&sizes[0])),
 		C.int64_t(len(sizes)), &t)))
 	return Tensor{(*unsafe.Pointer)(&t)}
+}
+
+func tensorListToSlice(ts *C.Tensor, cLength C.int64_t) []Tensor {
+	length := int64(cLength)
+	if length == 0 {
+		return nil
+	}
+	results := make([]Tensor, length)
+	for i := int64(0); i < length; i++ {
+		results[i] = Tensor{
+			T: (*unsafe.Pointer)(unsafe.Pointer(uintptr(unsafe.Pointer(ts)) + uintptr(i)*unsafe.Sizeof(ts))),
+		}
+	}
+	return results
+}
+
+// Split calls Tensor::split to return a slice of tensors
+func (a Tensor) Split(splitSize int64, dim int64) []Tensor {
+	var ts *C.Tensor
+	var cLength C.int64_t
+	MustNil(unsafe.Pointer(C.Tensor_Split(
+		C.Tensor(*a.T),
+		C.int64_t(splitSize),
+		C.int64_t(dim),
+		&ts,
+		&cLength)))
+	return tensorListToSlice(ts, cLength)
 }

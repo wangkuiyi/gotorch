@@ -222,3 +222,18 @@ const char *Tensor_Reshape(Tensor input, int64_t *shape, int64_t shape_len,
     return exception_str(e.what());
   }
 }
+
+const char *Tensor_Split(Tensor input, int64_t split_size, int64_t dim,
+                         Tensor **results, int64_t *results_len) {
+  try {
+      auto split = input->split(split_size, dim);
+      *results_len = split.size();
+      *results = new Tensor[*results_len];
+      for (int i = 0; i < *results_len; i++) {
+        *results[i] = new at::Tensor(split[i]);
+      }
+    return nullptr;
+  } catch (const std::exception &e) {
+    return exception_str(e.what());
+  }
+}
