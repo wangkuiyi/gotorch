@@ -13,6 +13,7 @@ typedef void *Module;
 
 const char* loadModule(const char *modelPath, Module *result);
 const char* forwardModule(Module module, Tensor input, IValue *output);
+void Module_Close(Module a);
 
 #ifdef __cplusplus
 }

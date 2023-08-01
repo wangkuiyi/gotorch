@@ -20,3 +20,5 @@ const char* forwardModule(Module module, Tensor input, IValue *output) {
         return exception_str(e.what());
     }
 }
+
+void Module_Close(Module a) { delete a; }

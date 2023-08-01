@@ -197,6 +197,7 @@ func (a Tensor) Reshape(sizes ...int64) Tensor {
 		C.Tensor(*a.T),
 		(*C.int64_t)(unsafe.Pointer(&sizes[0])),
 		C.int64_t(len(sizes)), &t)))
+	SetTensorFinalizer((*unsafe.Pointer)(&t))
 	return Tensor{(*unsafe.Pointer)(&t)}
 }
 
@@ -210,6 +211,7 @@ func tensorListToSlice(ts *C.Tensor, cLength C.int64_t) []Tensor {
 		results[i] = Tensor{
 			T: (*unsafe.Pointer)(unsafe.Pointer(uintptr(unsafe.Pointer(ts)) + uintptr(i)*unsafe.Sizeof(ts))),
 		}
+		SetTensorFinalizer(results[i].T)
 	}
 	return results
 }

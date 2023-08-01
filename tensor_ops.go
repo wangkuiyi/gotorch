@@ -249,6 +249,18 @@ func (a Tensor) LogSoftmax(dim int64) Tensor {
 	return Tensor{(*unsafe.Pointer)(&t)}
 }
 
+func Softmax(t Tensor, dim int64) Tensor {
+	return t.Softmax(dim)
+}
+
+// Softmax returns softmax of the current tensor
+func (a Tensor) Softmax(dim int64) Tensor {
+	var t C.Tensor
+	MustNil(unsafe.Pointer(C.Softmax(C.Tensor(*a.T), C.int64_t(dim), &t)))
+	SetTensorFinalizer((*unsafe.Pointer)(&t))
+	return Tensor{(*unsafe.Pointer)(&t)}
+}
+
 // Mean returns mean of the current tensor
 func Mean(t Tensor) Tensor {
 	return t.Mean()

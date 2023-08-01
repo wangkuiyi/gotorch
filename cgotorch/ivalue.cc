@@ -32,3 +32,5 @@ const char* IValue_toTensor(const IValue ivalue, Tensor *output) {
         return exception_str(e.what());
     }
 }
+
+void IValue_Close(IValue ivalue) { delete ivalue; }

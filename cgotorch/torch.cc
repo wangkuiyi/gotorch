@@ -382,6 +382,15 @@ const char *View(Tensor a, Tensor *result, int64_t *size, int64_t size_len) {
   }
 }
 
+const char *Softmax(Tensor a, int64_t dim, Tensor *result) {
+  try {
+    *result = new at::Tensor(a->softmax(dim));
+    return nullptr;
+  } catch (const std::exception &e) {
+    return exception_str(e.what());
+  }
+}
+
 const char *LogSoftmax(Tensor a, int64_t dim, Tensor *result) {
   try {
     *result = new at::Tensor(a->log_softmax(dim));
