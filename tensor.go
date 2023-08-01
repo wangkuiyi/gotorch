@@ -229,6 +229,7 @@ func (a Tensor) Split(splitSize int64, dim int64) []Tensor {
 	return tensorListToSlice(ts, cLength)
 }
 
+// Slice calls Tensor::slice to return a slice of tensors
 func (a Tensor) Slice(dim int64, start int64, end int64, step int64) Tensor {
 	var t C.Tensor
 	MustNil(unsafe.Pointer(C.Tensor_Slice(
@@ -237,6 +238,29 @@ func (a Tensor) Slice(dim int64, start int64, end int64, step int64) Tensor {
 		C.int64_t(start),
 		C.int64_t(end),
 		C.int64_t(step),
+		&t)))
+	SetTensorFinalizer((*unsafe.Pointer)(&t))
+	return Tensor{(*unsafe.Pointer)(&t)}
+}
+
+// Norm calls Tensor::norm to return a tensor norm
+func (a Tensor) Norm(p int64, dim int64) Tensor {
+	var t C.Tensor
+	MustNil(unsafe.Pointer(C.Tensor_Norm(
+		C.Tensor(*a.T),
+		C.int64_t(p),
+		C.int64_t(dim),
+		&t)))
+	SetTensorFinalizer((*unsafe.Pointer)(&t))
+	return Tensor{(*unsafe.Pointer)(&t)}
+}
+
+// Unsqueeze calls Tensor::unsqueeze to return a tensor with a dimension of size one
+func (a Tensor) Unsqueeze(dim int64) Tensor {
+	var t C.Tensor
+	MustNil(unsafe.Pointer(C.Tensor_Unsqueeze(
+		C.Tensor(*a.T),
+		C.int64_t(dim),
 		&t)))
 	SetTensorFinalizer((*unsafe.Pointer)(&t))
 	return Tensor{(*unsafe.Pointer)(&t)}

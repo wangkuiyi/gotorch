@@ -247,3 +247,21 @@ const char *Tensor_Slice(Tensor input, int64_t dim, int64_t start, int64_t end,
     return exception_str(e.what());
   }
 }
+
+const char *Tensor_Norm(Tensor input, int64_t p, int64_t dim, Tensor *result) {
+  try {
+    *result = new at::Tensor(input->norm(p, dim));
+    return nullptr;
+  } catch (const std::exception &e) {
+    return exception_str(e.what());
+  }
+}
+
+const char *Tensor_Unsqueeze(Tensor input, int64_t dim, Tensor *result) {
+  try {
+    *result = new at::Tensor(input->unsqueeze(dim));
+    return nullptr;
+  } catch (const std::exception &e) {
+    return exception_str(e.what());
+  }
+}

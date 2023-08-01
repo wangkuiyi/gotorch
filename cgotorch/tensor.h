@@ -37,6 +37,8 @@ const char *Tensor_Split(Tensor input, int64_t split_size, int64_t dim,
                          Tensor **results, int64_t *results_len);
 const char *Tensor_Slice(Tensor input, int64_t dim, int64_t start, int64_t end,
                          int64_t step, Tensor *result);
+const char *Tensor_Norm(Tensor input, int64_t p, int64_t dim, Tensor *result);
+const char *Tensor_Unsqueeze(Tensor input, int64_t dim, Tensor *result);
 ////////////////////////////////////////////////////////////////////////////////
 // Backward, Gradient
 ////////////////////////////////////////////////////////////////////////////////
