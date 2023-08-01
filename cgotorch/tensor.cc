@@ -237,3 +237,13 @@ const char *Tensor_Split(Tensor input, int64_t split_size, int64_t dim,
     return exception_str(e.what());
   }
 }
+
+const char *Tensor_Slice(Tensor input, int64_t dim, int64_t start, int64_t end,
+                         int64_t step, Tensor *result) {
+  try {
+    *result = new at::Tensor(input->slice(dim, start, end, step));
+    return nullptr;
+  } catch (const std::exception &e) {
+    return exception_str(e.what());
+  }
+}

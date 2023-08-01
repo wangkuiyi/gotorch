@@ -228,3 +228,16 @@ func (a Tensor) Split(splitSize int64, dim int64) []Tensor {
 		&cLength)))
 	return tensorListToSlice(ts, cLength)
 }
+
+func (a Tensor) Slice(dim int64, start int64, end int64, step int64) Tensor {
+	var t C.Tensor
+	MustNil(unsafe.Pointer(C.Tensor_Slice(
+		C.Tensor(*a.T),
+		C.int64_t(dim),
+		C.int64_t(start),
+		C.int64_t(end),
+		C.int64_t(step),
+		&t)))
+	SetTensorFinalizer((*unsafe.Pointer)(&t))
+	return Tensor{(*unsafe.Pointer)(&t)}
+}
