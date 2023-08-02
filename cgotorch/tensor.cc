@@ -265,3 +265,30 @@ const char *Tensor_Unsqueeze(Tensor input, int64_t dim, Tensor *result) {
     return exception_str(e.what());
   }
 }
+
+const char *Tensor_ToArray(Tensor input, void *result) {
+  try {
+    auto tensor = input->contiguous();
+    auto dtype = tensor.scalar_type();
+    auto size = tensor.numel();
+    switch (dtype) {
+      case torch::kFloat:
+        memcpy(result, tensor.data_ptr<float>(), sizeof(float) * size);
+        break;
+      case torch::kDouble:
+        memcpy(result, tensor.data_ptr<double>(), sizeof(double) * size);
+        break;
+      case torch::kInt32:
+        memcpy(result, tensor.data_ptr<int32_t>(), sizeof(int32_t) * size);
+        break;
+      case torch::kInt64:
+        memcpy(result, tensor.data_ptr<int64_t>(), sizeof(int64_t) * size);
+        break;
+      default:
+        return "Unsupported data type";
+    }
+    return nullptr;
+  } catch (const std::exception &e) {
+    return exception_str(e.what());
+  }
+}

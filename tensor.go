@@ -265,3 +265,16 @@ func (a Tensor) Unsqueeze(dim int64) Tensor {
 	SetTensorFinalizer((*unsafe.Pointer)(&t))
 	return Tensor{(*unsafe.Pointer)(&t)}
 }
+
+// LengthByShapes returns the length of a tensor by its shapes
+func (a Tensor) LengthByShapes() (shapes []int64, length int64) {
+	shapes = a.Shape()
+	if len(shapes) == 0 {
+		return shapes, 0
+	}
+	length = int64(1)
+	for _, s := range shapes {
+		length *= s
+	}
+	return shapes, length
+}

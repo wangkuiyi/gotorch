@@ -16,7 +16,9 @@ func testModel() {
 	tuple := res.ToTuple()
 	for i, t := range tuple {
 		fmt.Printf("tuple[%d] is tensor: %v\n", i, t.IsTensor())
-		t.ToTensor().Print()
+		tensor := t.ToTensor().To(torch.NewDevice("cpu"), torch.Float)
+		shapes, sl := tensor.ToFloat32Slice()
+		fmt.Printf("tensor shape: %v\nTensor len: %v\n", shapes, len(sl))
 	}
 }
 

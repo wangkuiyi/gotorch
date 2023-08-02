@@ -472,3 +472,59 @@ func (a Tensor) argMinMax(argmin bool, opts ...interface{}) Tensor {
 	SetTensorFinalizer((*unsafe.Pointer)(&t))
 	return Tensor{(*unsafe.Pointer)(&t)}
 }
+
+// ToFloat32Slice returns a float32 slice from a tensor
+func (a Tensor) ToFloat32Slice() (shapes []int64, data []float32) {
+	if a.Dtype() != Float {
+		panic("tensor.ToFloat32Slice() only supports float32")
+	}
+	shapes, length := a.LengthByShapes()
+	if length == 0 {
+		return shapes, nil
+	}
+	data = make([]float32, length)
+	MustNil(unsafe.Pointer(C.Tensor_ToArray(C.Tensor(*a.T), unsafe.Pointer(&data[0]))))
+	return shapes, data
+}
+
+// ToFloat64Slice returns a float64 slice from a tensor
+func (a Tensor) ToFloat64Slice() (shapes []int64, data []float64) {
+	if a.Dtype() != Double {
+		panic("tensor.ToFloat64Slice() only supports float64")
+	}
+	shapes, length := a.LengthByShapes()
+	if length == 0 {
+		return shapes, nil
+	}
+	data = make([]float64, length)
+	MustNil(unsafe.Pointer(C.Tensor_ToArray(C.Tensor(*a.T), unsafe.Pointer(&data[0]))))
+	return shapes, data
+}
+
+// ToInt32Slice returns an int32 slice from a tensor
+func (a Tensor) ToInt32Slice() (shapes []int64, data []int32) {
+	if a.Dtype() != Int {
+		panic("tensor.ToInt32Slice() only supports int32")
+	}
+	shapes, length := a.LengthByShapes()
+	if length == 0 {
+		return shapes, nil
+	}
+	data = make([]int32, length)
+	MustNil(unsafe.Pointer(C.Tensor_ToArray(C.Tensor(*a.T), unsafe.Pointer(&data[0]))))
+	return shapes, data
+}
+
+// ToInt64Slice returns an int64 slice from a tensor
+func (a Tensor) ToInt64Slice() (shapes []int64, data []int64) {
+	if a.Dtype() != Long {
+		panic("tensor.ToInt64Slice() only supports int64")
+	}
+	shapes, length := a.LengthByShapes()
+	if length == 0 {
+		return shapes, nil
+	}
+	data = make([]int64, length)
+	MustNil(unsafe.Pointer(C.Tensor_ToArray(C.Tensor(*a.T), unsafe.Pointer(&data[0]))))
+	return shapes, data
+}

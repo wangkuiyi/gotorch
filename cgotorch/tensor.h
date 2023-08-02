@@ -56,6 +56,7 @@ const char *ItemFloat64(Tensor a, double *result);
 
 const char *Tensor_Index(Tensor a, int64_t *index, int64_t index_len,
                          Tensor *result);
+const char *Tensor_ToArray(Tensor input, void *result);
 
 #ifdef __cplusplus
 }
