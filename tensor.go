@@ -283,3 +283,14 @@ func (a Tensor) LengthByShapes() (shapes []int64, length int64) {
 	}
 	return shapes, length
 }
+
+func (a Tensor) Select(dim int64, index int64) Tensor {
+	var t C.Tensor
+	MustNil(unsafe.Pointer(C.Tensor_Select(
+		C.Tensor(*a.T),
+		C.int64_t(dim),
+		C.int64_t(index),
+		&t)))
+	SetTensorFinalizer((*unsafe.Pointer)(&t))
+	return Tensor{(*unsafe.Pointer)(&t)}
+}

@@ -291,3 +291,13 @@ const char *Tensor_ToArray(Tensor input, void *result) {
     return exception_str(e.what());
   }
 }
+
+const char *Tensor_Select(Tensor input, int64_t dim, int64_t index,
+                          Tensor *result) {
+  try {
+    *result = new at::Tensor(input->select(dim, index));
+    return nullptr;
+  } catch (const std::exception &e) {
+    return exception_str(e.what());
+  }
+}
