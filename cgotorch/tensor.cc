@@ -301,3 +301,55 @@ const char *Tensor_Select(Tensor input, int64_t dim, int64_t index,
     return exception_str(e.what());
   }
 }
+
+const char *Tensor_GeScalar(Tensor input, float other, Tensor *result) {
+  try {
+    *result = new at::Tensor(input->ge(other));
+    return nullptr;
+  } catch (const std::exception &e) {
+    return exception_str(e.what());
+  }
+}
+
+const char *Tensor_NonZero(Tensor input, Tensor *result) {
+  try {
+    *result = new at::Tensor(input->nonzero());
+    return nullptr;
+  } catch (const std::exception &e) {
+    return exception_str(e.what());
+  }
+}
+
+const char *Tensor_Zeros(int8_t dtype, int64_t *sizes_data,
+                         int64_t sizes_data_len, Tensor *result) {
+  try {
+    auto t = at::zeros(at::IntArrayRef(sizes_data, sizes_data_len),
+                       torch::dtype(at::ScalarType(dtype)));
+    *result = new at::Tensor(t);
+    return nullptr;
+  } catch (const std::exception &e) {
+    return exception_str(e.what());
+  }
+}
+
+const char *Tensor_IndexPut(Tensor input, int64_t index, Tensor source) {
+  try {
+    (*input)[index] = *source;
+    return nullptr;
+  } catch (const std::exception &e) {
+    return exception_str(e.what());
+  }
+}
+
+const char *Tensor_IndexByTensors(Tensor input, Tensor *indexes, int64_t index_len, Tensor *result) {
+  try {
+    std::vector<at::indexing::TensorIndex> indices_vector;
+    for (int64_t i = 0; i < index_len; ++i) {
+      indices_vector.emplace_back(*indexes[i]);
+    }
+    *result = new at::Tensor(input->index(indices_vector));
+    return nullptr;
+  } catch (const std::exception &e) {
+    return exception_str(e.what());
+  }
+}

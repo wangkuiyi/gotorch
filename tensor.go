@@ -284,12 +284,71 @@ func (a Tensor) LengthByShapes() (shapes []int64, length int64) {
 	return shapes, length
 }
 
+// Select calls Tensor::select to return a tensor with the given index
 func (a Tensor) Select(dim int64, index int64) Tensor {
 	var t C.Tensor
 	MustNil(unsafe.Pointer(C.Tensor_Select(
 		C.Tensor(*a.T),
 		C.int64_t(dim),
 		C.int64_t(index),
+		&t)))
+	SetTensorFinalizer((*unsafe.Pointer)(&t))
+	return Tensor{(*unsafe.Pointer)(&t)}
+}
+
+// GeScalar calls Tensor::ge to return a tensor with greater than or equal to the given scalar
+func (a Tensor) GeScalar(b float32) Tensor {
+	var t C.Tensor
+	MustNil(unsafe.Pointer(C.Tensor_GeScalar(
+		C.Tensor(*a.T),
+		C.float(b),
+		&t)))
+	SetTensorFinalizer((*unsafe.Pointer)(&t))
+	return Tensor{(*unsafe.Pointer)(&t)}
+}
+
+// NonZero calls Tensor::nonzero to return a tensor with the indices of all non-zero elements
+func (a Tensor) NonZero() Tensor {
+	var t C.Tensor
+	MustNil(unsafe.Pointer(C.Tensor_NonZero(
+		C.Tensor(*a.T),
+		&t)))
+	SetTensorFinalizer((*unsafe.Pointer)(&t))
+	return Tensor{(*unsafe.Pointer)(&t)}
+}
+
+// CreateZeros creates a tensor filled with zeros
+func CreateZeros(shape []int64, dtype int8) Tensor {
+	var t C.Tensor
+	MustNil(unsafe.Pointer(C.Tensor_Zeros(
+		C.int8_t(dtype),
+		(*C.int64_t)(unsafe.Pointer(&shape[0])),
+		C.int64_t(len(shape)),
+		&t)))
+	SetTensorFinalizer((*unsafe.Pointer)(&t))
+	return Tensor{(*unsafe.Pointer)(&t)}
+}
+
+// IndexPut calls Tensor::index_put_(tensor[index]=value) to put value in index
+func (a Tensor) IndexPut(index int64, value Tensor) {
+	MustNil(unsafe.Pointer(C.Tensor_IndexPut(
+		C.Tensor(*a.T),
+		C.int64_t(index),
+		C.Tensor(*value.T),
+	)))
+}
+
+// IndexByTensors calls Tensor::index() to return a tensor with the given indexes
+func (a Tensor) IndexByTensors(indexes []Tensor) Tensor {
+	var t C.Tensor
+	tensors := make([]C.Tensor, len(indexes))
+	for i, index := range indexes {
+		tensors[i] = C.Tensor(*index.T)
+	}
+	MustNil(unsafe.Pointer(C.Tensor_IndexByTensors(
+		C.Tensor(*a.T),
+		(*C.Tensor)(unsafe.Pointer(&tensors[0])),
+		C.int64_t(len(indexes)),
 		&t)))
 	SetTensorFinalizer((*unsafe.Pointer)(&t))
 	return Tensor{(*unsafe.Pointer)(&t)}
