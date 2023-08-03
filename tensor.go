@@ -9,6 +9,7 @@ package gotorch
 import "C"
 
 import (
+	"fmt"
 	"log"
 	"unsafe"
 )
@@ -201,7 +202,7 @@ func (a Tensor) Reshape(sizes ...int64) Tensor {
 	return Tensor{(*unsafe.Pointer)(&t)}
 }
 
-func tensorListToSlice(ts *C.Tensor, cLength C.int64_t) []Tensor {
+func tensorListToSlice(ts []C.Tensor, cLength C.int64_t) []Tensor {
 	length := int64(cLength)
 	if length == 0 {
 		return nil
@@ -209,22 +210,26 @@ func tensorListToSlice(ts *C.Tensor, cLength C.int64_t) []Tensor {
 	results := make([]Tensor, length)
 	for i := int64(0); i < length; i++ {
 		results[i] = Tensor{
-			T: (*unsafe.Pointer)(unsafe.Pointer(uintptr(unsafe.Pointer(ts)) + uintptr(i)*unsafe.Sizeof(ts))),
+			T: (*unsafe.Pointer)(&ts[i]),
 		}
-		SetTensorFinalizer(results[i].T)
+		// ToDo: need to fix finalizer for tensor list
+		//SetTensorFinalizer(results[i].T)
 	}
 	return results
 }
 
 // Split calls Tensor::split to return a slice of tensors
 func (a Tensor) Split(splitSize int64, dim int64) []Tensor {
-	var ts *C.Tensor
+	shapes := a.Shape()
+	resSize := (shapes[dim] + splitSize - 1) / splitSize
+	fmt.Println("resSize: ", resSize)
+	ts := make([]C.Tensor, resSize)
 	var cLength C.int64_t
 	MustNil(unsafe.Pointer(C.Tensor_Split(
 		C.Tensor(*a.T),
 		C.int64_t(splitSize),
 		C.int64_t(dim),
-		&ts,
+		&ts[0],
 		&cLength)))
 	return tensorListToSlice(ts, cLength)
 }
