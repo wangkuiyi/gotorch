@@ -45,6 +45,7 @@ const char *Tensor_Zeros(int8_t dtype, int64_t *sizes_data,
                          int64_t sizes_data_len, Tensor *result);
 const char *Tensor_IndexPut(Tensor input, int64_t index, Tensor source);
 const char *Tensor_IndexByTensors(Tensor input, Tensor *indexes, int64_t index_len, Tensor *result);
+const char *Tensor_Device(Tensor input, Device *device);
 ////////////////////////////////////////////////////////////////////////////////
 // Backward, Gradient
 ////////////////////////////////////////////////////////////////////////////////

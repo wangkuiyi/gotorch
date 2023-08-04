@@ -351,3 +351,9 @@ func (a Tensor) IndexByTensors(indexes []Tensor) Tensor {
 	SetTensorFinalizer((*unsafe.Pointer)(&t))
 	return Tensor{(*unsafe.Pointer)(&t)}
 }
+
+func (a Tensor) Device() Device {
+	var d C.Device
+	MustNil(unsafe.Pointer(C.Tensor_Device(C.Tensor(*a.T), &d)))
+	return Device{d}
+}

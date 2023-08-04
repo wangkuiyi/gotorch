@@ -353,3 +353,12 @@ const char *Tensor_IndexByTensors(Tensor input, Tensor *indexes, int64_t index_l
     return exception_str(e.what());
   }
 }
+
+const char *Tensor_Device(Tensor input, Device *device) {
+  try {
+    *device = new at::Device(input->device());
+    return nullptr;
+  } catch (const std::exception &e) {
+    return exception_str(e.what());
+  }
+}

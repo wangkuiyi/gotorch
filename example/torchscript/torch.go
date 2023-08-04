@@ -10,6 +10,7 @@ func testModel() {
 	model := jit.LoadJITModule("model.pt")
 	fmt.Println("Model loaded successfully!")
 	inputTensor := torch.RandN([]int64{1, 1, 240, 320}, false)
+	fmt.Println(inputTensor.Device())
 	fmt.Println("Input tensor created successfully!")
 	res := model.Forward(inputTensor)
 	fmt.Printf("res is tuple: %v\n", res.IsTuple())
