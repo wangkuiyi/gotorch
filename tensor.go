@@ -9,7 +9,6 @@ package gotorch
 import "C"
 
 import (
-	"fmt"
 	"log"
 	"unsafe"
 )
@@ -207,13 +206,13 @@ func tensorListToSlice(ts []C.Tensor, cLength C.int64_t) []Tensor {
 	if length == 0 {
 		return nil
 	}
-	results := make([]Tensor, length)
+	results := make([]Tensor, 0, length)
 	for i := int64(0); i < length; i++ {
-		results[i] = Tensor{
+		t2 := ts[i]
+		SetTensorFinalizer((*unsafe.Pointer)(&t2))
+		results = append(results, Tensor{
 			T: (*unsafe.Pointer)(&ts[i]),
-		}
-		// ToDo: need to fix finalizer for tensor list
-		//SetTensorFinalizer(results[i].T)
+		})
 	}
 	return results
 }
@@ -222,7 +221,6 @@ func tensorListToSlice(ts []C.Tensor, cLength C.int64_t) []Tensor {
 func (a Tensor) Split(splitSize int64, dim int64) []Tensor {
 	shapes := a.Shape()
 	resSize := (shapes[dim] + splitSize - 1) / splitSize
-	fmt.Println("resSize: ", resSize)
 	ts := make([]C.Tensor, resSize)
 	var cLength C.int64_t
 	MustNil(unsafe.Pointer(C.Tensor_Split(
