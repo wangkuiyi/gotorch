@@ -241,6 +241,15 @@ const char *Add_(Tensor a, Tensor other, float alpha, Tensor *result) {
   }
 }
 
+const char *Add_Scalar(Tensor a, float b, float alpha, Tensor *result) {
+  try {
+    *result = new at::Tensor(torch::add(*a, b, alpha));
+    return nullptr;
+  } catch (const std::exception &e) {
+    return exception_str(e.what());
+  }
+}
+
 const char *Sub(Tensor a, Tensor other, float alpha, Tensor *result) {
   try {
     *result = new at::Tensor(torch::sub(*a, *other, alpha));
@@ -253,6 +262,15 @@ const char *Sub(Tensor a, Tensor other, float alpha, Tensor *result) {
 const char *Sub_(Tensor a, Tensor other, float alpha, Tensor *result) {
   try {
     *result = new at::Tensor(a->sub_(*other, alpha));
+    return nullptr;
+  } catch (const std::exception &e) {
+    return exception_str(e.what());
+  }
+}
+
+const char *Sub_Scalar(Tensor a, float b, float alpha, Tensor *result) {
+  try {
+    *result = new at::Tensor(torch::sub(*a, b, alpha));
     return nullptr;
   } catch (const std::exception &e) {
     return exception_str(e.what());

@@ -29,6 +29,18 @@ func (a *Tensor) Add(other Tensor, alpha float32) Tensor {
 	return Add(*a, other, alpha)
 }
 
+// AddScalar torch.add
+func AddScalar(a Tensor, other float32, alpha float32) Tensor {
+	var t C.Tensor
+	MustNil(unsafe.Pointer(C.Add_Scalar(C.Tensor(*a.T), C.float(other), C.float(alpha), &t)))
+	SetTensorFinalizer((*unsafe.Pointer)(&t))
+	return Tensor{(*unsafe.Pointer)(&t)}
+}
+
+func (a *Tensor) AddScalar(other float32, alpha float32) Tensor {
+	return AddScalar(*a, other, alpha)
+}
+
 // AddI adds in-place
 func (a *Tensor) AddI(other Tensor, alpha float32) Tensor {
 	var t C.Tensor
@@ -53,6 +65,19 @@ func Sub(a, other Tensor, alpha float32) Tensor {
 // Sub torch.sub
 func (a *Tensor) Sub(other Tensor, alpha float32) Tensor {
 	return Sub(*a, other, alpha)
+}
+
+// SubScalar torch.sub
+func SubScalar(a Tensor, other float32, alpha float32) Tensor {
+	var t C.Tensor
+	MustNil(unsafe.Pointer(C.Sub_Scalar(C.Tensor(*a.T), C.float(other), C.float(alpha), &t)))
+	SetTensorFinalizer((*unsafe.Pointer)(&t))
+	return Tensor{(*unsafe.Pointer)(&t)}
+}
+
+// SubScalar torch.sub
+func (a *Tensor) SubScalar(other float32, alpha float32) Tensor {
+	return SubScalar(*a, other, alpha)
 }
 
 // SubI subs in-place
