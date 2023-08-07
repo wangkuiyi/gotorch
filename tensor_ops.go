@@ -346,6 +346,19 @@ func Stack(tensors []Tensor, dim int64) Tensor {
 	return Tensor{(*unsafe.Pointer)(&t)}
 }
 
+// Cat concatenates sequence of tensors along a given dimension
+func Cat(tensors []Tensor, dim int64) Tensor {
+	CT := make([]C.Tensor, 0, len(tensors))
+	for _, t := range tensors {
+		CT = append(CT, C.Tensor(*t.T))
+	}
+	p := (*C.Tensor)(unsafe.Pointer(&CT[0]))
+	var t C.Tensor
+	MustNil(unsafe.Pointer(C.Cat(p, C.int64_t(len(CT)), C.int64_t(dim), &t)))
+	SetTensorFinalizer((*unsafe.Pointer)(&t))
+	return Tensor{(*unsafe.Pointer)(&t)}
+}
+
 // Squeeze torch.squeeze
 func Squeeze(t Tensor, dim ...int64) Tensor {
 	return t.Squeeze(dim...)

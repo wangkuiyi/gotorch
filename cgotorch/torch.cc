@@ -465,3 +465,17 @@ const char *Argmax(Tensor a, int64_t *dim, int8_t keepdim, Tensor *result) {
     return exception_str(e.what());
   }
 }
+
+const char *Cat(Tensor *tensors, int64_t tensors_len, int64_t dim,
+                Tensor *result) {
+  try {
+    std::vector<at::Tensor> ts;
+    for (int64_t i = 0; i < tensors_len; i++) {
+      ts.push_back(*tensors[i]);
+    }
+    *result = new at::Tensor(torch::cat(ts, dim));
+    return nullptr;
+  } catch (const std::exception &e) {
+    return exception_str(e.what());
+  }
+}

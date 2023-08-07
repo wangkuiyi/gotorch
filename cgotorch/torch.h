@@ -77,6 +77,8 @@ const char *Argmax(Tensor a, int64_t *dim, int8_t keepdim, Tensor *result);
 const char *Mean(Tensor a, Tensor *result);
 const char *Stack(Tensor *tensors, int64_t tensors_size, int64_t dim,
                   Tensor *result);
+const char *Cat(Tensor *tensors, int64_t tensors_len, int64_t dim,
+                Tensor *result);
 #ifdef __cplusplus
 }
 #endif
